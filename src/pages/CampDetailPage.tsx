@@ -1,0 +1,665 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import {
+  MapPin,
+  Calendar,
+  Users,
+  Clock,
+  CheckCircle,
+  Info,
+  Shield,
+  AlertCircle,
+  Share2,
+  Heart,
+  ChevronLeft
+} from 'lucide-react';
+import { ImageGallery } from '../components/camps/ImageGallery';
+import { VideoGallery } from '../components/camps/VideoGallery';
+import { EnhancedBookingWidget } from '../components/camps/EnhancedBookingWidget';
+import { HostInformation } from '../components/camps/HostInformation';
+import { AmenitiesSection } from '../components/camps/AmenitiesSection';
+import { ReviewsSection } from '../components/camps/ReviewsSection';
+import { FAQSection } from '../components/camps/FAQSection';
+import { SocialProof } from '../components/urgency/SocialProof';
+import { CountdownTimer } from '../components/urgency/CountdownTimer';
+import type { Database } from '../lib/database.types';
+
+type Camp = Database['public']['Tables']['camps']['Row'];
+
+interface Organisation {
+  id: string;
+  name: string;
+  logo_url?: string;
+  about?: string;
+  verified: boolean;
+  response_rate: number;
+  response_time_hours: number;
+  total_camps_hosted: number;
+  established_year?: number;
+}
+
+interface EnquiryModalProps {
+  isOpen: boolean;
+  campName: string;
+  onClose: () => void;
+  onSubmit: (data: {
+    parent_name: string;
+    parent_email: string;
+    parent_phone: string;
+    subject: string;
+    message: string;
+  }) => Promise<void>;
+}
+
+function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps) {
+  const [formData, setFormData] = useState({
+    parent_name: '',
+    parent_email: '',
+    parent_phone: '',
+    subject: '',
+    message: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await onSubmit(formData);
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        setSuccess(false);
+        setFormData({
+          parent_name: '',
+          parent_email: '',
+          parent_phone: '',
+          subject: '',
+          message: '',
+        });
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting enquiry:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900">Ask about {campName}</h2>
+        </div>
+
+        {success ? (
+          <div className="p-8 text-center">
+            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Enquiry Sent!</h3>
+            <p className="text-gray-600">We'll get back to you soon.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.parent_name}
+                onChange={(e) => setFormData({ ...formData, parent_name: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+              <input
+                type="email"
+                required
+                value={formData.parent_email}
+                onChange={(e) => setFormData({ ...formData, parent_email: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <input
+                type="tel"
+                value={formData.parent_phone}
+                onChange={(e) => setFormData({ ...formData, parent_phone: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+              <input
+                type="text"
+                required
+                value={formData.subject}
+                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                placeholder="e.g., Question about dietary requirements"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+              <textarea
+                required
+                rows={4}
+                value={formData.message}
+                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                placeholder="Ask us anything about this camp..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+              >
+                {submitting ? 'Sending...' : 'Send Enquiry'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function CampDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [camp, setCamp] = useState<Camp | null>(null);
+  const [organisation, setOrganisation] = useState<Organisation | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [availablePlaces, setAvailablePlaces] = useState(0);
+  const [bookingsLast24h, setBookingsLast24h] = useState(0);
+  const [bookingsLastWeek, setBookingsLastWeek] = useState(0);
+  const [showEnquiryModal, setShowEnquiryModal] = useState(false);
+  const [stickyBar, setStickyBar] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [ratingsSummary, setRatingsSummary] = useState<any>(null);
+
+  useEffect(() => {
+    if (id) {
+      loadCampData();
+    }
+  }, [id]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setStickyBar(window.scrollY > 600);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  async function loadCampData() {
+    try {
+      const { data: campData, error: campError } = await supabase
+        .from('camps')
+        .select('*')
+        .eq('id', id)
+        .eq('status', 'published')
+        .maybeSingle();
+
+      if (campError) throw campError;
+      if (!campData) {
+        setLoading(false);
+        return;
+      }
+
+      setCamp(campData);
+
+      const enrolledCount = (campData as any).enrolled_count || 0;
+      setAvailablePlaces(campData.capacity - enrolledCount);
+
+      const { data: orgData } = await supabase
+        .from('organisations')
+        .select('*')
+        .eq('id', (campData as any).organisation_id)
+        .maybeSingle();
+
+      if (orgData) {
+        setOrganisation(orgData as any);
+      }
+
+      const { data: analyticsData } = await supabase
+        .from('camp_analytics')
+        .select('bookings_last_24h, bookings_last_week')
+        .eq('camp_id', id)
+        .maybeSingle();
+
+      if (analyticsData) {
+        setBookingsLast24h(analyticsData.bookings_last_24h || 0);
+        setBookingsLastWeek(analyticsData.bookings_last_week || 0);
+      }
+
+      const { data: feedbackData } = await supabase
+        .from('feedback')
+        .select('*')
+        .eq('camp_id', id)
+        .order('submitted_at', { ascending: false });
+
+      if (feedbackData && feedbackData.length > 0) {
+        setReviews(feedbackData.map(f => ({
+          ...f,
+          helpful_count: (f as any).helpful_count || 0,
+          verified_booking: (f as any).verified_booking ?? true,
+        })));
+
+        const avgOverall = feedbackData.reduce((sum, f) => sum + f.overall_rating, 0) / feedbackData.length;
+        const avgStaff = feedbackData.reduce((sum, f) => sum + (f.staff_rating || 0), 0) / feedbackData.length;
+        const avgActivities = feedbackData.reduce((sum, f) => sum + (f.activities_rating || 0), 0) / feedbackData.length;
+        const avgFacilities = feedbackData.reduce((sum, f) => sum + (f.facilities_rating || 0), 0) / feedbackData.length;
+        const avgValue = feedbackData.reduce((sum, f) => sum + (f.value_rating || 0), 0) / feedbackData.length;
+
+        const starDist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        feedbackData.forEach(f => {
+          const rating = f.overall_rating as keyof typeof starDist;
+          if (rating >= 1 && rating <= 5) {
+            starDist[rating]++;
+          }
+        });
+
+        const recommendCount = feedbackData.filter(f => f.would_recommend).length;
+        const recommendPct = (recommendCount / feedbackData.length) * 100;
+
+        setRatingsSummary({
+          average: avgOverall,
+          total: feedbackData.length,
+          breakdown: {
+            overall: avgOverall,
+            staff: avgStaff,
+            activities: avgActivities,
+            facilities: avgFacilities,
+            value: avgValue,
+          },
+          distribution: starDist,
+          recommendPercentage: Math.round(recommendPct),
+        });
+      }
+    } catch (error) {
+      console.error('Error loading camp data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleEnquirySubmit = async (data: any) => {
+    if (!camp) return;
+
+    await supabase.from('enquiries').insert({
+      camp_id: camp.id,
+      parent_name: data.parent_name,
+      parent_email: data.parent_email,
+      parent_phone: data.parent_phone || null,
+      subject: data.subject,
+      message: data.message,
+    });
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading camp details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!camp) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Camp Not Found</h2>
+          <p className="text-gray-600 mb-6">This camp may not exist or is no longer available.</p>
+          <Link
+            to="/camps"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Browse All Camps
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const availabilityStatus = availablePlaces <= 0 ? 'full' : availablePlaces <= 5 ? 'limited' : 'available';
+  const earlyBirdActive = camp.early_bird_price && camp.early_bird_deadline && new Date(camp.early_bird_deadline) > new Date();
+
+  const images = [
+    camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg',
+    ...(Array.isArray((camp as any).gallery_urls) ? (camp as any).gallery_urls : [])
+  ].filter(Boolean).slice(0, 10);
+
+  const videoData = [];
+  if ((camp as any).video_url) {
+    videoData.push({
+      url: (camp as any).video_url,
+      title: 'Camp Introduction',
+      type: 'youtube' as const
+    });
+  }
+  if (Array.isArray((camp as any).video_urls)) {
+    videoData.push(...(camp as any).video_urls.map((url: string, idx: number) => ({
+      url,
+      title: `Camp Video ${idx + 2}`,
+      type: 'youtube' as const
+    })));
+  }
+  if (Array.isArray((camp as any).video_metadata)) {
+    const metadataVideos = (camp as any).video_metadata.map((meta: any) => ({
+      url: meta.url,
+      title: meta.title,
+      description: meta.description,
+      thumbnail: meta.thumbnail_url,
+      type: meta.video_type || 'youtube'
+    }));
+    videoData.push(...metadataVideos);
+  }
+
+  const highlights = Array.isArray((camp as any).highlights) ? (camp as any).highlights : [];
+  const amenities = Array.isArray((camp as any).amenities) ? (camp as any).amenities : [];
+  const faqs = Array.isArray((camp as any).faqs) ? (camp as any).faqs : [];
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {stickyBar && availabilityStatus !== 'full' && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-gray-200 py-3 animate-slide-down">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-bold text-gray-900 truncate">{camp.name}</h2>
+              {ratingsSummary && (
+                <span className="text-sm text-gray-600">⭐ {ratingsSummary.average.toFixed(1)}</span>
+              )}
+            </div>
+            <Link
+              to={`/camps/${camp.id}/register`}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            >
+              Reserve Now
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <Link
+          to="/camps"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
+        >
+          <ChevronLeft className="w-5 h-5" />
+          <span>Back to all camps</span>
+        </Link>
+
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{camp.name}</h1>
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              {ratingsSummary && (
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold">⭐ {ratingsSummary.average.toFixed(1)}</span>
+                  <span className="text-gray-600">({ratingsSummary.total} reviews)</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1 text-gray-600">
+                <MapPin className="w-4 h-4" />
+                <span>{camp.location}</span>
+              </div>
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium uppercase">
+                {camp.category}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300">
+              <Share2 className="w-5 h-5 text-gray-600" />
+            </button>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300">
+              <Heart className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+        </div>
+
+        <ImageGallery images={images} campName={camp.name} />
+
+        {videoData.length > 0 && (
+          <div className="mt-6">
+            <VideoGallery videos={videoData} campName={camp.name} />
+          </div>
+        )}
+
+        <div className="grid lg:grid-cols-3 gap-8 mt-8">
+          <div className="lg:col-span-2 space-y-8">
+            {highlights.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Camp Highlights</h2>
+                <ul className="space-y-3">
+                  {highlights.map((highlight: string, index: number) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700">{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {earlyBirdActive && camp.early_bird_deadline && (
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-2xl shadow-xl">
+                <h3 className="text-2xl font-bold mb-3">Early Bird Special!</h3>
+                <CountdownTimer targetDate={camp.early_bird_deadline} label="Offer expires in" size="lg" />
+              </div>
+            )}
+
+            {(bookingsLast24h > 0 || bookingsLastWeek > 0) && (
+              <SocialProof
+                bookingsLast24h={bookingsLast24h}
+                bookingsLastWeek={bookingsLastWeek}
+                showViewers={false}
+              />
+            )}
+
+            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Camp</h2>
+              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {camp.description || 'No description available.'}
+              </p>
+            </div>
+
+            {ratingsSummary && reviews.length > 0 && (
+              <ReviewsSection
+                campId={camp.id}
+                averageRating={ratingsSummary.average}
+                totalReviews={ratingsSummary.total}
+                ratingBreakdown={ratingsSummary.breakdown}
+                starDistribution={ratingsSummary.distribution}
+                reviews={reviews}
+                recommendPercentage={ratingsSummary.recommendPercentage}
+              />
+            )}
+
+            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Camp Details</h2>
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Calendar className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Dates</p>
+                    <p className="text-gray-900 font-medium">{formatDate(camp.start_date)}</p>
+                    <p className="text-gray-600 text-sm">to {formatDate(camp.end_date)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Users className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Age Range</p>
+                    <p className="text-gray-900 font-medium">
+                      {camp.age_min} - {camp.age_max} years old
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-yellow-100 rounded-lg">
+                    <Clock className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Duration</p>
+                    <p className="text-gray-900 font-medium">
+                      {Math.ceil(
+                        (new Date(camp.end_date).getTime() - new Date(camp.start_date).getTime()) /
+                          (1000 * 60 * 60 * 24)
+                      )}{' '}
+                      days
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-red-100 rounded-lg">
+                    <Users className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Availability</p>
+                    <p className="text-gray-900 font-medium">
+                      {availablePlaces} of {camp.capacity} spots available
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {amenities.length > 0 && <AmenitiesSection amenities={amenities} />}
+
+            {camp.what_to_bring && (
+              <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">What to Bring</h2>
+                <p className="text-gray-700 whitespace-pre-line leading-relaxed">{camp.what_to_bring}</p>
+              </div>
+            )}
+
+            {camp.requirements && (
+              <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Requirements</h2>
+                <p className="text-gray-700 whitespace-pre-line leading-relaxed">{camp.requirements}</p>
+              </div>
+            )}
+
+            {((camp as any).safety_protocols || (camp as any).insurance_info) && (
+              <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <Shield className="w-7 h-7 text-green-600" />
+                  <h2 className="text-2xl font-bold text-gray-900">Safety & Insurance</h2>
+                </div>
+                {(camp as any).safety_protocols && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-900 mb-2">Safety Protocols</h3>
+                    <p className="text-gray-700 leading-relaxed">{(camp as any).safety_protocols}</p>
+                  </div>
+                )}
+                {(camp as any).insurance_info && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Insurance Information</h3>
+                    <p className="text-gray-700 leading-relaxed">{(camp as any).insurance_info}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {((camp as any).cancellation_policy || (camp as any).refund_policy) && (
+              <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <Info className="w-7 h-7 text-blue-600" />
+                  <h2 className="text-2xl font-bold text-gray-900">Cancellation & Refund Policy</h2>
+                </div>
+                {(camp as any).cancellation_policy && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-900 mb-2">Cancellation Policy</h3>
+                    <p className="text-gray-700 leading-relaxed">{(camp as any).cancellation_policy}</p>
+                  </div>
+                )}
+                {(camp as any).refund_policy && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Refund Policy</h3>
+                    <p className="text-gray-700 leading-relaxed">{(camp as any).refund_policy}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {organisation && (
+              <HostInformation
+                organisation={organisation}
+                onContactClick={() => setShowEnquiryModal(true)}
+              />
+            )}
+
+            {faqs.length > 0 && <FAQSection faqs={faqs} />}
+          </div>
+
+          <div className="lg:col-span-1">
+            <EnhancedBookingWidget
+              campId={camp.id}
+              price={camp.price}
+              currency={camp.currency}
+              earlyBirdPrice={camp.early_bird_price || undefined}
+              earlyBirdDeadline={camp.early_bird_deadline || undefined}
+              availablePlaces={availablePlaces}
+              capacity={camp.capacity}
+              startDate={camp.start_date}
+              endDate={camp.end_date}
+              averageRating={ratingsSummary?.average}
+              totalReviews={ratingsSummary?.total}
+              cancellationPolicy={(camp as any).cancellation_policy}
+              onEnquiryClick={() => setShowEnquiryModal(true)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <EnquiryModal
+        isOpen={showEnquiryModal}
+        campName={camp.name}
+        onClose={() => setShowEnquiryModal(false)}
+        onSubmit={handleEnquirySubmit}
+      />
+    </div>
+  );
+}
