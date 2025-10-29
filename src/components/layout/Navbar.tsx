@@ -76,12 +76,6 @@ export function Navbar() {
               >
                 Browse Camps
               </Link>
-              <Link
-                to="/safety"
-                className="text-gray-700 hover:text-gray-900 px-1 text-sm xl:text-base font-medium transition-colors whitespace-nowrap"
-              >
-                Safety & Trust
-              </Link>
               {user && profile?.role === 'parent' && (
                 <Link
                   to="/dashboard"
@@ -226,13 +220,6 @@ export function Navbar() {
               className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
             >
               Browse Camps
-            </Link>
-            <Link
-              to="/safety"
-              onClick={closeMobileMenu}
-              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
-            >
-              Safety & Trust
             </Link>
 
             {user && profile?.role === 'parent' && (
