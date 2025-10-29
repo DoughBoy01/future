@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { AuthPage } from './pages/AuthPage';
 import { CampsPage } from './pages/CampsPage';
 import { CampDetailPage } from './pages/CampDetailPage';
+import { PartnersPage } from './pages/PartnersPage';
 import { CampRegistrationPage } from './pages/CampRegistrationPage';
 import { PaymentSuccessPage } from './pages/PaymentSuccessPage';
 import { RegistrationChildDetailsPage } from './pages/RegistrationChildDetailsPage';
@@ -52,6 +53,7 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/camps" element={<CampsPage />} />
         <Route path="/camps/:id" element={<CampDetailPage />} />
+        <Route path="/partners" element={<PartnersPage />} />
         <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
         <Route
           path="/payment-success"
