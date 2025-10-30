@@ -48,41 +48,38 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 lg:h-20">
+    <>
+      {/* Skip to Content Link for Accessibility */}
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
+
+      <nav className="bg-white shadow-sm sticky top-0 z-50" role="navigation" aria-label="Main navigation">
+        <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 lg:h-20">
           <div className="flex items-center flex-1">
             <Link to="/" className="flex items-center space-x-2 mr-4 lg:mr-0">
-              {siteLogo ? (
-                <img
-                  src={siteLogo}
-                  alt="FutureEdge"
-                  className="h-8 lg:h-12 w-auto object-contain"
-                />
-              ) : (
-                <>
-                  <div className="bg-black p-1.5 lg:p-2 rounded-lg">
-                    <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
-                  </div>
-                  <span className="text-lg lg:text-xl font-bold text-gray-900">FutureEdge</span>
-                </>
-              )}
+              <img
+                src={siteLogo || "/logo.png"}
+                alt="FutureEdge"
+                className="h-6 lg:h-8 w-auto object-contain"
+              />
             </Link>
 
             <div className="hidden lg:ml-12 lg:flex lg:space-x-4 xl:space-x-8">
               <Link
                 to="/camps"
-                className="text-gray-700 hover:text-gray-900 px-1 text-sm xl:text-base font-medium transition-colors whitespace-nowrap"
+                className="text-airbnb-grey-700 hover:text-airbnb-grey-900 px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
               >
                 Browse Camps
               </Link>
               {user && profile?.role === 'parent' && (
                 <Link
                   to="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
                     isActive('/dashboard')
-                      ? 'text-blue-600 border-b-2 border-blue-600'
-                      : 'text-gray-700 hover:text-blue-600'
+                      ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
+                      : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
                   }`}
                 >
                   My Dashboard
@@ -92,36 +89,36 @@ export function Navbar() {
                 <>
                   <Link
                     to="/admin/dashboard"
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
                       location.pathname.startsWith('/admin/dashboard')
-                        ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-700 hover:text-blue-600'
+                        ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
+                        : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
                     }`}
                   >
-                    <LayoutDashboard className="w-4 h-4 mr-1" />
+                    <LayoutDashboard className="w-4 h-4 mr-1" aria-hidden="true" />
                     Admin Dashboard
                   </Link>
                   <Link
                     to="/admin/approvals"
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
                       isActive('/admin/approvals')
-                        ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-700 hover:text-blue-600'
+                        ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
+                        : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
                     }`}
                   >
-                    <CheckCircle className="w-4 h-4 mr-1" />
+                    <CheckCircle className="w-4 h-4 mr-1" aria-hidden="true" />
                     Approvals
                   </Link>
                   {['school_admin', 'super_admin'].includes(profile?.role || '') && (
                     <Link
                       to="/admin/roles"
-                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
+                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
                         isActive('/admin/roles')
-                          ? 'text-blue-600 border-b-2 border-blue-600'
-                          : 'text-gray-700 hover:text-blue-600'
+                          ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
+                          : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
                       }`}
                     >
-                      <Shield className="w-4 h-4 mr-1" />
+                      <Shield className="w-4 h-4 mr-1" aria-hidden="true" />
                       Roles
                     </Link>
                   )}
@@ -131,8 +128,11 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center space-x-2 lg:space-x-4">
-            <button className="hidden sm:flex items-center space-x-2 text-gray-700 hover:text-gray-900 px-2 lg:px-3 py-2 rounded-lg text-sm font-medium transition-colors">
-              <Globe className="w-4 lg:w-5 h-4 lg:h-5" />
+            <button
+              className="hidden sm:flex items-center space-x-2 text-airbnb-grey-700 hover:text-airbnb-grey-900 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-standard"
+              aria-label="Change language"
+            >
+              <Globe className="w-4 lg:w-5 h-4 lg:h-5" aria-hidden="true" />
               <span className="hidden md:inline">English</span>
             </button>
 
@@ -140,13 +140,13 @@ export function Navbar() {
               <>
                 <Link
                   to="/auth"
-                  className="hidden sm:block text-gray-900 hover:text-gray-700 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transition-colors"
+                  className="hidden sm:block text-airbnb-grey-900 hover:text-airbnb-grey-700 px-3 lg:px-4 py-2 rounded-md text-sm lg:text-base font-medium transition-standard"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/auth?mode=signup"
-                  className="hidden sm:block bg-orange-400 text-white px-4 lg:px-6 py-2 lg:py-2.5 rounded-full text-sm lg:text-base font-medium hover:bg-orange-500 transition-colors"
+                  className="hidden sm:block bg-airbnb-grey-100 text-airbnb-grey-700 px-6 py-3 rounded-md text-sm lg:text-base font-medium hover:bg-airbnb-grey-200 hover:text-airbnb-grey-900 transition-standard border border-airbnb-grey-300"
                 >
                   Partners
                 </Link>
@@ -155,10 +155,13 @@ export function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                  className="flex items-center space-x-2 text-airbnb-grey-700 hover:text-airbnb-pink-500 transition-standard"
+                  aria-label="User menu"
+                  aria-expanded={dropdownOpen}
+                  aria-haspopup="true"
                 >
-                  <div className="w-7 lg:w-8 h-7 lg:h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="w-4 lg:w-5 h-4 lg:h-5 text-blue-600" />
+                  <div className="w-7 lg:w-8 h-7 lg:h-8 bg-airbnb-pink-50 rounded-full flex items-center justify-center">
+                    <User className="w-4 lg:w-5 h-4 lg:h-5 text-airbnb-pink-500" aria-hidden="true" />
                   </div>
                   <span className="text-sm font-medium hidden md:block">
                     {profile?.first_name || 'User'}
@@ -171,26 +174,26 @@ export function Navbar() {
                       className="fixed inset-0 z-10"
                       onClick={() => setDropdownOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20 border border-gray-200">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="text-sm font-medium text-gray-900">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20 border border-airbnb-grey-300">
+                      <div className="px-4 py-2 border-b border-airbnb-grey-300">
+                        <p className="text-sm font-medium text-airbnb-grey-900">
                           {profile?.first_name} {profile?.last_name}
                         </p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="text-xs text-airbnb-grey-500">{user.email}</p>
                       </div>
                       <Link
                         to="/profile"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="flex items-center px-4 py-2 text-sm text-airbnb-grey-700 hover:bg-airbnb-grey-50 transition-fast"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <Settings className="w-4 h-4 mr-2" />
+                        <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
                         Settings
                       </Link>
                       <button
                         onClick={handleSignOut}
-                        className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-airbnb-pink-600 hover:bg-airbnb-pink-50 transition-fast"
                       >
-                        <LogOut className="w-4 h-4 mr-2" />
+                        <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
                         Sign Out
                       </button>
                     </div>
@@ -201,23 +204,25 @@ export function Navbar() {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden ml-2 p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+              className="lg:hidden ml-2 p-2 rounded-md text-airbnb-grey-700 hover:bg-airbnb-grey-50 transition-fast"
+              aria-label="Toggle mobile menu"
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <X className="w-6 h-6" aria-hidden="true" />
               ) : (
-                <Menu className="w-6 h-6" />
+                <Menu className="w-6 h-6" aria-hidden="true" />
               )}
             </button>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4 space-y-2">
+          <div className="lg:hidden border-t border-airbnb-grey-300 py-4 space-y-2">
             <Link
               to="/camps"
               onClick={closeMobileMenu}
-              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+              className="block px-4 py-2 text-base font-medium text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900 rounded-md transition-fast"
             >
               Browse Camps
             </Link>
@@ -226,10 +231,10 @@ export function Navbar() {
               <Link
                 to="/dashboard"
                 onClick={closeMobileMenu}
-                className={`block px-4 py-2 text-base font-medium rounded-lg transition-colors ${
+                className={`block px-4 py-2 text-base font-medium rounded-md transition-fast ${
                   isActive('/dashboard')
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
+                    : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
                 }`}
               >
                 My Dashboard
@@ -241,10 +246,10 @@ export function Navbar() {
                 <Link
                   to="/admin/dashboard"
                   onClick={closeMobileMenu}
-                  className={`flex items-center px-4 py-2 text-base font-medium rounded-lg transition-colors ${
+                  className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
                     location.pathname.startsWith('/admin/dashboard')
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
+                      : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
                   }`}
                 >
                   <LayoutDashboard className="w-5 h-5 mr-2" />
@@ -253,10 +258,10 @@ export function Navbar() {
                 <Link
                   to="/admin/approvals"
                   onClick={closeMobileMenu}
-                  className={`flex items-center px-4 py-2 text-base font-medium rounded-lg transition-colors ${
+                  className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
                     isActive('/admin/approvals')
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
+                      : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
                   }`}
                 >
                   <CheckCircle className="w-5 h-5 mr-2" />
@@ -266,10 +271,10 @@ export function Navbar() {
                   <Link
                     to="/admin/roles"
                     onClick={closeMobileMenu}
-                    className={`flex items-center px-4 py-2 text-base font-medium rounded-lg transition-colors ${
+                    className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
                       isActive('/admin/roles')
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                        ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
+                        : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
                     }`}
                   >
                     <Shield className="w-5 h-5 mr-2" />
@@ -279,20 +284,20 @@ export function Navbar() {
               </>
             )}
 
-            <div className="pt-4 border-t border-gray-200 mt-4">
+            <div className="pt-4 border-t border-airbnb-grey-300 mt-4">
               {!user ? (
                 <>
                   <Link
                     to="/auth"
                     onClick={closeMobileMenu}
-                    className="block px-4 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="block px-4 py-2 text-base font-medium text-airbnb-grey-900 hover:bg-airbnb-grey-50 rounded-md transition-fast"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/auth?mode=signup"
                     onClick={closeMobileMenu}
-                    className="block px-4 py-2 mt-2 text-base font-medium text-white bg-orange-400 hover:bg-orange-500 rounded-lg transition-colors text-center"
+                    className="block px-4 py-2 mt-2 text-base font-medium text-airbnb-grey-700 bg-airbnb-grey-100 hover:bg-airbnb-grey-200 hover:text-airbnb-grey-900 rounded-md transition-fast text-center border border-airbnb-grey-300"
                   >
                     Partners
                   </Link>
@@ -300,9 +305,9 @@ export function Navbar() {
               ) : (
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center w-full px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="flex items-center w-full px-4 py-2 text-base font-medium text-airbnb-pink-600 hover:bg-airbnb-pink-50 rounded-md transition-fast"
                 >
-                  <LogOut className="w-5 h-5 mr-2" />
+                  <LogOut className="w-5 h-5 mr-2" aria-hidden="true" />
                   Sign Out
                 </button>
               )}
@@ -311,5 +316,6 @@ export function Navbar() {
         )}
       </div>
     </nav>
+    </>
   );
 }

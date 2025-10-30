@@ -11,68 +11,69 @@ interface CategoryCardProps {
   colorTheme: string;
 }
 
+// Airbnb-inspired monochromatic pink theme with subtle variations
 const colorMap: Record<string, { bg: string; hover: string; border: string; text: string; icon: string }> = {
   blue: {
-    bg: 'bg-blue-50',
-    hover: 'hover:bg-blue-100',
-    border: 'border-blue-200',
-    text: 'text-blue-900',
-    icon: 'text-blue-600'
+    bg: 'bg-airbnb-grey-50',
+    hover: 'hover:bg-airbnb-pink-50',
+    border: 'border-airbnb-grey-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-500'
   },
   indigo: {
-    bg: 'bg-sky-50',
-    hover: 'hover:bg-sky-100',
-    border: 'border-sky-200',
-    text: 'text-sky-900',
-    icon: 'text-sky-600'
+    bg: 'bg-airbnb-grey-50',
+    hover: 'hover:bg-airbnb-pink-50',
+    border: 'border-airbnb-grey-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-600'
   },
   green: {
-    bg: 'bg-green-50',
-    hover: 'hover:bg-green-100',
-    border: 'border-green-200',
-    text: 'text-green-900',
-    icon: 'text-green-600'
+    bg: 'bg-airbnb-grey-50',
+    hover: 'hover:bg-airbnb-pink-50',
+    border: 'border-airbnb-grey-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-500'
   },
   pink: {
-    bg: 'bg-pink-50',
-    hover: 'hover:bg-pink-100',
-    border: 'border-pink-200',
-    text: 'text-pink-900',
-    icon: 'text-pink-600'
+    bg: 'bg-airbnb-pink-50',
+    hover: 'hover:bg-airbnb-pink-100',
+    border: 'border-airbnb-pink-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-600'
   },
   orange: {
-    bg: 'bg-orange-50',
-    hover: 'hover:bg-orange-100',
-    border: 'border-orange-200',
-    text: 'text-orange-900',
-    icon: 'text-orange-600'
+    bg: 'bg-airbnb-grey-50',
+    hover: 'hover:bg-airbnb-pink-50',
+    border: 'border-airbnb-grey-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-500'
   },
   purple: {
-    bg: 'bg-violet-50',
-    hover: 'hover:bg-violet-100',
-    border: 'border-violet-200',
-    text: 'text-violet-900',
-    icon: 'text-violet-600'
+    bg: 'bg-airbnb-grey-50',
+    hover: 'hover:bg-airbnb-pink-50',
+    border: 'border-airbnb-grey-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-600'
   },
   teal: {
-    bg: 'bg-teal-50',
-    hover: 'hover:bg-teal-100',
-    border: 'border-teal-200',
-    text: 'text-teal-900',
-    icon: 'text-teal-600'
+    bg: 'bg-airbnb-grey-50',
+    hover: 'hover:bg-airbnb-pink-50',
+    border: 'border-airbnb-grey-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-500'
   },
   amber: {
-    bg: 'bg-amber-50',
-    hover: 'hover:bg-amber-100',
-    border: 'border-amber-200',
-    text: 'text-amber-900',
-    icon: 'text-amber-600'
+    bg: 'bg-airbnb-grey-50',
+    hover: 'hover:bg-airbnb-pink-50',
+    border: 'border-airbnb-grey-200',
+    text: 'text-airbnb-grey-900',
+    icon: 'text-airbnb-pink-500'
   }
 };
 
 export function CategoryCard({ name, slug, description, iconName, colorTheme }: CategoryCardProps) {
   const navigate = useNavigate();
-  const colors = colorMap[colorTheme] || colorMap.blue;
+  const colors = colorMap[colorTheme] || colorMap.pink;
   const [isHovered, setIsHovered] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLButtonElement>(null);
@@ -99,7 +100,8 @@ export function CategoryCard({ name, slug, description, iconName, colorTheme }: 
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onMouseMove={handleMouseMove}
-      className={`group relative overflow-hidden rounded-2xl border-2 ${colors.border} ${colors.bg} ${colors.hover} p-6 sm:p-8 transition-all duration-500 text-left w-full ${isHovered ? 'shadow-2xl scale-110 -translate-y-1' : 'shadow-lg scale-100 translate-y-0'}`}
+      className={`group relative overflow-hidden rounded-lg border-2 ${colors.border} ${colors.bg} ${colors.hover} p-6 sm:p-8 transition-airbnb text-left w-full ${isHovered ? 'shadow-xl scale-[1.02] -translate-y-1' : 'shadow-md scale-100 translate-y-0'}`}
+      aria-label={`Browse ${name} camps`}
       style={{
         transformStyle: 'preserve-3d',
         perspective: '1000px',

@@ -12,10 +12,11 @@ import {
   AlertCircle,
   Share2,
   Heart,
-  ChevronLeft
+  ChevronLeft,
+  X
 } from 'lucide-react';
 import { ImageGallery } from '../components/camps/ImageGallery';
-import { VideoGallery } from '../components/camps/VideoGallery';
+import { VideoPlayer } from '../components/camps/VideoPlayer';
 import { EnhancedBookingWidget } from '../components/camps/EnhancedBookingWidget';
 import { HostInformation } from '../components/camps/HostInformation';
 import { AmenitiesSection } from '../components/camps/AmenitiesSection';
@@ -98,7 +99,7 @@ function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps
 
         {success ? (
           <div className="p-8 text-center">
-            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <CheckCircle className="w-16 h-16 text-airbnb-pink-500 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Enquiry Sent!</h3>
             <p className="text-gray-600">We'll get back to you soon.</p>
           </div>
@@ -171,7 +172,7 @@ function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-airbnb-pink-500 text-white rounded-md font-medium hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb disabled:opacity-50 shadow-sm hover:shadow-md"
               >
                 {submitting ? 'Sending...' : 'Send Enquiry'}
               </button>
@@ -195,6 +196,8 @@ export function CampDetailPage() {
   const [stickyBar, setStickyBar] = useState(false);
   const [reviews, setReviews] = useState<any[]>([]);
   const [ratingsSummary, setRatingsSummary] = useState<any>(null);
+  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -345,7 +348,7 @@ export function CampDetailPage() {
           <p className="text-gray-600 mb-6">This camp may not exist or is no longer available.</p>
           <Link
             to="/camps"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb shadow-sm hover:shadow-md"
           >
             Browse All Camps
           </Link>
@@ -362,11 +365,28 @@ export function CampDetailPage() {
     ...(Array.isArray((camp as any).gallery_urls) ? (camp as any).gallery_urls : [])
   ].filter(Boolean).slice(0, 10);
 
+  const extractYouTubeThumbnail = (url: string): string | undefined => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s?]+)/,
+      /youtube\.com\/embed\/([^&\s?]+)/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
+      }
+    }
+    return undefined;
+  };
+
   const videoData = [];
   if ((camp as any).video_url) {
+    const url = (camp as any).video_url;
     videoData.push({
-      url: (camp as any).video_url,
+      url,
       title: 'Camp Introduction',
+      thumbnail: extractYouTubeThumbnail(url),
       type: 'youtube' as const
     });
   }
@@ -374,6 +394,7 @@ export function CampDetailPage() {
     videoData.push(...(camp as any).video_urls.map((url: string, idx: number) => ({
       url,
       title: `Camp Video ${idx + 2}`,
+      thumbnail: extractYouTubeThumbnail(url),
       type: 'youtube' as const
     })));
   }
@@ -382,7 +403,7 @@ export function CampDetailPage() {
       url: meta.url,
       title: meta.title,
       description: meta.description,
-      thumbnail: meta.thumbnail_url,
+      thumbnail: meta.thumbnail_url || extractYouTubeThumbnail(meta.url),
       type: meta.video_type || 'youtube'
     }));
     videoData.push(...metadataVideos);
@@ -405,7 +426,7 @@ export function CampDetailPage() {
             </div>
             <Link
               to={`/camps/${camp.id}/register`}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              className="px-6 py-2 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb font-semibold shadow-sm hover:shadow-md"
             >
               Reserve Now
             </Link>
@@ -436,7 +457,7 @@ export function CampDetailPage() {
                 <MapPin className="w-4 h-4" />
                 <span>{camp.location}</span>
               </div>
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium uppercase">
+              <span className="px-3 py-1 bg-airbnb-pink-50 text-airbnb-pink-700 rounded-full text-xs font-medium uppercase">
                 {camp.category}
               </span>
             </div>
@@ -452,13 +473,15 @@ export function CampDetailPage() {
           </div>
         </div>
 
-        <ImageGallery images={images} campName={camp.name} />
-
-        {videoData.length > 0 && (
-          <div className="mt-6">
-            <VideoGallery videos={videoData} campName={camp.name} />
-          </div>
-        )}
+        <ImageGallery
+          images={images}
+          videos={videoData}
+          campName={camp.name}
+          onVideoClick={(videoIndex) => {
+            setSelectedVideoIndex(videoIndex);
+            setIsVideoModalOpen(true);
+          }}
+        />
 
         <div className="grid lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-2 space-y-8">
@@ -468,7 +491,7 @@ export function CampDetailPage() {
                 <ul className="space-y-3">
                   {highlights.map((highlight: string, index: number) => (
                     <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-6 h-6 text-airbnb-pink-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span className="text-gray-700">{highlight}</span>
                     </li>
                   ))}
@@ -514,8 +537,8 @@ export function CampDetailPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Camp Details</h2>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+                  <div className="p-3 bg-airbnb-pink-50 rounded-md">
+                    <Calendar className="w-6 h-6 text-airbnb-pink-500" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">Dates</p>
@@ -525,8 +548,8 @@ export function CampDetailPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <Users className="w-6 h-6 text-green-600" />
+                  <div className="p-3 bg-airbnb-grey-100 rounded-md">
+                    <Users className="w-6 h-6 text-airbnb-grey-700" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">Age Range</p>
@@ -585,7 +608,7 @@ export function CampDetailPage() {
             {((camp as any).safety_protocols || (camp as any).insurance_info) && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <Shield className="w-7 h-7 text-green-600" />
+                  <Shield className="w-7 h-7 text-airbnb-pink-500" aria-hidden="true" />
                   <h2 className="text-2xl font-bold text-gray-900">Safety & Insurance</h2>
                 </div>
                 {(camp as any).safety_protocols && (
@@ -606,7 +629,7 @@ export function CampDetailPage() {
             {((camp as any).cancellation_policy || (camp as any).refund_policy) && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <Info className="w-7 h-7 text-blue-600" />
+                  <Info className="w-7 h-7 text-airbnb-grey-700" aria-hidden="true" />
                   <h2 className="text-2xl font-bold text-gray-900">Cancellation & Refund Policy</h2>
                 </div>
                 {(camp as any).cancellation_policy && (
@@ -660,6 +683,47 @@ export function CampDetailPage() {
         onClose={() => setShowEnquiryModal(false)}
         onSubmit={handleEnquirySubmit}
       />
+
+      {isVideoModalOpen && selectedVideoIndex !== null && videoData[selectedVideoIndex] && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
+          onClick={() => setIsVideoModalOpen(false)}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsVideoModalOpen(false);
+            }}
+            className="absolute top-4 right-4 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors z-10"
+            aria-label="Close video"
+          >
+            <X className="w-8 h-8" />
+          </button>
+
+          <div
+            className="relative w-full max-w-6xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <VideoPlayer
+              url={videoData[selectedVideoIndex].url}
+              title={videoData[selectedVideoIndex].title}
+              thumbnail={videoData[selectedVideoIndex].thumbnail}
+              autoplay={true}
+              className="w-full shadow-2xl"
+            />
+            {(videoData[selectedVideoIndex].title || videoData[selectedVideoIndex].description) && (
+              <div className="mt-4 text-white">
+                {videoData[selectedVideoIndex].title && (
+                  <h3 className="text-xl font-bold mb-2">{videoData[selectedVideoIndex].title}</h3>
+                )}
+                {videoData[selectedVideoIndex].description && (
+                  <p className="text-gray-300">{videoData[selectedVideoIndex].description}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

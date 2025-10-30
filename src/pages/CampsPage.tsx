@@ -107,21 +107,21 @@ export function CampsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-airbnb-grey-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading camps...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-airbnb-pink-500 mx-auto mb-4"></div>
+          <p className="text-airbnb-grey-600">Loading camps...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-8 sm:py-10 md:py-12">
+    <div className="min-h-screen bg-airbnb-grey-50">
+      <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white py-8 sm:py-10 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Explore Activity Camps</h1>
-          <p className="text-base sm:text-lg md:text-xl text-blue-100">
+          <p className="text-base sm:text-lg md:text-xl text-white/90">
             Find the perfect camp experience for your child from {camps.length} available options
           </p>
         </div>
@@ -132,7 +132,7 @@ export function CampsPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">
                   <Search className="w-4 h-4 inline mr-1" />
                   Search Camps
                 </label>
@@ -141,12 +141,12 @@ export function CampsPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search by name or description..."
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">
                   Child's Age
                 </label>
                 <input
@@ -156,21 +156,21 @@ export function CampsPage() {
                   placeholder="Enter age..."
                   min="5"
                   max="18"
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
                 />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-airbnb-grey-700">
                   <Filter className="w-4 h-4 inline mr-1" />
                   Categories
                 </label>
                 {selectedCategories.length > 0 && (
                   <button
                     onClick={clearAllFilters}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-sm text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium transition-standard"
                   >
                     Clear all
                   </button>
@@ -183,10 +183,10 @@ export function CampsPage() {
                     <button
                       key={category.id}
                       onClick={() => toggleCategory(category.slug)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-airbnb ${
                         isSelected
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          ? 'bg-airbnb-pink-500 text-white shadow-md hover:bg-airbnb-pink-600'
+                          : 'bg-airbnb-grey-100 text-airbnb-grey-700 hover:bg-airbnb-grey-200'
                       }`}
                     >
                       {category.name}
@@ -198,19 +198,19 @@ export function CampsPage() {
             </div>
 
             {selectedCategories.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
-                <span className="text-sm text-gray-600">Active filters:</span>
+              <div className="flex flex-wrap gap-2 pt-2 border-t border-airbnb-grey-200">
+                <span className="text-sm text-airbnb-grey-600">Active filters:</span>
                 {selectedCategories.map((slug) => {
                   const category = categories.find(c => c.slug === slug);
                   return category ? (
                     <span
                       key={slug}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-airbnb-pink-50 text-airbnb-pink-700 rounded-full text-sm"
                     >
                       {category.name}
                       <button
                         onClick={() => toggleCategory(slug)}
-                        className="hover:text-blue-900"
+                        className="hover:text-airbnb-pink-900 transition-standard"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -224,10 +224,10 @@ export function CampsPage() {
 
         {filteredCamps.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">No camps found matching your criteria.</p>
+            <p className="text-airbnb-grey-600 text-lg">No camps found matching your criteria.</p>
             <button
               onClick={clearAllFilters}
-              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+              className="mt-4 text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium transition-standard"
             >
               Clear filters
             </button>
@@ -238,14 +238,14 @@ export function CampsPage() {
               <Link
                 key={camp.id}
                 to={`/camps/${camp.id}`}
-                className="bg-white rounded-lg sm:rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group"
+                className="bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-airbnb overflow-hidden group hover:-translate-y-1"
               >
-                <div className="relative h-40 sm:h-48 bg-gradient-to-br from-blue-400 to-blue-600 overflow-hidden">
+                <div className="relative h-40 sm:h-48 bg-gradient-to-br from-airbnb-pink-400 to-airbnb-pink-600 overflow-hidden">
                   {camp.featured_image_url ? (
                     <img
                       src={camp.featured_image_url}
                       alt={camp.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -253,7 +253,7 @@ export function CampsPage() {
                     </div>
                   )}
                   {camp.featured && (
-                    <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold">
+                    <div className="absolute top-3 right-3 bg-amber-400 text-amber-900 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
                       Featured
                     </div>
                   )}
@@ -261,40 +261,40 @@ export function CampsPage() {
 
                 <div className="p-4 sm:p-6">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium capitalize">
+                    <span className="px-3 py-1 bg-airbnb-grey-100 text-airbnb-grey-700 rounded-full text-xs font-medium capitalize border border-airbnb-grey-200">
                       {camp.category}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-airbnb-grey-500">
                       Ages {camp.age_min}-{camp.age_max}
                     </span>
                   </div>
 
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-lg sm:text-xl font-bold text-airbnb-grey-900 mb-2 group-hover:text-airbnb-pink-500 transition-standard">
                     {camp.name}
                   </h3>
 
-                  <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
+                  <p className="text-airbnb-grey-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
                     {camp.description}
                   </p>
 
-                  <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600">
+                  <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-airbnb-grey-600">
                     <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                      <Calendar className="w-4 h-4 mr-2 text-airbnb-grey-400" />
                       {formatDate(camp.start_date)} - {formatDate(camp.end_date)}
                     </div>
                     <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                      <MapPin className="w-4 h-4 mr-2 text-airbnb-grey-400" />
                       {camp.location}
                     </div>
                     <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-2 text-gray-400" />
+                      <Users className="w-4 h-4 mr-2 text-airbnb-grey-400" />
                       Capacity: {camp.capacity}
                     </div>
                   </div>
 
-                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 flex items-center justify-between">
+                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-airbnb-grey-200 flex items-center justify-between">
                     <div>
-                      <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                      <div className="text-xl sm:text-2xl font-bold text-airbnb-grey-900">
                         ${camp.price}
                       </div>
                       {camp.early_bird_price && camp.early_bird_deadline && new Date(camp.early_bird_deadline) > new Date() && (
@@ -303,7 +303,7 @@ export function CampsPage() {
                         </div>
                       )}
                     </div>
-                    <span className="text-sm sm:text-base text-blue-600 font-medium group-hover:underline">
+                    <span className="text-sm sm:text-base text-airbnb-pink-500 font-medium group-hover:underline">
                       Learn More →
                     </span>
                   </div>

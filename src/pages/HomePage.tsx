@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { CampCard } from '../components/home/CampCard';
 import { CategoryCard } from '../components/home/CategoryCard';
+import { FutureImpact } from '../components/home/FutureImpact';
 import type { Database } from '../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
@@ -81,45 +82,42 @@ export function HomePage() {
       badge: 'Limited' as const,
       image: 'https://images.pexels.com/photos/848618/pexels-photo-848618.jpeg?auto=compress&cs=tinysrgb&w=800',
       location: 'Lake Tahoe, California',
-      rating: 5,
-      reviewCount: 0,
+      rating: 4.8,
+      reviewCount: 12,
       title: 'Adventure Quest Camp',
       category: 'Adventure',
       ageRange: 'Ages 8-14',
       price: 850,
       originalPrice: 950,
       spotsRemaining: 3,
-      bookingsThisWeek: 12,
     },
     {
       id: undefined,
       badge: 'Popular' as const,
       image: 'https://images.pexels.com/photos/1080696/pexels-photo-1080696.jpeg?auto=compress&cs=tinysrgb&w=800',
       location: 'My house',
-      rating: 0,
-      reviewCount: 0,
+      rating: 4.7,
+      reviewCount: 8,
       title: 'Steves camping day',
       category: 'Specialty',
       ageRange: 'Ages 21+',
       price: 100,
       originalPrice: 200,
       spotsRemaining: 8,
-      bookingsThisWeek: 15,
     },
     {
       id: undefined,
       badge: 'Limited' as const,
       image: 'https://images.pexels.com/photos/1194713/pexels-photo-1194713.jpeg?auto=compress&cs=tinysrgb&w=800',
       location: 'Portland, OR',
-      rating: 0,
-      reviewCount: 0,
+      rating: 4.5,
+      reviewCount: 6,
       title: 'Creative Arts Studio',
       category: 'Arts',
       ageRange: 'Ages 6-16',
       price: 680,
       originalPrice: 800,
       spotsRemaining: 2,
-      bookingsThisWeek: 8,
     },
     {
       id: undefined,
@@ -134,22 +132,20 @@ export function HomePage() {
       price: 1200,
       originalPrice: 1400,
       spotsRemaining: 15,
-      bookingsThisWeek: 0,
     },
     {
       id: undefined,
       badge: 'Popular' as const,
       image: 'https://images.pexels.com/photos/920382/pexels-photo-920382.jpeg?auto=compress&cs=tinysrgb&w=800',
       location: 'Denver, CO',
-      rating: 5,
-      reviewCount: 12,
+      rating: 4.9,
+      reviewCount: 28,
       title: 'Mountain Explorer Camp',
       category: 'Outdoor',
       ageRange: 'Ages 10-15',
       price: 920,
       originalPrice: 1100,
-      spotsRemaining: 6,
-      bookingsThisWeek: 18,
+      spotsRemaining: 12,
     },
   ];
 
@@ -177,7 +173,6 @@ export function HomePage() {
           currency: camp.currency,
           originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
           spotsRemaining,
-          bookingsThisWeek: Math.floor(Math.random() * 20),
         };
       })
     : staticCamps;
@@ -298,11 +293,11 @@ export function HomePage() {
           </div>
 
           <div className="relative h-full flex flex-col items-center justify-center text-center px-4 pb-20 sm:pb-24 md:pb-32">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <span className="block mb-1 sm:mb-2">Give Your Child the Edge</span>
-              <span className="block">Unlock Their FutureEdge Today</span>
+              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow">Unlock Their FutureEdge Today</span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               Accelerate their success with amazing educational experiences
             </p>
           </div>
@@ -349,11 +344,11 @@ export function HomePage() {
           </div>
 
           <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               <span className="block mb-1 sm:mb-2">Give Your Child the Edge</span>
-              <span className="block">Unlock Their FutureEdge Today</span>
+              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow">Unlock Their FutureEdge Today</span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               Accelerate their success with amazing educational experiences
             </p>
           </div>
@@ -377,7 +372,7 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <section className="relative pb-72 sm:pb-80 md:pb-96">
+      <section className="relative pb-16 sm:pb-20">
         <div
           className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] bg-cover bg-center sm:bg-top"
           style={{
@@ -388,11 +383,11 @@ export function HomePage() {
         </div>
 
         <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] flex flex-col items-center text-center px-4 pt-24 sm:pt-28 md:pt-32 lg:pt-36">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <span className="block mb-1 sm:mb-2">Give Your Child the Edge</span>
-            <span className="block">Unlock Their FutureEdge Today</span>
+            <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow">Unlock Their FutureEdge Today</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
             Accelerate their success with amazing educational experiences
           </p>
         </div>
@@ -485,6 +480,9 @@ export function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Future Impact Section - Reverse Psychology */}
+      <FutureImpact />
 
       <section className="py-16 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
