@@ -41,7 +41,7 @@ export function FutureImpact() {
           </h2>
 
           <p className="text-base sm:text-lg md:text-xl text-airbnb-grey-600 max-w-3xl mx-auto mb-8 px-4 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            While other children spend their time doom scrolling, yours could be building skills,
+            While other children spend their time scrolling social media, yours could be building skills,
             confidence, and friendships that last a lifetime.
           </p>
         </div>
@@ -146,7 +146,7 @@ export function FutureImpact() {
         {/* CTA */}
         <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
           <p className="text-lg sm:text-xl text-airbnb-grey-700 mb-6 font-medium">
-            Don't let another summer slip by
+            Don't let another year slip by
           </p>
           <a
             href="#featured-camps"

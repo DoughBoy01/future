@@ -87,6 +87,8 @@ export function HomePage() {
       title: 'Adventure Quest Camp',
       category: 'Adventure',
       ageRange: 'Ages 8-14',
+      ageMin: 8,
+      ageMax: 14,
       price: 850,
       originalPrice: 950,
       spotsRemaining: 3,
@@ -101,6 +103,8 @@ export function HomePage() {
       title: 'Steves camping day',
       category: 'Specialty',
       ageRange: 'Ages 21+',
+      ageMin: 21,
+      ageMax: 99,
       price: 100,
       originalPrice: 200,
       spotsRemaining: 8,
@@ -115,6 +119,8 @@ export function HomePage() {
       title: 'Creative Arts Studio',
       category: 'Arts',
       ageRange: 'Ages 6-16',
+      ageMin: 6,
+      ageMax: 16,
       price: 680,
       originalPrice: 800,
       spotsRemaining: 2,
@@ -129,6 +135,8 @@ export function HomePage() {
       title: 'TechnoKids Coding Camp',
       category: 'Arts',
       ageRange: 'Ages 9-17',
+      ageMin: 9,
+      ageMax: 17,
       price: 1200,
       originalPrice: 1400,
       spotsRemaining: 15,
@@ -143,6 +151,8 @@ export function HomePage() {
       title: 'Mountain Explorer Camp',
       category: 'Outdoor',
       ageRange: 'Ages 10-15',
+      ageMin: 10,
+      ageMax: 15,
       price: 920,
       originalPrice: 1100,
       spotsRemaining: 12,
@@ -169,6 +179,8 @@ export function HomePage() {
           title: camp.name,
           category: camp.category,
           ageRange: `Ages ${camp.age_min}-${camp.age_max}`,
+          ageMin: camp.age_min,
+          ageMax: camp.age_max,
           price: earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price,
           currency: camp.currency,
           originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
@@ -382,12 +394,12 @@ export function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
         </div>
 
-        <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] flex flex-col items-center text-center px-4 pt-24 sm:pt-28 md:pt-32 lg:pt-36">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] flex flex-col items-center justify-center text-center px-4 pb-16 sm:pb-20 md:pb-24">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-3 sm:mb-5 md:mb-6 max-w-5xl leading-tight sm:leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <span className="block mb-1 sm:mb-2">Give Your Child the Edge</span>
             <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow">Unlock Their FutureEdge Today</span>
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+          <p className="text-sm sm:text-lg md:text-xl lg:text-2xl text-white max-w-3xl px-4 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
             Accelerate their success with amazing educational experiences
           </p>
         </div>

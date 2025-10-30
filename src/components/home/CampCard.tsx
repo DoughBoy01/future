@@ -1,7 +1,8 @@
-import { Heart, Star, TrendingUp, AlertCircle, Sparkles, Users, Award } from 'lucide-react';
+import { Heart, Star, TrendingUp, AlertCircle, Sparkles, Users, Award, Share2, CheckCircle } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/currency';
+import { shareCamp } from '../../utils/share';
 
 interface CampCardProps {
   id?: string;
@@ -13,6 +14,8 @@ interface CampCardProps {
   title: string;
   category: string;
   ageRange: string;
+  ageMin?: number;
+  ageMax?: number;
   price: number;
   currency?: string;
   originalPrice?: number;
@@ -29,6 +32,8 @@ export function CampCard({
   title,
   category,
   ageRange,
+  ageMin,
+  ageMax,
   price,
   currency = 'USD',
   originalPrice,
@@ -39,6 +44,7 @@ export function CampCard({
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [justFavorited, setJustFavorited] = useState(false);
+  const [showShareToast, setShowShareToast] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const badgeColors = {
@@ -52,6 +58,30 @@ export function CampCard({
     setIsFavorite(!isFavorite);
     setJustFavorited(true);
     setTimeout(() => setJustFavorited(false), 600);
+  };
+
+  const handleShareClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!id || !ageMin || !ageMax) return;
+
+    const success = await shareCamp(
+      {
+        id,
+        name: title,
+        category,
+        location,
+        ageMin,
+        ageMax,
+        price,
+        currency,
+      },
+      () => {
+        setShowShareToast(true);
+        setTimeout(() => setShowShareToast(false), 3000);
+      }
+    );
   };
 
   const getUrgencyBadge = () => {
@@ -155,19 +185,31 @@ export function CampCard({
             {urgencyBadge.text}
           </div>
         )}
-        {/* Favorite button - better spacing from top edge */}
-        <button
-          onClick={handleFavoriteClick}
-          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          className={`absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md ${justFavorited ? 'animate-bounce' : ''}`}
-        >
-          <Heart
-            className={`w-4 h-4 transition-standard ${
-              isFavorite ? 'fill-airbnb-pink-500 text-airbnb-pink-500' : 'text-airbnb-grey-600 hover:text-airbnb-pink-400'
-            } ${justFavorited && isFavorite ? 'animate-heartbeat' : ''}`}
-            aria-hidden="true"
-          />
-        </button>
+        {/* Action buttons - better spacing from top edge */}
+        <div className="absolute top-3 right-3 flex gap-2">
+          <button
+            onClick={handleShareClick}
+            aria-label="Share this camp"
+            className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md"
+          >
+            <Share2
+              className="w-4 h-4 text-airbnb-grey-600 hover:text-airbnb-pink-400 transition-standard"
+              aria-hidden="true"
+            />
+          </button>
+          <button
+            onClick={handleFavoriteClick}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md ${justFavorited ? 'animate-bounce' : ''}`}
+          >
+            <Heart
+              className={`w-4 h-4 transition-standard ${
+                isFavorite ? 'fill-airbnb-pink-500 text-airbnb-pink-500' : 'text-airbnb-grey-600 hover:text-airbnb-pink-400'
+              } ${justFavorited && isFavorite ? 'animate-heartbeat' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
         {/* Believable social proof - only shown when relevant */}
         {socialProof.show && (
           <div className={`absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm text-airbnb-grey-900 px-2.5 py-1.5 rounded-md text-[10px] font-medium shadow-md flex items-center gap-1.5 border border-airbnb-grey-200 transition-standard ${isHovered ? 'opacity-100' : 'opacity-95'}`}>
@@ -254,6 +296,16 @@ export function CampCard({
           )}
         </div>
       </div>
+
+      {/* Share Toast - Positioned relative to card */}
+      {showShareToast && (
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-airbnb-grey-900 text-white px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 animate-slide-in">
+            <CheckCircle className="w-4 h-4 text-green-400" aria-hidden="true" />
+            <span className="text-sm font-medium">Link copied!</span>
+          </div>
+        </div>
+      )}
     </>
   );
 

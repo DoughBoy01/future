@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Grid3x3, Play } from 'lucide-react';
 
 interface VideoItem {
@@ -18,6 +18,10 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, videos = [], campName, onVideoClick }: ImageGalleryProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [mobileSlide, setMobileSlide] = useState(0);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   if (!images || images.length === 0) {
     return (
@@ -28,6 +32,23 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
   }
 
   const totalMedia = images.length + videos.length;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        const scrollLeft = scrollContainerRef.current.scrollLeft;
+        const slideWidth = scrollContainerRef.current.offsetWidth;
+        const newSlide = Math.round(scrollLeft / slideWidth);
+        setMobileSlide(newSlide);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -44,6 +65,36 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
       goToPrevious();
     } else if (e.key === 'ArrowRight') {
       goToNext();
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > 50) {
+      // Swipe left - next slide
+      setMobileSlide((prev) => Math.min(prev + 1, totalMedia - 1));
+    }
+    if (touchStartX.current - touchEndX.current < -50) {
+      // Swipe right - previous slide
+      setMobileSlide((prev) => Math.max(prev - 1, 0));
+    }
+  };
+
+  const goToMobileSlide = (index: number) => {
+    setMobileSlide(index);
+    if (scrollContainerRef.current) {
+      const slideWidth = scrollContainerRef.current.offsetWidth;
+      scrollContainerRef.current.scrollTo({
+        left: slideWidth * index,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -117,15 +168,49 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
 
   return (
     <>
-      {/* Airbnb-style collage grid - Mobile: Single column, Desktop: Sophisticated grid */}
+      {/* Airbnb-style collage grid - Mobile: Swipeable carousel, Desktop: Sophisticated grid */}
       <div className="relative">
-        {/* Mobile Layout - Stack vertically */}
-        <div className="md:hidden flex flex-col gap-2">
-          {[...Array(Math.min(3, totalMedia))].map((_, i) => (
-            <div key={i}>
-              {renderMediaItem(i, 'rounded-lg h-64', i === 2)}
-            </div>
-          ))}
+        {/* Mobile Layout - Swipeable Carousel */}
+        <div className="md:hidden relative">
+          <div
+            ref={scrollContainerRef}
+            className="flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {[...Array(totalMedia)].map((_, i) => (
+              <div
+                key={i}
+                className="w-full flex-shrink-0 snap-center"
+                style={{ scrollSnapAlign: 'center' }}
+              >
+                {renderMediaItem(i, 'rounded-lg h-72 w-full', false)}
+              </div>
+            ))}
+          </div>
+
+          {/* Swipe Indicator Dots */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+            {[...Array(totalMedia)].map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToMobileSlide(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`transition-all duration-300 ${
+                  i === mobileSlide
+                    ? 'w-8 h-2 bg-white rounded-full'
+                    : 'w-2 h-2 bg-white/60 rounded-full hover:bg-white/80'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Slide Counter */}
+          <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full z-10">
+            {mobileSlide + 1} / {totalMedia}
+          </div>
         </div>
 
         {/* Desktop Layout - Airbnb-style grid */}
@@ -145,20 +230,6 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
           {/* Bottom right - last visible with "show all" button */}
           {totalMedia > 4 && renderMediaItem(4, 'col-span-1 row-span-1 rounded-br-2xl', true)}
         </div>
-
-        {/* Show all button overlay on mobile */}
-        {totalMedia > 3 && (
-          <button
-            onClick={() => {
-              setCurrentIndex(0);
-              setIsLightboxOpen(true);
-            }}
-            className="md:hidden absolute bottom-4 right-4 bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg"
-          >
-            <Grid3x3 className="w-4 h-4" />
-            Show all {totalMedia}
-          </button>
-        )}
       </div>
 
       {isLightboxOpen && (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { formatCurrency } from '../utils/currency';
 import {
   MapPin,
   Calendar,
@@ -24,6 +25,7 @@ import { ReviewsSection } from '../components/camps/ReviewsSection';
 import { FAQSection } from '../components/camps/FAQSection';
 import { SocialProof } from '../components/urgency/SocialProof';
 import { CountdownTimer } from '../components/urgency/CountdownTimer';
+import { SocialMeta } from '../components/seo/SocialMeta';
 import type { Database } from '../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
@@ -93,71 +95,71 @@ function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">Ask about {campName}</h2>
+        <div className="p-6 border-b border-airbnb-grey-200">
+          <h2 className="text-2xl font-bold text-airbnb-grey-900">Ask about {campName}</h2>
         </div>
 
         {success ? (
           <div className="p-8 text-center">
             <CheckCircle className="w-16 h-16 text-airbnb-pink-500 mx-auto mb-4" aria-hidden="true" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Enquiry Sent!</h3>
-            <p className="text-gray-600">We'll get back to you soon.</p>
+            <h3 className="text-xl font-bold text-airbnb-grey-900 mb-2">Enquiry Sent!</h3>
+            <p className="text-airbnb-grey-600">We'll get back to you soon.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Your Name *</label>
               <input
                 type="text"
                 required
                 value={formData.parent_name}
                 onChange={(e) => setFormData({ ...formData, parent_name: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Email *</label>
               <input
                 type="email"
                 required
                 value={formData.parent_email}
                 onChange={(e) => setFormData({ ...formData, parent_email: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Phone</label>
               <input
                 type="tel"
                 value={formData.parent_phone}
                 onChange={(e) => setFormData({ ...formData, parent_phone: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Subject *</label>
               <input
                 type="text"
                 required
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 placeholder="e.g., Question about dietary requirements"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Message *</label>
               <textarea
                 required
                 rows={4}
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 placeholder="Ask us anything about this camp..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
               />
             </div>
 
@@ -165,7 +167,7 @@ function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3 border border-airbnb-grey-300 rounded-lg text-airbnb-grey-700 font-medium hover:bg-airbnb-grey-50 transition-airbnb"
               >
                 Cancel
               </button>
@@ -198,6 +200,7 @@ export function CampDetailPage() {
   const [ratingsSummary, setRatingsSummary] = useState<any>(null);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [showCopyToast, setShowCopyToast] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -328,6 +331,40 @@ export function CampDetailPage() {
     });
   };
 
+  const handleShare = async () => {
+    if (!camp) return;
+
+    const shareData = {
+      title: camp.name,
+      text: `Check out this amazing camp: ${camp.name}! ${camp.category} camp in ${camp.location} for ages ${camp.age_min}-${camp.age_max}. Starting at ${formatCurrency(camp.price, camp.currency)}.`,
+      url: window.location.href,
+    };
+
+    try {
+      // Check if Web Share API is supported
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: Copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        setShowCopyToast(true);
+        setTimeout(() => setShowCopyToast(false), 3000);
+      }
+    } catch (error) {
+      // User cancelled or error occurred
+      if ((error as Error).name !== 'AbortError') {
+        // Fallback to clipboard
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          setShowCopyToast(true);
+          setTimeout(() => setShowCopyToast(false), 3000);
+        } catch (clipboardError) {
+          console.error('Failed to copy to clipboard:', clipboardError);
+        }
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -413,8 +450,30 @@ export function CampDetailPage() {
   const amenities = Array.isArray((camp as any).amenities) ? (camp as any).amenities : [];
   const faqs = Array.isArray((camp as any).faqs) ? (camp as any).faqs : [];
 
+  // Create meta description
+  const metaDescription = camp.description
+    ? camp.description.substring(0, 155) + (camp.description.length > 155 ? '...' : '')
+    : `${camp.category} camp in ${camp.location} for ages ${camp.age_min}-${camp.age_max}. Starting at ${formatCurrency(camp.price, camp.currency)}.`;
+
+  const formatDateShort = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <SocialMeta
+        title={camp.name}
+        description={metaDescription}
+        image={camp.featured_image_url || undefined}
+        type="website"
+        price={formatCurrency(camp.price, camp.currency)}
+        location={camp.location}
+        dates={`${formatDateShort(camp.start_date)} - ${formatDateShort(camp.end_date)}`}
+      />
       {stickyBar && availabilityStatus !== 'full' && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-gray-200 py-3 animate-slide-down">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -464,10 +523,17 @@ export function CampDetailPage() {
           </div>
 
           <div className="flex gap-2">
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300">
+            <button
+              onClick={handleShare}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
+              aria-label="Share this camp"
+            >
               <Share2 className="w-5 h-5 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
+              aria-label="Save to favorites"
+            >
               <Heart className="w-5 h-5 text-gray-600" />
             </button>
           </div>
@@ -483,8 +549,8 @@ export function CampDetailPage() {
           }}
         />
 
-        <div className="grid lg:grid-cols-3 gap-8 mt-8">
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+          <div className="lg:col-span-2 space-y-8 min-w-0">
             {highlights.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Camp Highlights</h2>
@@ -657,22 +723,24 @@ export function CampDetailPage() {
             {faqs.length > 0 && <FAQSection faqs={faqs} />}
           </div>
 
-          <div className="lg:col-span-1">
-            <EnhancedBookingWidget
-              campId={camp.id}
-              price={camp.price}
-              currency={camp.currency}
-              earlyBirdPrice={camp.early_bird_price || undefined}
-              earlyBirdDeadline={camp.early_bird_deadline || undefined}
-              availablePlaces={availablePlaces}
-              capacity={camp.capacity}
-              startDate={camp.start_date}
-              endDate={camp.end_date}
-              averageRating={ratingsSummary?.average}
-              totalReviews={ratingsSummary?.total}
-              cancellationPolicy={(camp as any).cancellation_policy}
-              onEnquiryClick={() => setShowEnquiryModal(true)}
-            />
+          <div className="lg:col-span-1 min-w-0">
+            <div className="lg:sticky lg:top-24">
+              <EnhancedBookingWidget
+                campId={camp.id}
+                price={camp.price}
+                currency={camp.currency}
+                earlyBirdPrice={camp.early_bird_price || undefined}
+                earlyBirdDeadline={camp.early_bird_deadline || undefined}
+                availablePlaces={availablePlaces}
+                capacity={camp.capacity}
+                startDate={camp.start_date}
+                endDate={camp.end_date}
+                averageRating={ratingsSummary?.average}
+                totalReviews={ratingsSummary?.total}
+                cancellationPolicy={(camp as any).cancellation_policy}
+                onEnquiryClick={() => setShowEnquiryModal(true)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -683,6 +751,16 @@ export function CampDetailPage() {
         onClose={() => setShowEnquiryModal(false)}
         onSubmit={handleEnquirySubmit}
       />
+
+      {/* Copy Toast Notification */}
+      {showCopyToast && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-slide-in">
+          <div className="bg-airbnb-grey-900 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-400" />
+            <span className="font-medium">Link copied to clipboard!</span>
+          </div>
+        </div>
+      )}
 
       {isVideoModalOpen && selectedVideoIndex !== null && videoData[selectedVideoIndex] && (
         <div

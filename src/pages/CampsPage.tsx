@@ -14,6 +14,7 @@ export function CampsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [ageFilter, setAgeFilter] = useState('');
 
   useEffect(() => {
@@ -74,12 +75,24 @@ export function CampsPage() {
     );
   };
 
+  const toggleLocation = (location: string) => {
+    setSelectedLocations(prev =>
+      prev.includes(location)
+        ? prev.filter(l => l !== location)
+        : [...prev, location]
+    );
+  };
+
   const clearAllFilters = () => {
     setSearchTerm('');
     setSelectedCategories([]);
+    setSelectedLocations([]);
     setAgeFilter('');
     setSearchParams({});
   };
+
+  // Extract unique locations from camps
+  const uniqueLocations = Array.from(new Set(camps.map(camp => camp.location))).sort();
 
   const filteredCamps = camps.filter((camp: any) => {
     const matchesSearch =
@@ -94,7 +107,10 @@ export function CampsPage() {
     const matchesCategory = selectedCategories.length === 0 ||
       (camp.category_slugs && selectedCategories.some((slug: string) => camp.category_slugs.includes(slug)));
 
-    return matchesSearch && matchesAge && matchesCategory;
+    const matchesLocation = selectedLocations.length === 0 ||
+      selectedLocations.includes(camp.location);
+
+    return matchesSearch && matchesAge && matchesCategory && matchesLocation;
   });
 
   const formatDate = (dateStr: string) => {
@@ -167,7 +183,7 @@ export function CampsPage() {
                   <Filter className="w-4 h-4 inline mr-1" />
                   Categories
                 </label>
-                {selectedCategories.length > 0 && (
+                {(selectedCategories.length > 0 || selectedLocations.length > 0) && (
                   <button
                     onClick={clearAllFilters}
                     className="text-sm text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium transition-standard"
@@ -197,7 +213,41 @@ export function CampsPage() {
               </div>
             </div>
 
-            {selectedCategories.length > 0 && (
+            {uniqueLocations.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-airbnb-grey-700 mb-3">
+                  <MapPin className="w-4 h-4 inline mr-1" />
+                  Locations
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueLocations.map((location) => {
+                    const isSelected = selectedLocations.includes(location);
+                    const count = camps.filter(c => c.location === location).length;
+                    return (
+                      <button
+                        key={location}
+                        onClick={() => toggleLocation(location)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-airbnb flex items-center gap-2 ${
+                          isSelected
+                            ? 'bg-airbnb-pink-500 text-white shadow-md hover:bg-airbnb-pink-600'
+                            : 'bg-airbnb-grey-100 text-airbnb-grey-700 hover:bg-airbnb-grey-200'
+                        }`}
+                      >
+                        <span>{location}</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          isSelected ? 'bg-white/20' : 'bg-airbnb-grey-200'
+                        }`}>
+                          {count}
+                        </span>
+                        {isSelected && <X className="w-3 h-3" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {(selectedCategories.length > 0 || selectedLocations.length > 0) && (
               <div className="flex flex-wrap gap-2 pt-2 border-t border-airbnb-grey-200">
                 <span className="text-sm text-airbnb-grey-600">Active filters:</span>
                 {selectedCategories.map((slug) => {
@@ -207,6 +257,7 @@ export function CampsPage() {
                       key={slug}
                       className="inline-flex items-center gap-1 px-3 py-1 bg-airbnb-pink-50 text-airbnb-pink-700 rounded-full text-sm"
                     >
+                      <Filter className="w-3 h-3" />
                       {category.name}
                       <button
                         onClick={() => toggleCategory(slug)}
@@ -217,6 +268,21 @@ export function CampsPage() {
                     </span>
                   ) : null;
                 })}
+                {selectedLocations.map((location) => (
+                  <span
+                    key={location}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                  >
+                    <MapPin className="w-3 h-3" />
+                    {location}
+                    <button
+                      onClick={() => toggleLocation(location)}
+                      className="hover:text-blue-900 transition-standard"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
               </div>
             )}
           </div>
