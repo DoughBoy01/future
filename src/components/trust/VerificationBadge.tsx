@@ -1,0 +1,69 @@
+import { CheckCircle, Shield, Star, Crown } from 'lucide-react';
+import type { VerificationLevel } from '../../types/verification';
+import { VERIFICATION_LEVELS } from '../../types/verification';
+
+interface VerificationBadgeProps {
+  level: VerificationLevel;
+  size?: 'small' | 'medium' | 'large';
+  showTooltip?: boolean;
+  className?: string;
+}
+
+export function VerificationBadge({
+  level,
+  size = 'medium',
+  showTooltip = true,
+  className = '',
+}: VerificationBadgeProps) {
+  if (level === 'unverified') return null;
+
+  const config = VERIFICATION_LEVELS[level];
+
+  const sizeClasses = {
+    small: 'w-4 h-4',
+    medium: 'w-5 h-5',
+    large: 'w-6 h-6',
+  };
+
+  const iconSize = sizeClasses[size];
+
+  const getIcon = () => {
+    switch (level) {
+      case 'verified':
+        return <CheckCircle className={iconSize} />;
+      case 'premium':
+        return <Shield className={iconSize} />;
+      case 'elite':
+        return <Crown className={iconSize} />;
+      default:
+        return <CheckCircle className={iconSize} />;
+    }
+  };
+
+  const getColorClasses = () => {
+    switch (config.color) {
+      case 'green':
+        return 'bg-green-50 text-green-700 border-green-200';
+      case 'blue':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'gold':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      default:
+        return 'bg-airbnb-grey-100 text-airbnb-grey-700 border-airbnb-grey-300';
+    }
+  };
+
+  return (
+    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border ${getColorClasses()} font-medium text-sm ${className} group relative`}>
+      {getIcon()}
+      <span>{config.label}</span>
+
+      {showTooltip && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-airbnb-grey-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all w-48 text-center z-20 pointer-events-none">
+          {config.description}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-airbnb-grey-900"></div>
+        </div>
+      )}
+    </div>
+  );
+}
