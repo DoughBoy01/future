@@ -3,6 +3,8 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/currency';
 import { shareCamp } from '../../utils/share';
+import { VerificationBadge } from '../trust/VerificationBadge';
+import type { VerificationLevel } from '../../types/verification';
 
 interface CampCardProps {
   id?: string;
@@ -20,6 +22,7 @@ interface CampCardProps {
   currency?: string;
   originalPrice?: number;
   spotsRemaining?: number;
+  verificationLevel?: VerificationLevel;
 }
 
 export function CampCard({
@@ -38,6 +41,7 @@ export function CampCard({
   currency = 'USD',
   originalPrice,
   spotsRemaining,
+  verificationLevel,
 }: CampCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -238,6 +242,9 @@ export function CampCard({
 
         {/* Benefits-focused badges */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
+          {verificationLevel && verificationLevel !== 'unverified' && (
+            <VerificationBadge level={verificationLevel} size="small" showTooltip={true} />
+          )}
           <span className="bg-airbnb-grey-50 border border-airbnb-grey-200 text-airbnb-grey-700 px-2.5 py-1 rounded-full font-medium text-xs">
             {category}
           </span>

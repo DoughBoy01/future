@@ -1,4 +1,7 @@
 import { BadgeCheck, Star, MessageSquare, Clock, Award } from 'lucide-react';
+import { QualityTier } from '../trust/QualityTier';
+import { VerificationBadge } from '../trust/VerificationBadge';
+import type { QualityTier as QualityTierType, VerificationLevel } from '../../types/verification';
 
 interface Organisation {
   id: string;
@@ -10,6 +13,9 @@ interface Organisation {
   response_time_hours: number;
   total_camps_hosted: number;
   established_year?: number;
+  quality_tier?: QualityTierType;
+  verification_level?: VerificationLevel;
+  repeat_booking_rate?: number;
 }
 
 interface HostInformationProps {
@@ -51,41 +57,59 @@ export function HostInformation({ organisation, onContactClick }: HostInformatio
         </div>
 
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
             <h3 className="text-lg font-bold text-gray-900">{organisation.name}</h3>
-            {organisation.verified && (
-              <div className="flex items-center gap-1 text-blue-600" title="Verified Organization">
-                <BadgeCheck className="w-5 h-5 fill-current" />
-              </div>
+            {organisation.verification_level && organisation.verification_level !== 'unverified' && (
+              <VerificationBadge level={organisation.verification_level} size="small" showTooltip={true} />
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {organisation.response_rate > 0 && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                <span>{organisation.response_rate}% response rate</span>
-              </div>
-            )}
-            {organisation.response_time_hours > 0 && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <Clock className="w-4 h-4" />
-                <span>Responds {getResponseTimeText(organisation.response_time_hours)}</span>
-              </div>
-            )}
-            {organisation.total_camps_hosted > 0 && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <Award className="w-4 h-4" />
-                <span>{organisation.total_camps_hosted} camps hosted</span>
-              </div>
-            )}
-            {yearsInOperation && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <Award className="w-4 h-4" />
-                <span>{yearsInOperation}+ years experience</span>
-              </div>
-            )}
-          </div>
+          {/* Quality Tier with detailed metrics */}
+          {organisation.quality_tier && (
+            <div className="mb-4">
+              <QualityTier
+                indicators={{
+                  tier: organisation.quality_tier,
+                  responseRate: organisation.response_rate,
+                  responseTimeHours: organisation.response_time_hours,
+                  repeatBookingRate: organisation.repeat_booking_rate,
+                  yearsOnPlatform: yearsInOperation || undefined,
+                  totalCampersServed: organisation.total_camps_hosted * 20, // Estimate campers from camps
+                }}
+                variant="detailed"
+              />
+            </div>
+          )}
+
+          {/* Fallback to old metrics if no quality tier */}
+          {!organisation.quality_tier && (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {organisation.response_rate > 0 && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span>{organisation.response_rate}% response rate</span>
+                </div>
+              )}
+              {organisation.response_time_hours > 0 && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="w-4 h-4" />
+                  <span>Responds {getResponseTimeText(organisation.response_time_hours)}</span>
+                </div>
+              )}
+              {organisation.total_camps_hosted > 0 && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Award className="w-4 h-4" />
+                  <span>{organisation.total_camps_hosted} camps hosted</span>
+                </div>
+              )}
+              {yearsInOperation && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Award className="w-4 h-4" />
+                  <span>{yearsInOperation}+ years experience</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
