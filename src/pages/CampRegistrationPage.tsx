@@ -328,25 +328,25 @@ export function CampRegistrationPage() {
   const finalPrice = Math.max(0, subtotal - totalDiscountAmount);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-airbnb-grey-50 via-white to-airbnb-pink-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-airbnb-grey-50 via-white to-airbnb-pink-50 py-8 sm:py-12">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Link to={`/camps/${id}`} className="text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium transition-standard">
             ← Back to camp details
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-airbnb-grey-200">
-          <div className="bg-gradient-to-r from-airbnb-pink-500 via-airbnb-pink-600 to-airbnb-pink-500 text-white p-8 relative overflow-hidden">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border border-airbnb-grey-200">
+          <div className="bg-gradient-to-r from-airbnb-pink-500 via-airbnb-pink-600 to-airbnb-pink-500 text-white p-5 sm:p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-3">
-                <Zap className="w-8 h-8 animate-pulse" />
-                <h1 className="text-4xl font-bold">Quick Booking!</h1>
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <Zap className="w-6 sm:w-8 h-6 sm:h-8 animate-pulse" />
+                <h1 className="text-2xl sm:text-4xl font-bold">Quick Booking!</h1>
               </div>
-              <p className="text-xl text-white/90">Secure your spot in just 2 quick steps</p>
-              <div className="mt-6 flex flex-wrap items-center gap-4">
+              <p className="text-base sm:text-xl text-white/90">Secure your spot in just 2 quick steps</p>
+              <div className="mt-4 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-4">
                 <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                   <Shield className="w-5 h-5" />
                   <span className="text-sm font-semibold">Secure Payment</span>
@@ -359,7 +359,7 @@ export function CampRegistrationPage() {
             </div>
           </div>
 
-          <div className="p-8">
+          <div className="p-5 sm:p-6 md:p-8">
             {availablePlaces <= 5 && availablePlaces > 0 && (
               <div className="mb-6">
                 <AvailabilityAlert
@@ -371,8 +371,8 @@ export function CampRegistrationPage() {
             )}
 
             {earlyBirdActive && camp.early_bird_deadline && (
-              <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white p-6 rounded-xl shadow-lg mb-6">
-                <div className="flex items-start gap-4">
+              <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white p-5 sm:p-6 rounded-xl shadow-lg mb-6">
+                <div className="flex items-start gap-3 sm:gap-4">
                   <div className="p-3 bg-white/20 rounded-lg">
                     <TrendingUp className="w-6 h-6" />
                   </div>
@@ -385,9 +385,9 @@ export function CampRegistrationPage() {
               </div>
             )}
 
-            <div className="bg-gradient-to-br from-airbnb-grey-50 to-airbnb-pink-50 rounded-xl p-6 mb-8 border-2 border-airbnb-grey-200">
-              <h2 className="text-xl font-bold text-airbnb-grey-900 mb-4">{camp.name}</h2>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="bg-gradient-to-br from-airbnb-grey-50 to-airbnb-pink-50 rounded-xl p-5 sm:p-6 mb-6 sm:mb-8 border-2 border-airbnb-grey-200">
+              <h2 className="text-lg sm:text-xl font-bold text-airbnb-grey-900 mb-4">{camp.name}</h2>
+              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                 <div className="flex items-center gap-2 text-airbnb-grey-700">
                   <Calendar className="w-5 h-5 text-airbnb-pink-500" />
                   <span>{formatDate(camp.start_date)} - {formatDate(camp.end_date)}</span>
@@ -403,9 +403,9 @@ export function CampRegistrationPage() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
               {isGuest && (
-                <div className="bg-airbnb-grey-50 border-2 border-airbnb-grey-200 rounded-xl p-6">
+                <div className="bg-airbnb-grey-50 border-2 border-airbnb-grey-200 rounded-xl p-5 sm:p-6">
                   <div className="flex items-start gap-3 mb-4">
                     <User className="w-6 h-6 text-airbnb-pink-500 flex-shrink-0 mt-1" />
                     <div>
@@ -503,14 +503,14 @@ export function CampRegistrationPage() {
                     <h3 className="text-lg font-bold text-airbnb-grey-900 mb-4">Child Names</h3>
                     <div className="space-y-4">
                       {childrenEntries.map((entry, index) => (
-                        <div key={index} className="bg-airbnb-grey-50 rounded-lg p-4 border border-airbnb-grey-200">
+                        <div key={index} className="bg-airbnb-grey-50 rounded-lg p-4 sm:p-5 border border-airbnb-grey-200">
                           <div className="flex items-center gap-2 mb-3">
                             <div className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                               {index + 1}
                             </div>
                             <span className="font-semibold text-airbnb-grey-700">Child {index + 1}</span>
                           </div>
-                          <div className="grid md:grid-cols-3 gap-3">
+                          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
                             <div>
                               <label className="block text-xs font-medium text-airbnb-grey-700 mb-1">
                                 First Name *

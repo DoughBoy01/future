@@ -1,5 +1,5 @@
-import { Star, ThumbsUp, BadgeCheck } from 'lucide-react';
-import { useState } from 'react';
+import { Star, ThumbsUp, BadgeCheck, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 
 interface Review {
   id: string;
@@ -50,17 +50,15 @@ export function ReviewsSection({
   reviews,
   recommendPercentage,
 }: ReviewsSectionProps) {
-  const [sortBy, setSortBy] = useState<'recent' | 'highest' | 'lowest'>('recent');
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
 
-  const sortedReviews = [...reviews].sort((a, b) => {
-    if (sortBy === 'recent') {
-      return new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime();
-    } else if (sortBy === 'highest') {
-      return b.overall_rating - a.overall_rating;
-    } else {
-      return a.overall_rating - b.overall_rating;
-    }
-  });
+  // Filter only positive reviews (4-5 stars) for social proof
+  const positiveReviews = reviews
+    .filter(review => review.overall_rating >= 4)
+    .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
 
   const renderStars = (rating: number, size: 'sm' | 'md' | 'lg' = 'md') => {
     const sizeClasses = {
@@ -102,163 +100,210 @@ export function ReviewsSection({
     }
   };
 
-  if (totalReviews === 0) {
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    if (scrollContainerRef.current) {
+      const slideWidth = scrollContainerRef.current.offsetWidth;
+      scrollContainerRef.current.scrollTo({
+        left: slideWidth * index,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const goToPrevious = () => {
+    const newIndex = currentSlide === 0 ? positiveReviews.length - 1 : currentSlide - 1;
+    goToSlide(newIndex);
+  };
+
+  const goToNext = () => {
+    const newIndex = currentSlide === positiveReviews.length - 1 ? 0 : currentSlide + 1;
+    goToSlide(newIndex);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current - touchEndX.current > 50) {
+      goToNext();
+    }
+    if (touchStartX.current - touchEndX.current < -50) {
+      goToPrevious();
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        const scrollLeft = scrollContainerRef.current.scrollLeft;
+        const slideWidth = scrollContainerRef.current.offsetWidth;
+        const newSlide = Math.round(scrollLeft / slideWidth);
+        setCurrentSlide(newSlide);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  if (totalReviews === 0 || positiveReviews.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
-        <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-gray-900 mb-2">No Reviews Yet</h3>
-        <p className="text-gray-600">Be the first to share your experience with this camp!</p>
+      <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+        <Star className="w-12 h-12 text-airbnb-grey-300 mx-auto mb-4" />
+        <h3 className="text-xl font-bold text-airbnb-grey-900 mb-2">No Reviews Yet</h3>
+        <p className="text-airbnb-grey-600">Be the first to share your experience with this camp!</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-start gap-8">
-          <div className="flex-shrink-0">
-            <div className="text-center">
-              <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-2">{averageRating.toFixed(1)}</div>
-              {renderStars(Math.round(averageRating), 'lg')}
-              <p className="mt-2 text-sm text-gray-600">{totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}</p>
+      {/* Rating Summary Header */}
+      <div className="bg-gradient-to-br from-white to-airbnb-pink-50 rounded-xl shadow-md p-6 sm:p-8 border border-airbnb-grey-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="text-center sm:text-left">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="text-5xl font-bold text-airbnb-grey-900">{averageRating.toFixed(1)}</div>
+              <div>
+                {renderStars(Math.round(averageRating), 'lg')}
+                <p className="text-sm text-airbnb-grey-600 mt-1">{totalReviews} {totalReviews === 1 ? 'review' : 'reviews'}</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex-1 space-y-3">
-            {[5, 4, 3, 2, 1].map((stars) => {
-              const count = starDistribution[stars as keyof typeof starDistribution];
-              const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+          {recommendPercentage >= 90 && (
+            <div className="flex items-center gap-2 bg-green-50 px-4 py-3 rounded-lg border border-green-200">
+              <ThumbsUp className="w-5 h-5 text-green-600" />
+              <div>
+                <div className="font-bold text-green-900">{recommendPercentage}%</div>
+                <div className="text-xs text-green-700">Would Recommend</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-              return (
-                <div key={stars} className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700 w-12">{stars} star</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-400 transition-all duration-300"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                  <span className="text-sm text-gray-600 w-12 text-right">{count}</span>
-                </div>
-              );
-            })}
+      {/* Social Proof Carousel */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl sm:text-2xl font-bold text-airbnb-grey-900">What Parents Are Saying</h3>
+          <div className="flex items-center gap-2 text-sm text-airbnb-grey-600">
+            <BadgeCheck className="w-4 h-4 text-green-600" />
+            <span>Verified Reviews</span>
           </div>
+        </div>
 
-          <div className="flex-shrink-0 grid grid-cols-2 md:grid-cols-1 gap-4">
-            {[
-              { label: 'Staff', value: ratingBreakdown.staff },
-              { label: 'Activities', value: ratingBreakdown.activities },
-              { label: 'Facilities', value: ratingBreakdown.facilities },
-              { label: 'Value', value: ratingBreakdown.value },
-            ].map((category) => (
-              <div key={category.label} className="text-center md:text-left">
-                <div className="text-sm text-gray-600 mb-1">{category.label}</div>
-                <div className="flex items-center gap-2">
-                  {renderStars(Math.round(category.value), 'sm')}
-                  <span className="text-sm font-medium text-gray-900">{category.value.toFixed(1)}</span>
+        <div className="relative">
+          {/* Carousel Container */}
+          <div
+            ref={scrollContainerRef}
+            className="flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {positiveReviews.map((review) => (
+              <div
+                key={review.id}
+                className="w-full flex-shrink-0 snap-center px-1"
+                style={{ scrollSnapAlign: 'center' }}
+              >
+                <div className="bg-white rounded-xl shadow-md p-6 sm:p-8 border border-airbnb-grey-200 hover:shadow-lg transition-shadow">
+                  {/* Quote Icon */}
+                  <Quote className="w-10 h-10 text-airbnb-pink-200 mb-4" />
+
+                  {/* Stars */}
+                  <div className="mb-4">
+                    {renderStars(review.overall_rating, 'md')}
+                  </div>
+
+                  {/* Review Comment */}
+                  {review.comments && (
+                    <blockquote className="text-airbnb-grey-700 text-base sm:text-lg leading-relaxed mb-6 line-clamp-4">
+                      "{review.comments}"
+                    </blockquote>
+                  )}
+
+                  {/* Reviewer Info */}
+                  <div className="flex items-center gap-4 pt-4 border-t border-airbnb-grey-100">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-airbnb-pink-500 to-airbnb-pink-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {review.parent_name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-airbnb-grey-900">{review.parent_name}</div>
+                      <div className="flex items-center gap-2 text-sm text-airbnb-grey-600">
+                        {review.parent_location && <span>{review.parent_location}</span>}
+                        {review.parent_location && review.verified_booking && <span>•</span>}
+                        {review.verified_booking && (
+                          <span className="flex items-center gap-1 text-green-600">
+                            <BadgeCheck className="w-3 h-3" />
+                            Verified
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recommends Badge */}
+                  {review.would_recommend && (
+                    <div className="mt-4 inline-flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium">
+                      <ThumbsUp className="w-4 h-4 fill-current" />
+                      <span>Recommends this camp</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Navigation Arrows - Desktop */}
+          {positiveReviews.length > 1 && (
+            <>
+              <button
+                onClick={goToPrevious}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-3 shadow-lg hover:bg-airbnb-grey-50 transition-colors border border-airbnb-grey-200 z-10"
+                aria-label="Previous review"
+              >
+                <ChevronLeft className="w-6 h-6 text-airbnb-grey-700" />
+              </button>
+              <button
+                onClick={goToNext}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-3 shadow-lg hover:bg-airbnb-grey-50 transition-colors border border-airbnb-grey-200 z-10"
+                aria-label="Next review"
+              >
+                <ChevronRight className="w-6 h-6 text-airbnb-grey-700" />
+              </button>
+            </>
+          )}
+
+          {/* Dots Indicator */}
+          {positiveReviews.length > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              {positiveReviews.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  aria-label={`Go to review ${index + 1}`}
+                  className={`transition-all duration-300 ${
+                    index === currentSlide
+                      ? 'w-8 h-2 bg-airbnb-pink-500 rounded-full'
+                      : 'w-2 h-2 bg-airbnb-grey-300 rounded-full hover:bg-airbnb-grey-400'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
-
-        {recommendPercentage >= 90 && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="flex items-center gap-2 text-green-700">
-              <ThumbsUp className="w-5 h-5" />
-              <span className="font-semibold">{recommendPercentage}% of parents recommend this camp</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h3 className="text-2xl font-bold text-gray-900">{totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'}</h3>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as 'recent' | 'highest' | 'lowest')}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="recent">Most Recent</option>
-          <option value="highest">Highest Rated</option>
-          <option value="lowest">Lowest Rated</option>
-        </select>
-      </div>
-
-      <div className="space-y-6">
-        {sortedReviews.map((review) => (
-          <div key={review.id} className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-lg">
-                  {review.parent_name.charAt(0).toUpperCase()}
-                </div>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <h4 className="font-bold text-gray-900">{review.parent_name}</h4>
-                  {review.verified_booking && (
-                    <div className="flex items-center gap-1 text-green-600">
-                      <BadgeCheck className="w-4 h-4" />
-                      <span className="text-xs font-medium">Verified Booking</span>
-                    </div>
-                  )}
-                  {review.parent_location && (
-                    <span className="text-sm text-gray-500">• {review.parent_location}</span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3 mb-3">
-                  {renderStars(review.overall_rating, 'sm')}
-                  <span className="text-sm text-gray-500">{formatDate(review.submitted_at)}</span>
-                </div>
-
-                {review.comments && (
-                  <p className="text-gray-700 leading-relaxed mb-4">{review.comments}</p>
-                )}
-
-                {review.photos && review.photos.length > 0 && (
-                  <div className="flex gap-2 mb-4 overflow-x-auto">
-                    {review.photos.map((photo, index) => (
-                      <img
-                        key={index}
-                        src={photo}
-                        alt={`Review photo ${index + 1}`}
-                        className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {review.response_from_host && (
-                  <div className="mt-4 pl-4 border-l-2 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="font-semibold text-gray-900">Response from host</span>
-                      {review.response_date && (
-                        <span className="text-sm text-gray-500">• {formatDate(review.response_date)}</span>
-                      )}
-                    </div>
-                    <p className="text-gray-700 text-sm">{review.response_from_host}</p>
-                  </div>
-                )}
-
-                <div className="mt-4 flex items-center gap-4">
-                  <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors text-sm">
-                    <ThumbsUp className="w-4 h-4" />
-                    Helpful {review.helpful_count > 0 && `(${review.helpful_count})`}
-                  </button>
-                  {review.would_recommend && (
-                    <div className="flex items-center gap-1 text-green-600 text-sm">
-                      <ThumbsUp className="w-4 h-4 fill-current" />
-                      <span className="font-medium">Recommends</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );

@@ -134,159 +134,100 @@ export function CampsPage() {
 
   return (
     <div className="min-h-screen bg-airbnb-grey-50">
-      <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white py-8 sm:py-10 md:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Explore Activity Camps</h1>
-          <p className="text-base sm:text-lg md:text-xl text-white/90">
-            Find the perfect camp experience for your child from {camps.length} available options
-          </p>
-        </div>
-      </div>
+      {/* Filters Header with Description */}
+      <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          {/* Header Title */}
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-4">
+            Explore the perfect experiences for your child
+          </h1>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">
-                  <Search className="w-4 h-4 inline mr-1" />
-                  Search Camps
-                </label>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by name or description..."
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">
-                  Child's Age
-                </label>
-                <input
-                  type="number"
-                  value={ageFilter}
-                  onChange={(e) => setAgeFilter(e.target.value)}
-                  placeholder="Enter age..."
-                  min="5"
-                  max="18"
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium text-airbnb-grey-700">
-                  <Filter className="w-4 h-4 inline mr-1" />
-                  Categories
-                </label>
-                {(selectedCategories.length > 0 || selectedLocations.length > 0) && (
+          {/* Age Filter Pills & Clear Button */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium text-white/90 whitespace-nowrap">Age:</span>
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+              {[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((age) => {
+                const isSelected = ageFilter === age.toString();
+                return (
                   <button
-                    onClick={clearAllFilters}
-                    className="text-sm text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium transition-standard"
+                    key={age}
+                    onClick={() => setAgeFilter(isSelected ? '' : age.toString())}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-white text-airbnb-pink-600 shadow-sm'
+                        : 'bg-white/20 text-white hover:bg-white/30'
+                    }`}
                   >
-                    Clear all
+                    {age}
                   </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {categories.map((category) => {
-                  const isSelected = selectedCategories.includes(category.slug);
+                );
+              })}
+            </div>
+            {(selectedCategories.length > 0 || selectedLocations.length > 0 || ageFilter) && (
+              <button
+                onClick={clearAllFilters}
+                className="ml-auto px-3 py-1.5 text-xs text-white hover:bg-white/20 rounded-lg font-medium transition-standard whitespace-nowrap flex-shrink-0"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Category Pills Row - Horizontal Scroll */}
+          <div className="flex items-center gap-2 mb-2">
+            <Filter className="w-4 h-4 text-white/90 flex-shrink-0" />
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {categories.map((category) => {
+                const isSelected = selectedCategories.includes(category.slug);
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => toggleCategory(category.slug)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-white text-airbnb-pink-600 shadow-sm'
+                        : 'bg-white/20 text-white hover:bg-white/30'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Location Pills Row - Horizontal Scroll */}
+          {uniqueLocations.length > 0 && (
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-white/90 flex-shrink-0" />
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                {uniqueLocations.map((location) => {
+                  const isSelected = selectedLocations.includes(location);
                   return (
                     <button
-                      key={category.id}
-                      onClick={() => toggleCategory(category.slug)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-airbnb ${
+                      key={location}
+                      onClick={() => toggleLocation(location)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
                         isSelected
-                          ? 'bg-airbnb-pink-500 text-white shadow-md hover:bg-airbnb-pink-600'
-                          : 'bg-airbnb-grey-100 text-airbnb-grey-700 hover:bg-airbnb-grey-200'
+                          ? 'bg-white text-airbnb-pink-600 shadow-sm'
+                          : 'bg-white/20 text-white hover:bg-white/30'
                       }`}
                     >
-                      {category.name}
-                      {isSelected && <X className="w-3 h-3 inline ml-1" />}
+                      {location}
                     </button>
                   );
                 })}
               </div>
             </div>
-
-            {uniqueLocations.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-airbnb-grey-700 mb-3">
-                  <MapPin className="w-4 h-4 inline mr-1" />
-                  Locations
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {uniqueLocations.map((location) => {
-                    const isSelected = selectedLocations.includes(location);
-                    const count = camps.filter(c => c.location === location).length;
-                    return (
-                      <button
-                        key={location}
-                        onClick={() => toggleLocation(location)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-airbnb flex items-center gap-2 ${
-                          isSelected
-                            ? 'bg-airbnb-pink-500 text-white shadow-md hover:bg-airbnb-pink-600'
-                            : 'bg-airbnb-grey-100 text-airbnb-grey-700 hover:bg-airbnb-grey-200'
-                        }`}
-                      >
-                        <span>{location}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                          isSelected ? 'bg-white/20' : 'bg-airbnb-grey-200'
-                        }`}>
-                          {count}
-                        </span>
-                        {isSelected && <X className="w-3 h-3" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {(selectedCategories.length > 0 || selectedLocations.length > 0) && (
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-airbnb-grey-200">
-                <span className="text-sm text-airbnb-grey-600">Active filters:</span>
-                {selectedCategories.map((slug) => {
-                  const category = categories.find(c => c.slug === slug);
-                  return category ? (
-                    <span
-                      key={slug}
-                      className="inline-flex items-center gap-1 px-3 py-1 bg-airbnb-pink-50 text-airbnb-pink-700 rounded-full text-sm"
-                    >
-                      <Filter className="w-3 h-3" />
-                      {category.name}
-                      <button
-                        onClick={() => toggleCategory(slug)}
-                        className="hover:text-airbnb-pink-900 transition-standard"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ) : null;
-                })}
-                {selectedLocations.map((location) => (
-                  <span
-                    key={location}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
-                  >
-                    <MapPin className="w-3 h-3" />
-                    {location}
-                    <button
-                      onClick={() => toggleLocation(location)}
-                      className="hover:text-blue-900 transition-standard"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
         </div>
+      </div>
+
+      {/* Camp Cards Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
+        <p className="text-sm text-airbnb-grey-600 mb-6">
+          {filteredCamps.length} {filteredCamps.length === 1 ? 'camp' : 'camps'} available
+        </p>
 
         {filteredCamps.length === 0 ? (
           <div className="text-center py-12">
@@ -299,7 +240,7 @@ export function CampsPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
             {filteredCamps.map((camp) => (
               <Link
                 key={camp.id}

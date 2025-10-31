@@ -1,4 +1,5 @@
 import { TrendingUp, Users, Award, Sparkles, ArrowRight, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export function FutureImpact() {
   const stats = [
@@ -148,17 +149,13 @@ export function FutureImpact() {
           <p className="text-lg sm:text-xl text-airbnb-grey-700 mb-6 font-medium">
             Don't let another year slip by
           </p>
-          <a
-            href="#featured-camps"
+          <Link
+            to="/camps"
             className="inline-flex items-center gap-2 bg-airbnb-pink-500 hover:bg-airbnb-pink-600 text-white px-8 py-4 rounded-lg text-base sm:text-lg font-medium transition-airbnb shadow-md hover:shadow-lg"
-            onClick={(e) => {
-              e.preventDefault();
-              document.querySelector('[role="region"][aria-label="Featured camps carousel"]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
           >
             Explore Camps Now
             <ArrowRight className="w-5 h-5" />
-          </a>
+          </Link>
         </div>
       </div>
     </section>

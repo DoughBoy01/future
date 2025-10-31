@@ -23,6 +23,7 @@ import { OrganisationsManagement } from './pages/admin/OrganisationsManagement';
 import { CommissionsManagement } from './pages/admin/CommissionsManagement';
 import { SiteSettings } from './pages/admin/SiteSettings';
 import { SystemDiagnostics } from './pages/admin/SystemDiagnostics';
+import { PartnersPage } from './pages/PartnersPage';
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -52,6 +53,7 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/camps" element={<CampsPage />} />
         <Route path="/camps/:id" element={<CampDetailPage />} />
+        <Route path="/partners" element={<PartnersPage />} />
         <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
         <Route
           path="/payment-success"

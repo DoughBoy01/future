@@ -145,7 +145,7 @@ export function Navbar() {
                   Sign In
                 </Link>
                 <Link
-                  to="/auth?mode=signup"
+                  to="/partners"
                   className="hidden sm:block bg-airbnb-grey-100 text-airbnb-grey-700 px-6 py-3 rounded-md text-sm lg:text-base font-medium hover:bg-airbnb-grey-200 hover:text-airbnb-grey-900 transition-standard border border-airbnb-grey-300"
                 >
                   Partners
@@ -295,7 +295,7 @@ export function Navbar() {
                     Sign In
                   </Link>
                   <Link
-                    to="/auth?mode=signup"
+                    to="/partners"
                     onClick={closeMobileMenu}
                     className="block px-4 py-2 mt-2 text-base font-medium text-airbnb-grey-700 bg-airbnb-grey-100 hover:bg-airbnb-grey-200 hover:text-airbnb-grey-900 rounded-md transition-fast text-center border border-airbnb-grey-300"
                   >

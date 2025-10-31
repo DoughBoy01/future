@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { CampCard } from '../components/home/CampCard';
 import { CategoryCard } from '../components/home/CategoryCard';
 import { FutureImpact } from '../components/home/FutureImpact';
+import { PromotionalPopup } from '../components/marketing/PromotionalPopup';
+import { NewsletterSignup } from '../components/marketing/NewsletterSignup';
 import type { Database } from '../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
@@ -384,6 +386,12 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen">
+      {/* Promotional Popup - configurable dwell time for testing */}
+      <PromotionalPopup
+        dwellTime={3000}
+        discountPercentage={10}
+      />
+
       <section className="relative pb-16 sm:pb-20">
         <div
           className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] bg-cover bg-center sm:bg-top"
@@ -527,6 +535,9 @@ export function HomePage() {
           )}
         </div>
       </section>
+
+      {/* Newsletter Signup Section */}
+      <NewsletterSignup />
 
       <section className="py-16 sm:py-20 md:py-28 lg:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
