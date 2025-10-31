@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Search, Filter, Calendar, MapPin, Users, X } from 'lucide-react';
+import { Search, Filter, Calendar, MapPin, Users, X, DollarSign } from 'lucide-react';
+import { getConvertedPrice, detectUserCurrency, getPopularCurrencies, CURRENCY_SYMBOLS, CURRENCY_NAMES } from '../lib/currency';
 import type { Database } from '../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
@@ -16,6 +17,11 @@ export function CampsPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [ageFilter, setAgeFilter] = useState('');
+  const [userCurrency, setUserCurrency] = useState<string>(() => {
+    // Try to get saved currency preference or detect from browser
+    return localStorage.getItem('preferredCurrency') || detectUserCurrency();
+  });
+  const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
 
   useEffect(() => {
     const categoryParam = searchParams.get('category');
@@ -91,6 +97,12 @@ export function CampsPage() {
     setSearchParams({});
   };
 
+  const handleCurrencyChange = (currency: string) => {
+    setUserCurrency(currency);
+    localStorage.setItem('preferredCurrency', currency);
+    setShowCurrencyMenu(false);
+  };
+
   // Extract unique locations from camps
   const uniqueLocations = Array.from(new Set(camps.map(camp => camp.location))).sort();
 
@@ -137,10 +149,62 @@ export function CampsPage() {
       {/* Filters Header with Description */}
       <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          {/* Header Title */}
-          <h1 className="text-xl sm:text-2xl font-bold text-white mb-4">
-            Explore the perfect experiences for your child
-          </h1>
+          {/* Header Title with Currency Selector */}
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-white">
+              Explore the perfect experiences for your child
+            </h1>
+
+            {/* Currency Selector - Subtle and non-intrusive */}
+            <div className="relative">
+              <button
+                onClick={() => setShowCurrencyMenu(!showCurrencyMenu)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white text-sm font-medium backdrop-blur-sm"
+                title="Change currency"
+              >
+                <DollarSign className="w-4 h-4" />
+                <span className="hidden sm:inline">{userCurrency}</span>
+              </button>
+
+              {/* Currency Dropdown Menu */}
+              {showCurrencyMenu && (
+                <>
+                  {/* Backdrop to close menu */}
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowCurrencyMenu(false)}
+                  />
+
+                  {/* Menu */}
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-20 overflow-hidden">
+                    <div className="p-2 bg-airbnb-grey-50 border-b border-airbnb-grey-200">
+                      <p className="text-xs font-medium text-airbnb-grey-600 px-2">Display prices in:</p>
+                    </div>
+                    <div className="max-h-64 overflow-y-auto py-1">
+                      {getPopularCurrencies().map((currency) => (
+                        <button
+                          key={currency}
+                          onClick={() => handleCurrencyChange(currency)}
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-airbnb-grey-50 transition-colors flex items-center justify-between ${
+                            userCurrency === currency ? 'bg-airbnb-pink-50 text-airbnb-pink-600 font-medium' : 'text-airbnb-grey-900'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="font-mono text-xs w-8">{CURRENCY_SYMBOLS[currency]}</span>
+                            <span>{currency}</span>
+                          </span>
+                          <span className="text-xs text-airbnb-grey-500">{CURRENCY_NAMES[currency]}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-2 bg-airbnb-grey-50 border-t border-airbnb-grey-200">
+                      <p className="text-xs text-airbnb-grey-500 px-2">Prices are estimates. Check with organizer for exact rates.</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
 
           {/* Age Filter Pills & Clear Button */}
           <div className="flex items-center gap-2 mb-2">
@@ -301,14 +365,28 @@ export function CampsPage() {
 
                   <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-airbnb-grey-200 flex items-center justify-between">
                     <div>
-                      <div className="text-xl sm:text-2xl font-bold text-airbnb-grey-900">
-                        ${camp.price}
-                      </div>
-                      {camp.early_bird_price && camp.early_bird_deadline && new Date(camp.early_bird_deadline) > new Date() && (
-                        <div className="text-xs text-green-600 font-medium">
-                          Early bird: ${camp.early_bird_price}
-                        </div>
-                      )}
+                      {(() => {
+                        const convertedPrice = getConvertedPrice(camp.price, camp.currency, userCurrency);
+                        const showOriginal = convertedPrice.isConverted;
+
+                        return (
+                          <>
+                            <div className="text-xl sm:text-2xl font-bold text-airbnb-grey-900">
+                              {convertedPrice.formatted}
+                            </div>
+                            {showOriginal && (
+                              <div className="text-xs text-airbnb-grey-500">
+                                {CURRENCY_SYMBOLS[camp.currency] || camp.currency}{camp.price.toFixed(0)} {camp.currency}
+                              </div>
+                            )}
+                            {camp.early_bird_price && camp.early_bird_deadline && new Date(camp.early_bird_deadline) > new Date() && (
+                              <div className="text-xs text-green-600 font-medium">
+                                Early bird: {getConvertedPrice(camp.early_bird_price, camp.currency, userCurrency).formatted}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                     <span className="text-sm sm:text-base text-airbnb-pink-500 font-medium group-hover:underline">
                       Learn More →

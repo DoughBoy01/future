@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "browse_camps": "キャンプを探す",
+    "partners": "パートナー",
+    "sign_in": "サインイン",
+    "sign_out": "サインアウト",
+    "sign_up": "新規登録",
+    "dashboard": "マイダッシュボード",
+    "settings": "設定",
+    "logout": "ログアウト",
+    "language": "言語",
+    "currency": "通貨"
+  },
+  "buttons": {
+    "learn_more": "詳細を見る",
+    "reserve_now": "今すぐ予約",
+    "book_now": "今すぐ予約",
+    "explore_camps": "キャンプを探す",
+    "get_started": "始める",
+    "submit": "送信",
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "save": "保存",
+    "clear": "クリア",
+    "clear_filters": "フィルターをクリア"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "welcome": "ようこそ",
+    "age": "年齢",
+    "location": "場所",
+    "capacity": "定員",
+    "price": "料金",
+    "from": "から",
+    "to": "まで",
+    "language": "言語",
+    "spots_remaining_one": "残り{{count}}席",
+    "spots_remaining_other": "残り{{count}}席",
+    "reviews_one": "{{count}}件のレビュー",
+    "reviews_other": "{{count}}件のレビュー"
+  },
+  "currency_selector": {
+    "title": "価格表示:",
+    "disclaimer": "価格は概算です。正確な料金は主催者にお問い合わせください。"
+  },
+  "language_selector": {
+    "title": "言語を選択:",
+    "languages": {
+      "en": "英語",
+      "es": "スペイン語",
+      "fr": "フランス語",
+      "de": "ドイツ語",
+      "zh": "中国語",
+      "ja": "日本語"
+    }
+  }
+}

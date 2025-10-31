@@ -1,0 +1,33 @@
+{
+  "page_title": "Explore the perfect experiences for your child",
+  "filters": {
+    "age": "Age:",
+    "categories": "Categories",
+    "locations": "Locations"
+  },
+  "card": {
+    "ages": "Ages {{min}}-{{max}}",
+    "starting_at": "Starting at",
+    "early_bird": "Early bird: {{price}}",
+    "featured": "Featured",
+    "capacity_label": "Capacity: {{capacity}}"
+  },
+  "list": {
+    "camps_count_one": "{{count}} camp available",
+    "camps_count_other": "{{count}} camps available",
+    "no_results": "No camps found matching your criteria.",
+    "loading": "Loading amazing camps..."
+  },
+  "details": {
+    "book_now": "Book Now",
+    "enquire": "Enquire",
+    "share": "Share",
+    "overview": "Overview",
+    "schedule": "Schedule",
+    "location": "Location",
+    "what_to_bring": "What to Bring",
+    "requirements": "Requirements",
+    "amenities": "Amenities",
+    "policies": "Policies"
+  }
+}
