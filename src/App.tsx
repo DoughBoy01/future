@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/layout/Navbar';
+import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
 import { AuthPage } from './pages/AuthPage';
 import { CampsPage } from './pages/CampsPage';
@@ -46,15 +47,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/camps" element={<CampsPage />} />
-        <Route path="/camps/:id" element={<CampDetailPage />} />
-        <Route path="/partners" element={<PartnersPage />} />
-        <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/camps" element={<CampsPage />} />
+          <Route path="/camps/:id" element={<CampDetailPage />} />
+          <Route path="/partners" element={<PartnersPage />} />
+          <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
         <Route
           path="/payment-success"
           element={
@@ -219,8 +221,10 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
+      <Footer />
     </div>
   );
 }

@@ -55,5 +55,16 @@
       "zh": "Chinese",
       "ja": "Japanese"
     }
+  },
+  "footer": {
+    "tagline": "Empowering the next generation through transformative camp experiences.",
+    "quick_links": "Quick Links",
+    "support": "Support",
+    "contact": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "rights": "All rights reserved.",
+    "made_with": "Made with",
+    "for_future": "for the future generation"
   }
 }

@@ -55,5 +55,16 @@
       "zh": "Chino",
       "ja": "Japonés"
     }
+  },
+  "footer": {
+    "tagline": "Empoderando a la próxima generación a través de experiencias transformadoras en campamentos.",
+    "quick_links": "Enlaces Rápidos",
+    "support": "Soporte",
+    "contact": "Contáctenos",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "rights": "Todos los derechos reservados.",
+    "made_with": "Hecho con",
+    "for_future": "para la futura generación"
   }
 }

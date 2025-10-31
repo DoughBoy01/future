@@ -55,5 +55,16 @@
       "zh": "中文",
       "ja": "日语"
     }
+  },
+  "footer": {
+    "tagline": "通过变革性的营地体验赋能下一代。",
+    "quick_links": "快速链接",
+    "support": "支持",
+    "contact": "联系我们",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "rights": "版权所有。",
+    "made_with": "用心制作",
+    "for_future": "为了未来一代"
   }
 }
