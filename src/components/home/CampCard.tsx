@@ -241,20 +241,20 @@ export function CampCard({
         </h3>
 
         {/* Benefits-focused badges */}
-        <div className="flex items-center gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-3 flex-wrap">
           {verificationLevel && verificationLevel !== 'unverified' && (
             <VerificationBadge level={verificationLevel} size="small" showTooltip={true} />
           )}
-          <span className="bg-airbnb-grey-50 border border-airbnb-grey-200 text-airbnb-grey-700 px-2.5 py-1 rounded-full font-medium text-xs">
+          <span className="bg-airbnb-grey-50 border border-airbnb-grey-200 text-airbnb-grey-700 px-2 sm:px-2.5 py-1 rounded-full font-medium text-xs shrink-0">
             {category}
           </span>
-          <span className="bg-airbnb-pink-50 border border-airbnb-pink-200 text-airbnb-pink-700 px-2.5 py-1 rounded-full font-medium text-xs">
+          <span className="bg-airbnb-pink-50 border border-airbnb-pink-200 text-airbnb-pink-700 px-2 sm:px-2.5 py-1 rounded-full font-medium text-xs shrink-0">
             {ageRange}
           </span>
           {rating > 0 && (
-            <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" aria-hidden="true" />
-              <span className="font-bold text-xs text-amber-900">
+            <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full shrink-0">
+              <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" aria-hidden="true" />
+              <span className="font-bold text-xs text-amber-900 whitespace-nowrap">
                 {rating} {reviewCount > 0 && <span className="text-airbnb-grey-500 font-book">({reviewCount})</span>}
               </span>
             </div>

@@ -64,10 +64,10 @@ export function QualityTier({
   if (variant === 'compact') {
     return (
       <div
-        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${tierDisplay.bg} ${tierDisplay.border} ${className}`}
+        className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border ${tierDisplay.bg} ${tierDisplay.border} ${className} shrink-0`}
       >
-        <Icon className={`w-4 h-4 ${tierDisplay.color}`} />
-        <span className={`text-sm font-semibold ${tierDisplay.color}`}>
+        <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${tierDisplay.color} shrink-0`} />
+        <span className={`text-xs sm:text-sm font-semibold ${tierDisplay.color} whitespace-nowrap`}>
           {tierDisplay.label}
         </span>
       </div>
@@ -75,16 +75,16 @@ export function QualityTier({
   }
 
   return (
-    <div className={`${tierDisplay.bg} rounded-xl p-6 border ${tierDisplay.border} ${className}`}>
-      <div className="flex items-center gap-3 mb-4">
-        <div className={`w-12 h-12 ${tierDisplay.bg} rounded-full flex items-center justify-center border-2 ${tierDisplay.border}`}>
-          <Icon className={`w-6 h-6 ${tierDisplay.color}`} />
+    <div className={`${tierDisplay.bg} rounded-xl p-4 sm:p-6 border ${tierDisplay.border} ${className}`}>
+      <div className="flex items-center gap-2 sm:gap-3 mb-4">
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${tierDisplay.bg} rounded-full flex items-center justify-center border-2 ${tierDisplay.border} shrink-0`}>
+          <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${tierDisplay.color}`} />
         </div>
-        <div>
-          <h3 className={`text-lg font-bold ${tierDisplay.color}`}>
+        <div className="min-w-0">
+          <h3 className={`text-base sm:text-lg font-bold ${tierDisplay.color} truncate`}>
             {tierDisplay.label}
           </h3>
-          <p className="text-sm text-airbnb-grey-600">
+          <p className="text-xs sm:text-sm text-airbnb-grey-600 truncate">
             Trusted by FutureEdge
           </p>
         </div>
@@ -92,38 +92,38 @@ export function QualityTier({
 
       <div className="space-y-3">
         {responseRate !== undefined && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-airbnb-grey-700">
-              <TrendingUp className="w-4 h-4" />
-              <span>Response Rate</span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-airbnb-grey-700 min-w-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">Response Rate</span>
             </div>
-            <span className={`font-semibold ${tierDisplay.color}`}>
+            <span className={`font-semibold text-sm sm:text-base ${tierDisplay.color} shrink-0`}>
               {responseRate}%
             </span>
           </div>
         )}
 
         {responseTimeHours !== undefined && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-airbnb-grey-700">
-              <Clock className="w-4 h-4" />
-              <span>Response Time</span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-airbnb-grey-700 min-w-0">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">Response Time</span>
             </div>
-            <span className="font-semibold text-airbnb-grey-900">
+            <span className="font-semibold text-xs sm:text-sm text-airbnb-grey-900 shrink-0 whitespace-nowrap">
               {responseTimeHours < 1
-                ? 'Within 1 hour'
-                : `${responseTimeHours} hours`}
+                ? '< 1 hour'
+                : `${responseTimeHours}h`}
             </span>
           </div>
         )}
 
         {repeatBookingRate !== undefined && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-airbnb-grey-700">
-              <Users className="w-4 h-4" />
-              <span>Repeat Bookings</span>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-airbnb-grey-700 min-w-0">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">Repeat Bookings</span>
             </div>
-            <span className={`font-semibold ${tierDisplay.color}`}>
+            <span className={`font-semibold text-sm sm:text-base ${tierDisplay.color} shrink-0`}>
               {repeatBookingRate}%
             </span>
           </div>
@@ -131,21 +131,23 @@ export function QualityTier({
 
         {yearsOnPlatform !== undefined && (
           <div className="pt-3 border-t border-airbnb-grey-200">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-airbnb-grey-900">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
+              <div className="min-w-0">
+                <div className="text-xl sm:text-2xl font-bold text-airbnb-grey-900">
                   {yearsOnPlatform}
                 </div>
-                <div className="text-xs text-airbnb-grey-600">
+                <div className="text-[10px] sm:text-xs text-airbnb-grey-600">
                   {yearsOnPlatform === 1 ? 'Year' : 'Years'} on Platform
                 </div>
               </div>
               {totalCampersServed !== undefined && (
-                <div>
-                  <div className="text-2xl font-bold text-airbnb-grey-900">
-                    {totalCampersServed.toLocaleString()}
+                <div className="min-w-0">
+                  <div className="text-xl sm:text-2xl font-bold text-airbnb-grey-900 truncate">
+                    {totalCampersServed >= 1000
+                      ? `${(totalCampersServed / 1000).toFixed(1)}k`
+                      : totalCampersServed.toLocaleString()}
                   </div>
-                  <div className="text-xs text-airbnb-grey-600">
+                  <div className="text-[10px] sm:text-xs text-airbnb-grey-600">
                     Campers Served
                   </div>
                 </div>
