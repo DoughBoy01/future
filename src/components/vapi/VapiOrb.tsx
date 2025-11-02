@@ -20,7 +20,7 @@ export function VapiOrb({ state, size = 'large', className = '' }: VapiOrbProps)
       case 'speaking':
         return 'animate-heartbeat';
       case 'thinking':
-        return 'animate-shimmer';
+        return 'animate-pulse-fast'; // Use pulse animation instead of shimmer to keep orb fixed
       case 'error':
         return 'animate-pulse-error';
       case 'idle':
