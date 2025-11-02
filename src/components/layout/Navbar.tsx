@@ -91,6 +91,12 @@ export function Navbar() {
               >
                 {t('nav.browse_camps')}
               </Link>
+              <Link
+                to="/talk-to-advisor"
+                className="text-airbnb-grey-700 hover:text-airbnb-grey-900 px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
+              >
+                Talk to AI Advisor
+              </Link>
               {user && profile?.role === 'parent' && (
                 <Link
                   to="/dashboard"
@@ -277,6 +283,14 @@ export function Navbar() {
               className="block px-4 py-2 text-base font-medium text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900 rounded-md transition-fast"
             >
               {t('nav.browse_camps')}
+            </Link>
+
+            <Link
+              to="/talk-to-advisor"
+              onClick={closeMobileMenu}
+              className="block px-4 py-2 text-base font-medium text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900 rounded-md transition-fast"
+            >
+              Talk to AI Advisor
             </Link>
 
             {user && profile?.role === 'parent' && (

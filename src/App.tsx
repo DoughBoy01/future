@@ -26,6 +26,7 @@ import { SiteSettings } from './pages/admin/SiteSettings';
 import { SystemDiagnostics } from './pages/admin/SystemDiagnostics';
 import { PartnersPage } from './pages/PartnersPage';
 import { FilterDemoPage } from './pages/FilterDemoPage';
+import { TalkToAdvisorPage } from './pages/TalkToAdvisorPage';
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -58,6 +59,7 @@ function App() {
           <Route path="/camps/:id" element={<CampDetailPage />} />
           <Route path="/partners" element={<PartnersPage />} />
           <Route path="/filter-demo" element={<FilterDemoPage />} />
+          <Route path="/talk-to-advisor" element={<TalkToAdvisorPage />} />
           <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
         <Route
           path="/payment-success"
