@@ -1,0 +1,39 @@
+{
+  "system_prompt": "您是一位温暖、知识渊博的营地顾问，帮助家长为他们的孩子找到完美的夏令营体验。\n\n您的职责是：\n- 以对话式、友好和真诚有用的方式交流\n- 提出关于孩子年龄、兴趣和偏好的周到问题\n- 了解家长在寻找什么（教育重点、冒险、艺术、体育等）\n- 根据他们的需求提供个性化建议\n- 分享有关营地特色、安全性和优势的相关详情\n- 以温暖和专业的态度回答问题\n\n保持回复简洁对话 - 每次回复争取2-3句话。一次只问一个问题，避免让家长感到不知所措。使用温暖、支持性的语气，就像您是帮助他们做出这个重要决定的值得信赖的朋友一样。",
+  "first_message": "你好！很高兴你来到这里。我很乐意帮助你为孩子找到完美的营地。首先，你能告诉我一些关于你孩子的情况吗？比如他们的年龄和最感兴趣的事情？",
+  "advisor_name": "营地顾问",
+  "page": {
+    "title": "与我们的AI顾问交谈",
+    "subtitle": "通过自然对话为您的孩子发现完美的营地体验",
+    "feature_1_title": "个性化推荐",
+    "feature_1_description": "获得针对您孩子兴趣和年龄定制的营地建议",
+    "feature_2_title": "自然对话",
+    "feature_2_description": "像与友好的顾问聊天一样自然地交谈",
+    "feature_3_title": "专家指导",
+    "feature_3_description": "由经过营地专业知识和家长需求训练的AI提供支持",
+    "how_it_works_title": "如何使用",
+    "step_1_title": "点击开始",
+    "step_1_description": "允许麦克风访问并开始对话",
+    "step_2_title": "分享详情",
+    "step_2_description": "告诉我们您孩子的年龄、兴趣以及您在寻找什么",
+    "step_3_title": "获取推荐",
+    "step_3_description": "收到最适合您家庭的个性化营地建议",
+    "privacy_notice": "您的对话是私密和安全的。我们仅用它来帮助您找到完美的营地。",
+    "conversation_title": "对话"
+  },
+  "controls": {
+    "status_ready": "准备开始",
+    "status_connecting": "连接中...",
+    "status_active": "已连接 - 自然说话",
+    "status_ended": "对话已结束",
+    "status_error": "连接错误",
+    "hint_active": "AI顾问正在倾听...",
+    "hint_microphone_active": "麦克风已激活",
+    "button_start": "开始对话",
+    "button_stop": "结束对话",
+    "button_connecting": "连接中...",
+    "warning_microphone_permission": "语音对话需要麦克风访问权限",
+    "you": "您",
+    "ai_advisor": "AI顾问"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "system_prompt": "You are a warm, knowledgeable camp advisor helping parents find the perfect summer camp experience for their children.\n\nYour role is to:\n- Be conversational, friendly, and genuinely helpful\n- Ask thoughtful questions about the child's age, interests, and preferences\n- Understand what the parents are looking for (educational focus, adventure, arts, sports, etc.)\n- Provide personalized recommendations based on their needs\n- Share relevant details about camp features, safety, and benefits\n- Answer questions with warmth and expertise\n\nKeep responses concise and conversational - aim for 2-3 sentences per response. Ask one question at a time to avoid overwhelming parents. Use a warm, supportive tone as if you're a trusted friend helping them make this important decision.",
+  "first_message": "Hi there! I'm so glad you're here. I'd love to help you find the perfect camp for your child. To get started, could you tell me a bit about your child - maybe their age and what they're most interested in?",
+  "advisor_name": "Camp Advisor",
+  "page": {
+    "title": "Talk to Our AI Advisor",
+    "subtitle": "Have a natural conversation to discover the perfect camp experience for your child",
+    "feature_1_title": "Personalized Recommendations",
+    "feature_1_description": "Get camp suggestions tailored to your child's interests and age",
+    "feature_2_title": "Natural Conversation",
+    "feature_2_description": "Speak naturally as if chatting with a friendly advisor",
+    "feature_3_title": "Expert Guidance",
+    "feature_3_description": "Powered by AI trained on camp expertise and parent needs",
+    "how_it_works_title": "How It Works",
+    "step_1_title": "Click Start",
+    "step_1_description": "Allow microphone access and begin the conversation",
+    "step_2_title": "Share Details",
+    "step_2_description": "Tell us about your child's age, interests, and what you're looking for",
+    "step_3_title": "Get Recommendations",
+    "step_3_description": "Receive personalized camp suggestions perfect for your family",
+    "privacy_notice": "Your conversation is private and secure. We use it only to help you find the perfect camp.",
+    "conversation_title": "Conversation"
+  },
+  "controls": {
+    "status_ready": "Ready to start",
+    "status_connecting": "Connecting...",
+    "status_active": "Connected - Speak naturally",
+    "status_ended": "Conversation ended",
+    "status_error": "Connection error",
+    "hint_active": "The AI advisor is listening...",
+    "hint_microphone_active": "Microphone active",
+    "button_start": "Start Conversation",
+    "button_stop": "End Conversation",
+    "button_connecting": "Connecting...",
+    "warning_microphone_permission": "Microphone access required for voice conversations",
+    "you": "You",
+    "ai_advisor": "AI Advisor"
+  }
+}
