@@ -15,7 +15,7 @@ i18n
     supportedLngs: ['en', 'es', 'ja', 'zh'],
 
     // Namespaces for code splitting
-    ns: ['common', 'home', 'camps', 'forms', 'auth', 'marketing', 'errors', 'advisor'],
+    ns: ['common', 'home', 'camps', 'forms', 'auth', 'marketing', 'errors'],
     defaultNS: 'common',
 
     // Backend configuration - load from public folder

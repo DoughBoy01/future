@@ -1,5 +1,4 @@
 import { Mic, MicOff, Phone, PhoneOff, AlertCircle } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import type { CallStatus } from '../../types/vapi';
 
 interface ConversationControlsProps {
@@ -19,7 +18,6 @@ export function ConversationControls({
   error,
   className = '',
 }: ConversationControlsProps) {
-  const { t } = useTranslation('advisor');
   const isActive = callStatus === 'active';
   const isConnecting = callStatus === 'connecting';
   const isDisabled = isConnecting;
@@ -27,15 +25,15 @@ export function ConversationControls({
   const getStatusText = () => {
     switch (callStatus) {
       case 'connecting':
-        return t('controls.status_connecting');
+        return 'Connecting...';
       case 'active':
-        return t('controls.status_active');
+        return 'Connected - Speak naturally';
       case 'ended':
-        return t('controls.status_ended');
+        return 'Conversation ended';
       case 'error':
-        return t('controls.status_error');
+        return 'Connection error';
       default:
-        return t('controls.status_ready');
+        return 'Ready to start';
     }
   };
 
@@ -61,7 +59,7 @@ export function ConversationControls({
         </p>
         {isActive && (
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            {t('controls.hint_active')}
+            The AI advisor is listening...
           </p>
         )}
       </div>
@@ -71,7 +69,7 @@ export function ConversationControls({
         <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 max-w-md">
           <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 shrink-0" />
           <p className="text-xs sm:text-sm text-amber-800">
-            {t('controls.warning_microphone_permission')}
+            Microphone access required for voice conversations
           </p>
         </div>
       )}
@@ -108,12 +106,12 @@ export function ConversationControls({
             {isConnecting ? (
               <>
                 <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>{t('controls.button_connecting')}</span>
+                <span>Connecting...</span>
               </>
             ) : (
               <>
                 <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>{t('controls.button_start')}</span>
+                <span>Start Conversation</span>
               </>
             )}
           </button>
@@ -135,7 +133,7 @@ export function ConversationControls({
             aria-label="End conversation"
           >
             <PhoneOff className="w-4 h-4 sm:w-5 sm:h-5" />
-            <span>{t('controls.button_stop')}</span>
+            <span>End Conversation</span>
           </button>
         )}
       </div>
@@ -144,7 +142,7 @@ export function ConversationControls({
       {isActive && (
         <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span>{t('controls.hint_microphone_active')}</span>
+          <span>Microphone active</span>
         </div>
       )}
     </div>

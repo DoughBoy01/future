@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import Vapi from '@vapi-ai/web';
 import type {
   OrbState,
@@ -9,12 +8,10 @@ import type {
   VapiError,
   AssistantConfig
 } from '../types/vapi';
-import { getVapiLanguageConfig } from '../config/vapi-languages';
 
 const VAPI_PUBLIC_KEY = import.meta.env.VITE_VAPI_PUBLIC_KEY;
 
 export function useVapi() {
-  const { t, i18n } = useTranslation('advisor');
   const vapiRef = useRef<Vapi | null>(null);
   const [callStatus, setCallStatus] = useState<CallStatus>('inactive');
   const [orbState, setOrbState] = useState<OrbState>('idle');
@@ -128,10 +125,6 @@ export function useVapi() {
     setTranscript([]);
     setError(null);
 
-    // Get language-specific configuration
-    const currentLanguage = i18n.language || 'en';
-    const languageConfig = getVapiLanguageConfig(currentLanguage);
-
     const assistantConfig: AssistantConfig = {
       model: {
         provider: 'openai',
@@ -139,22 +132,32 @@ export function useVapi() {
         messages: [
           {
             role: 'system',
-            content: t('system_prompt'),
+            content: `You are a warm, knowledgeable camp advisor helping parents find the perfect summer camp experience for their children.
+
+Your role is to:
+- Be conversational, friendly, and genuinely helpful
+- Ask thoughtful questions about the child's age, interests, and preferences
+- Understand what the parents are looking for (educational focus, adventure, arts, sports, etc.)
+- Provide personalized recommendations based on their needs
+- Share relevant details about camp features, safety, and benefits
+- Answer questions with warmth and expertise
+
+Keep responses concise and conversational - aim for 2-3 sentences per response. Ask one question at a time to avoid overwhelming parents. Use a warm, supportive tone as if you're a trusted friend helping them make this important decision.`,
           },
         ],
         temperature: 0.7,
       },
       voice: {
         provider: '11labs',
-        voiceId: languageConfig.elevenLabsVoiceId,
+        voiceId: 'sarah', // Warm, friendly female voice
       },
-      firstMessage: t('first_message'),
+      firstMessage: "Hi there! I'm so glad you're here. I'd love to help you find the perfect camp for your child. To get started, could you tell me a bit about your child - maybe their age and what they're most interested in?",
       transcriber: {
         provider: 'deepgram',
         model: 'nova-2',
-        language: languageConfig.deepgramCode,
+        language: 'multi', // Automatic language detection
       },
-      name: t('advisor_name'),
+      name: 'Camp Advisor',
       // Placeholder for future database function calling
       // functions: [
       //   {
@@ -180,7 +183,7 @@ export function useVapi() {
       setOrbState('error');
       setError('Failed to start conversation. Please check your microphone permissions and try again.');
     }
-  }, [t, i18n.language]);
+  }, []);
 
   // Stop conversation
   const stopCall = useCallback(() => {

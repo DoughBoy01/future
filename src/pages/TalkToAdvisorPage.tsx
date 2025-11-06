@@ -1,12 +1,10 @@
 import { Helmet } from 'react-helmet-async';
-import { useTranslation } from 'react-i18next';
 import { useVapi } from '../hooks/useVapi';
 import { VapiOrb } from '../components/vapi/VapiOrb';
 import { ConversationControls } from '../components/vapi/ConversationControls';
 import { Sparkles, Shield, Heart } from 'lucide-react';
 
 export function TalkToAdvisorPage() {
-  const { t } = useTranslation('advisor');
   const {
     callStatus,
     orbState,
@@ -20,10 +18,10 @@ export function TalkToAdvisorPage() {
   return (
     <>
       <Helmet>
-        <title>{t('page.title')} | Future Impact</title>
+        <title>Talk to Our AI Advisor | Future Impact</title>
         <meta
           name="description"
-          content={t('page.subtitle')}
+          content="Have a conversation with our AI advisor to find the perfect summer camp for your child. Get personalized recommendations based on your child's interests and needs."
         />
       </Helmet>
 
@@ -32,10 +30,10 @@ export function TalkToAdvisorPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 lg:pt-16 pb-8 sm:pb-12">
           <div className="text-center mb-8 sm:mb-12">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#222222] mb-3 sm:mb-4">
-              {t('page.title')}
+              Talk to Our AI Advisor
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-[#717171] max-w-2xl mx-auto">
-              {t('page.subtitle')}
+              Have a natural conversation to discover the perfect camp experience for your child
             </p>
           </div>
 
@@ -46,10 +44,10 @@ export function TalkToAdvisorPage() {
                 <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-[#FF385C]" />
               </div>
               <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-1 sm:mb-2">
-                {t('page.feature_1_title')}
+                Personalized Recommendations
               </h3>
               <p className="text-xs sm:text-sm text-[#717171]">
-                {t('page.feature_1_description')}
+                Get camp suggestions tailored to your child's interests and age
               </p>
             </div>
 
@@ -58,10 +56,10 @@ export function TalkToAdvisorPage() {
                 <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-[#FF385C]" />
               </div>
               <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-1 sm:mb-2">
-                {t('page.feature_2_title')}
+                Natural Conversation
               </h3>
               <p className="text-xs sm:text-sm text-[#717171]">
-                {t('page.feature_2_description')}
+                Speak naturally as if chatting with a friendly advisor
               </p>
             </div>
 
@@ -70,10 +68,10 @@ export function TalkToAdvisorPage() {
                 <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-[#FF385C]" />
               </div>
               <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-1 sm:mb-2">
-                {t('page.feature_3_title')}
+                Expert Guidance
               </h3>
               <p className="text-xs sm:text-sm text-[#717171]">
-                {t('page.feature_3_description')}
+                Powered by AI trained on camp expertise and parent needs
               </p>
             </div>
           </div>
@@ -100,7 +98,7 @@ export function TalkToAdvisorPage() {
             {transcript.length > 0 && (
               <div className="mt-8 sm:mt-12 pt-8 sm:pt-12 border-t border-gray-200">
                 <h2 className="text-lg sm:text-xl font-semibold text-[#222222] mb-4 sm:mb-6">
-                  {t('page.conversation_title')}
+                  Conversation
                 </h2>
                 <div className="space-y-3 sm:space-y-4 max-h-64 sm:max-h-96 overflow-y-auto scrollbar-hide">
                   {transcript.map((message, index) => (
@@ -119,7 +117,7 @@ export function TalkToAdvisorPage() {
                         `}
                       >
                         <p className="text-xs sm:text-sm font-medium mb-1 opacity-75">
-                          {message.role === 'user' ? t('controls.you') : t('controls.ai_advisor')}
+                          {message.role === 'user' ? 'You' : 'AI Advisor'}
                         </p>
                         <p className="text-sm sm:text-base">{message.text}</p>
                       </div>
@@ -133,7 +131,7 @@ export function TalkToAdvisorPage() {
           {/* Privacy Notice */}
           <div className="mt-6 sm:mt-8 text-center">
             <p className="text-xs sm:text-sm text-[#717171]">
-              {t('page.privacy_notice')}
+              Your conversation is private and secure. We use it only to help you find the perfect camp.
             </p>
           </div>
         </div>
@@ -142,7 +140,7 @@ export function TalkToAdvisorPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 lg:pb-20">
           <div className="bg-gradient-to-br from-[#FFE8EA] to-[#FFC4CC] rounded-2xl p-6 sm:p-8 lg:p-10">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#222222] mb-4 sm:mb-6 text-center">
-              {t('page.how_it_works_title')}
+              How It Works
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               <div className="text-center">
@@ -150,10 +148,10 @@ export function TalkToAdvisorPage() {
                   1
                 </div>
                 <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-2">
-                  {t('page.step_1_title')}
+                  Click Start
                 </h3>
                 <p className="text-xs sm:text-sm text-[#717171]">
-                  {t('page.step_1_description')}
+                  Allow microphone access and begin the conversation
                 </p>
               </div>
 
@@ -162,10 +160,10 @@ export function TalkToAdvisorPage() {
                   2
                 </div>
                 <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-2">
-                  {t('page.step_2_title')}
+                  Share Details
                 </h3>
                 <p className="text-xs sm:text-sm text-[#717171]">
-                  {t('page.step_2_description')}
+                  Tell us about your child's age, interests, and what you're looking for
                 </p>
               </div>
 
@@ -174,10 +172,10 @@ export function TalkToAdvisorPage() {
                   3
                 </div>
                 <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-2">
-                  {t('page.step_3_title')}
+                  Get Recommendations
                 </h3>
                 <p className="text-xs sm:text-sm text-[#717171]">
-                  {t('page.step_3_description')}
+                  Receive personalized camp suggestions perfect for your family
                 </p>
               </div>
             </div>
