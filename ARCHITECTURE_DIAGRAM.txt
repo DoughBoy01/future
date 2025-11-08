@@ -1,0 +1,212 @@
+═══════════════════════════════════════════════════════════════════════════════
+              FUTUREEDGE CAMP MARKETPLACE - ARCHITECTURE OVERVIEW
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          USER INTERFACE LAYER                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐  │
+│  │   PUBLIC PAGES   │      │  PARENT DASHBOARD│      │   ADMIN PORTAL   │  │
+│  │                  │      │                  │      │                  │  │
+│  │ • Home Page      │      │ • Registrations  │      │ • Camp Mgmt      │  │
+│  │ • Camp Listing   │      │ • Child Profiles │      │ • Reviews Mgmt   │  │
+│  │ • Camp Details   │      │ • Bookings       │      │ • Orgs Mgmt      │  │
+│  │ • Auth Pages     │      │ • Dashboard      │      │ • Analytics      │  │
+│  └──────────────────┘      └──────────────────┘      └──────────────────┘  │
+│                                                                               │
+│  React 18.3.1 + TypeScript 5.5.3 + React Router 7.9.3                      │
+│  Tailwind CSS 3.4.1 + Lucide React 0.344.0                                  │
+│  Vite 5.4.2 Build Tool                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       COMPONENT LIBRARY LAYER                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
+│  │ MEDIA COMPONENTS │  │ CONTENT COMPONENTS│  │ INTERACTIVE COMP │         │
+│  │ • ImageGallery   │  │ • ReviewsSection │  │ • EnhancedBooking│         │
+│  │ • VideoGallery   │  │ • FAQSection     │  │ • CampCard       │         │
+│  │ • VideoPlayer    │  │ • Amenities      │  │ • CountdownTimer │         │
+│  │ • MediaUploadMgr │  │ • HostInformation│  │ • SocialProof    │         │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘         │
+│                                                                               │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
+│  │  FORM COMPONENTS │  │ TABLE COMPONENTS │  │ LAYOUT COMPONENTS│         │
+│  │ • CampFormModal  │  │ • UniversalTable │  │ • Navbar         │         │
+│  │ • ReviewModal    │  │ • DataTable      │  │ • DashboardLayout│         │
+│  │ • OrgFormModal   │  │ • Import/Export  │  │ • ErrorBoundary  │         │
+│  └──────────────────┘  └──────────────────┘  └──────────────────┘         │
+│                                                                               │
+│  36+ React Components • Type-Safe (TypeScript) • Reusable • Accessible     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        BUSINESS LOGIC LAYER                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ SERVICE LAYER (8 Services)                                          │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ • ApprovalWorkflowService  - Content approval pipeline              │   │
+│  │ • CommissionService        - Platform commission calculations       │   │
+│  │ • DataManagementService    - Import/export & bulk operations        │   │
+│  │ • PermissionService        - RBAC permission checks                 │   │
+│  │ • RegistrationService      - Enrollment & booking management        │   │
+│  │ • StripeService            - Payment processing                     │   │
+│  │ • VersionControlService    - Content versioning & history           │   │
+│  │ • ImportExportService      - Data migration utilities               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │ CONTEXT & HOOKS                                                     │   │
+│  ├─────────────────────────────────────────────────────────────────────┤   │
+│  │ • AuthContext   - Global authentication state                       │   │
+│  │ • usePermissions - Role-based permission checking                   │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DATA ACCESS LAYER                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ SUPABASE CLIENT (@supabase/supabase-js 2.57.4)                       │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ • REST API Client      - Database queries (auto-generated)           │  │
+│  │ • Real-time Subscriptions - Live data updates                        │  │
+│  │ • Storage Client       - File upload/download                        │  │
+│  │ • Auth Client          - User authentication                         │  │
+│  │ • Row-Level Security   - Database access control                     │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DATABASE & STORAGE LAYER                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ SUPABASE POSTGRESQL DATABASE                                         │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ CORE TABLES:                        FLEXIBLE FIELDS (JSONB):        │  │
+│  │ • schools (organizations)           • camps.image_metadata           │  │
+│  │ • profiles (users)                  • camps.video_metadata           │  │
+│  │ • parents                           • camps.amenities                │  │
+│  │ • children                          • camps.highlights               │  │
+│  │ • camps (listings)                  • camps.faq                      │  │
+│  │ • camp_categories                   • profiles.preferences           │  │
+│  │ • feedback (reviews/ratings)                                          │  │
+│  │ • registrations (bookings)          INDEXES:                         │  │
+│  │ • enquiries                         • Full-text search               │  │
+│  │ • payments                          • GIN indexes (JSONB)            │  │
+│  │ • approval workflows                • B-tree indexes                 │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                               │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ FILE STORAGE (S3-Compatible)                                         │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ • camp-images bucket   - Max 10MB per file, supports JPEG/PNG/WebP   │  │
+│  │ • camp-videos bucket   - Max 100MB per file, supports MP4/WebM/MOV   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      EXTERNAL INTEGRATIONS                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐ │
+│  │    STRIPE PAYMENTS   │  │   SUPABASE AUTH      │  │   LUCIDE ICONS   │ │
+│  │                      │  │                      │  │                  │ │
+│  │ • Checkout Sessions  │  │ • User Registration  │  │ 344+ SVG Icons   │ │
+│  │ • Payment Processing │  │ • Email Auth         │  │ Consistent Styling
+│  │ • Commission Calc.   │  │ • Password Reset     │  │ Accessibility    │ │
+│  │ • Refund Handling    │  │ • Session Management │  │                  │ │
+│  └──────────────────────┘  └──────────────────────┘  └──────────────────┘ │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                             DATA FLOW EXAMPLE
+═══════════════════════════════════════════════════════════════════════════════
+
+Parent Browsing Camp:
+  CampCard Component
+       ↓ (onClick)
+  CampDetailPage
+       ↓ (fetches camp data)
+  Supabase.from('camps').select()
+       ↓ (returns camp + reviews)
+  Component renders with:
+    - ImageGallery (fetches images from storage)
+    - VideoGallery (loads video metadata)
+    - ReviewsSection (displays feedback)
+    - EnhancedBookingWidget (sticky CTA)
+       ↓ (user clicks Reserve)
+  CampRegistrationPage
+       ↓ (collects parent/child info)
+  registrationService.createRegistration()
+       ↓ (creates registration record)
+  Stripe checkout
+       ↓ (user pays)
+  PaymentSuccessPage
+       ↓ (confirmation email)
+  Parent Dashboard (shows booking)
+
+
+Admin Managing Camp:
+  CampsManagement Page
+       ↓ (click Edit Camp)
+  CampFormModal opens
+       ↓ (load existing camp data)
+  Supabase.from('camps').select().eq('id', campId)
+       ↓ (populate form fields)
+  Admin uploads images
+       ↓ (MediaUploadManager)
+  supabase.storage.from('camp-images').upload()
+       ↓ (file saved, URL retrieved)
+  Admin saves form
+       ↓ (CampFormModal.handleSave)
+  supabase.from('camps').update()
+       ↓ (database updated)
+  Component refreshes
+       ↓ (shows success toast)
+  Changes visible in parent UI
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                         RESPONSIVE BREAKPOINTS
+═══════════════════════════════════════════════════════════════════════════════
+
+Mobile (< 640px)          Tablet (640-1024px)       Desktop (> 1024px)
+├─ Single column          ├─ 2-3 columns             ├─ 3-4 columns
+├─ Stacked images         ├─ 2-col image grid        ├─ 4-col image grid
+├─ Large touch targets    ├─ Optimized spacing       ├─ Full feature sets
+├─ Collapsed sidebars     ├─ Sidebar visible         ├─ Sticky sidebars
+└─ Bottom sticky booking  └─ Scrolling sidebar       └─ Full layouts
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            CURRENT BRANCH
+═══════════════════════════════════════════════════════════════════════════════
+
+Branch: claude/sea-market-features-plan-011CUvHXPs2UUQXo1suTYgxM
+Status:  PLANNING maritime/sea-related features
+
+Potential additions:
+  • Sailing camp category
+  • Water sports amenities
+  • Marine biology programs
+  • Waterfront venue management
+  • Seasonal availability (summer-focused)
+
+═══════════════════════════════════════════════════════════════════════════════
