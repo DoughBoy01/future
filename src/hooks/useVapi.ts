@@ -27,6 +27,12 @@ export function useVapi() {
       return;
     }
 
+    if (!VAPI_ASSISTANT_ID) {
+      console.error('VITE_VAPI_ASSISTANT_ID is not set in environment variables');
+      setError('Vapi assistant ID not configured. Please contact support.');
+      return;
+    }
+
     vapiRef.current = new Vapi(VAPI_PUBLIC_KEY);
 
     // Set up event listeners
@@ -88,6 +94,7 @@ export function useVapi() {
     // Cleanup on unmount
     return () => {
       if (vapiRef.current) {
+        vapiRef.current.removeAllListeners();
         vapiRef.current.stop();
       }
     };
@@ -99,18 +106,29 @@ export function useVapi() {
       const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
       setIsMicrophonePermissionGranted(result.state === 'granted');
 
-      result.addEventListener('change', () => {
+      const permissionChangeHandler = () => {
         setIsMicrophonePermissionGranted(result.state === 'granted');
-      });
+      };
+
+      result.addEventListener('change', permissionChangeHandler);
+
+      // Return cleanup function
+      return () => {
+        result.removeEventListener('change', permissionChangeHandler);
+      };
     } catch (err) {
       console.warn('Could not check microphone permission:', err);
       // Assume permission will be requested on call start
       setIsMicrophonePermissionGranted(null);
+      return undefined;
     }
   }, []);
 
   useEffect(() => {
-    checkMicrophonePermission();
+    const cleanup = checkMicrophonePermission();
+    return () => {
+      cleanup?.then(fn => fn?.());
+    };
   }, [checkMicrophonePermission]);
 
   // Start conversation
