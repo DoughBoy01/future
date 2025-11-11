@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Search, Filter, X, DollarSign } from 'lucide-react';
+import { Search, Filter, X, DollarSign, MapPin } from 'lucide-react';
 import { getConvertedPrice, detectUserCurrency, getPopularCurrencies, CURRENCY_SYMBOLS, CURRENCY_NAMES } from '../lib/currency';
 import { CampCard } from '../components/home/CampCard';
 import type { Database } from '../lib/database.types';
