@@ -258,15 +258,19 @@ export function CampCard({
           </div>
         )}
         {/* Action buttons - better spacing from top edge */}
-        <div className="absolute top-3 right-3 flex gap-2 z-10">
+        <div className="absolute top-3 right-3 flex gap-2 z-50">
           <button
             onClick={handleShareClick}
             onTouchEnd={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               handleShareClick(e as any);
             }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
             aria-label="Share this camp"
-            className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation"
+            className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation relative z-50"
             data-no-swipe="true"
           >
             <Share2
@@ -277,11 +281,15 @@ export function CampCard({
           <button
             onClick={handleFavoriteClick}
             onTouchEnd={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               handleFavoriteClick(e as any);
             }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation ${justFavorited ? 'animate-bounce' : ''}`}
+            className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation relative z-50 ${justFavorited ? 'animate-bounce' : ''}`}
             data-no-swipe="true"
           >
             <Heart
@@ -419,6 +427,13 @@ export function CampCard({
     return (
       <Link
         to={`/camps/${id}`}
+        onClick={(e) => {
+          // Prevent navigation if clicking on interactive elements
+          const target = e.target as HTMLElement;
+          if (target.closest('button') || target.closest('[data-no-swipe="true"]')) {
+            e.preventDefault();
+          }
+        }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`bg-white rounded-lg shadow-md overflow-hidden transition-airbnb w-full h-full flex flex-col group relative ${isHovered ? 'shadow-xl -translate-y-1 scale-[1.02]' : 'shadow-md translate-y-0 scale-100'}`}
