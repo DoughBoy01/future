@@ -267,9 +267,11 @@ export function CampCard({
           </div>
         )}
 
-        {/* Description excerpt on hover - full overlay */}
+        {/* Description excerpt - visible on mobile, hover on desktop */}
         {getDescriptionExcerpt() && (
-          <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent flex items-end p-4 transition-all duration-300 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent flex items-end p-4 transition-all duration-300
+            opacity-100 md:opacity-0 md:pointer-events-none
+            ${isHovered ? 'md:opacity-100 md:pointer-events-auto' : ''}`}>
             <p className="text-white text-xs leading-relaxed font-medium drop-shadow-lg">
               {getDescriptionExcerpt()}
             </p>
