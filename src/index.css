@@ -325,6 +325,45 @@
     animation: gradient-flow 4s ease-in-out infinite;
   }
 
+  /* iOS Safari flexbox fixes */
+  .ios-hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Force iOS to respect the flex positioning */
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -webkit-box-align: center;
+    /* Prevent iOS from centering content */
+    justify-content: flex-start !important;
+    -webkit-box-pack: start !important;
+  }
+
+  /* Ensure content stays at top on iOS */
+  @supports (-webkit-touch-callout: none) {
+    .ios-hero-container {
+      padding-top: 5rem !important;
+    }
+
+    @media (min-width: 640px) {
+      .ios-hero-container {
+        padding-top: 6rem !important;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .ios-hero-container {
+        padding-top: 8rem !important;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .ios-hero-container {
+        padding-top: 10rem !important;
+      }
+    }
+  }
+
   .animate-slide-down {
     animation: slide-down 0.3s ease-out;
   }
