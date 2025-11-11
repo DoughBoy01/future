@@ -49,13 +49,23 @@ export function CampCard({
   endDate,
   description,
 }: CampCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [justFavorited, setJustFavorited] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Initialize favorite state from localStorage
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (!id) return false;
+    try {
+      const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+      return favorites.includes(id);
+    } catch {
+      return false;
+    }
+  });
 
   // Format dates for display
   const formatDateRange = () => {
@@ -92,9 +102,34 @@ export function CampCard({
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsFavorite(!isFavorite);
+    e.stopPropagation();
+
+    if (!id) return;
+
+    const newFavoriteState = !isFavorite;
+    setIsFavorite(newFavoriteState);
     setJustFavorited(true);
     setTimeout(() => setJustFavorited(false), 600);
+
+    // Persist to localStorage
+    try {
+      const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+      if (newFavoriteState) {
+        // Add to favorites
+        if (!favorites.includes(id)) {
+          favorites.push(id);
+        }
+      } else {
+        // Remove from favorites
+        const index = favorites.indexOf(id);
+        if (index > -1) {
+          favorites.splice(index, 1);
+        }
+      }
+      localStorage.setItem('campFavorites', JSON.stringify(favorites));
+    } catch (error) {
+      console.error('Error saving favorite:', error);
+    }
   };
 
   const handleShareClick = async (e: React.MouseEvent) => {

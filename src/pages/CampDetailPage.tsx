@@ -205,9 +205,27 @@ export function CampDetailPage() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [showCopyToast, setShowCopyToast] = useState(false);
 
+  // Initialize favorite state from localStorage
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (!id) return false;
+    try {
+      const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+      return favorites.includes(id);
+    } catch {
+      return false;
+    }
+  });
+
   useEffect(() => {
     if (id) {
       loadCampData();
+      // Update favorite state when id changes
+      try {
+        const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+        setIsFavorite(favorites.includes(id));
+      } catch {
+        setIsFavorite(false);
+      }
     }
   }, [id]);
 
@@ -332,6 +350,33 @@ export function CampDetailPage() {
       day: 'numeric',
       year: 'numeric',
     });
+  };
+
+  const handleFavorite = () => {
+    if (!id) return;
+
+    const newFavoriteState = !isFavorite;
+    setIsFavorite(newFavoriteState);
+
+    // Persist to localStorage
+    try {
+      const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+      if (newFavoriteState) {
+        // Add to favorites
+        if (!favorites.includes(id)) {
+          favorites.push(id);
+        }
+      } else {
+        // Remove from favorites
+        const index = favorites.indexOf(id);
+        if (index > -1) {
+          favorites.splice(index, 1);
+        }
+      }
+      localStorage.setItem('campFavorites', JSON.stringify(favorites));
+    } catch (error) {
+      console.error('Error saving favorite:', error);
+    }
   };
 
   const handleShare = async () => {
@@ -700,10 +745,17 @@ export function CampDetailPage() {
               <Share2 className="w-5 h-5 text-gray-600" />
             </button>
             <button
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
-              aria-label="Save to favorites"
+              onClick={handleFavorite}
+              className={`p-2 hover:bg-gray-100 rounded-lg transition-colors border ${
+                isFavorite ? 'border-airbnb-pink-500 bg-airbnb-pink-50' : 'border-gray-300'
+              }`}
+              aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
             >
-              <Heart className="w-5 h-5 text-gray-600" />
+              <Heart
+                className={`w-5 h-5 transition-colors ${
+                  isFavorite ? 'fill-airbnb-pink-500 text-airbnb-pink-500' : 'text-gray-600'
+                }`}
+              />
             </button>
           </div>
         </div>
@@ -774,6 +826,13 @@ export function CampDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8 pb-24 lg:pb-8">
           <div className="lg:col-span-2 space-y-8 min-w-0">
+            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Camp</h2>
+              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {camp.description || 'No description available.'}
+              </p>
+            </div>
+
             {highlights.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Camp Highlights</h2>
@@ -803,13 +862,6 @@ export function CampDetailPage() {
               />
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Camp</h2>
-              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
-                {camp.description || 'No description available.'}
-              </p>
-            </div>
-
             {ratingsSummary && reviews.length > 0 && (
               <ReviewsSection
                 campId={camp.id}
@@ -821,62 +873,6 @@ export function CampDetailPage() {
                 recommendPercentage={ratingsSummary.recommendPercentage}
               />
             )}
-
-            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Camp Details</h2>
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-airbnb-pink-50 rounded-md">
-                    <Calendar className="w-6 h-6 text-airbnb-pink-500" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Dates</p>
-                    <p className="text-gray-900 font-medium">{formatDate(camp.start_date)}</p>
-                    <p className="text-gray-600 text-sm">to {formatDate(camp.end_date)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-airbnb-grey-100 rounded-md">
-                    <Users className="w-6 h-6 text-airbnb-grey-700" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Age Range</p>
-                    <p className="text-gray-900 font-medium">
-                      {camp.age_min} - {camp.age_max} years old
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-yellow-100 rounded-lg">
-                    <Clock className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Duration</p>
-                    <p className="text-gray-900 font-medium">
-                      {Math.ceil(
-                        (new Date(camp.end_date).getTime() - new Date(camp.start_date).getTime()) /
-                          (1000 * 60 * 60 * 24)
-                      )}{' '}
-                      days
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-red-100 rounded-lg">
-                    <Users className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Availability</p>
-                    <p className="text-gray-900 font-medium">
-                      {availablePlaces} of {camp.capacity} spots available
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {amenities.length > 0 && <AmenitiesSection amenities={amenities} />}
 

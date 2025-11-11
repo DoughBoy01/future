@@ -17,6 +17,7 @@ interface ImageGalleryProps {
 
 export function ImageGallery({ images, videos = [], campName, onVideoClick }: ImageGalleryProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isGridViewOpen, setIsGridViewOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mobileSlide, setMobileSlide] = useState(0);
   const touchStartX = useRef(0);
@@ -127,10 +128,16 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
             </div>
           </div>
           {isLast && totalMedia > 5 && (
-            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-              <button className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2">
-                <Grid3x3 className="w-4 h-4" />
-                Show all {totalMedia} photos & videos
+            <div
+              className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center backdrop-blur-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsGridViewOpen(true);
+              }}
+            >
+              <button className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-airbnb-pink-600 hover:to-airbnb-pink-700 hover:scale-105 transition-all shadow-xl flex items-center gap-2">
+                <Grid3x3 className="w-5 h-5" />
+                Show all {totalMedia}
               </button>
             </div>
           )}
@@ -155,10 +162,16 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
         />
         <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
         {isLast && totalMedia > 5 && (
-          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-            <button className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2">
-              <Grid3x3 className="w-4 h-4" />
-              Show all {totalMedia} photos & videos
+          <div
+            className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center backdrop-blur-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsGridViewOpen(true);
+            }}
+          >
+            <button className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-airbnb-pink-600 hover:to-airbnb-pink-700 hover:scale-105 transition-all shadow-xl flex items-center gap-2">
+              <Grid3x3 className="w-5 h-5" />
+              Show all {totalMedia}
             </button>
           </div>
         )}
@@ -304,6 +317,109 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
                 <img src={image} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Grid View Modal - Show All Photos & Videos */}
+      {isGridViewOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-95 z-50 overflow-y-auto"
+          onClick={() => setIsGridViewOpen(false)}
+        >
+          <div className="min-h-screen p-4 md:p-8">
+            {/* Header */}
+            <div className="sticky top-0 bg-black bg-opacity-90 backdrop-blur-md z-10 pb-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">{campName}</h2>
+                  <p className="text-gray-400 text-sm md:text-base">
+                    {images.length} {images.length === 1 ? 'photo' : 'photos'}
+                    {videos.length > 0 && ` • ${videos.length} ${videos.length === 1 ? 'video' : 'videos'}`}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsGridViewOpen(false);
+                  }}
+                  className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 md:p-3 transition-colors"
+                  aria-label="Close gallery"
+                >
+                  <X className="w-6 h-6 md:w-8 md:h-8" />
+                </button>
+              </div>
+            </div>
+
+            {/* Grid */}
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Images */}
+              {images.map((image, index) => (
+                <div
+                  key={`grid-image-${index}`}
+                  className="aspect-square cursor-pointer group relative overflow-hidden rounded-lg md:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
+                  onClick={() => {
+                    setCurrentIndex(index);
+                    setIsGridViewOpen(false);
+                    setIsLightboxOpen(true);
+                  }}
+                >
+                  <img
+                    src={image}
+                    alt={`${campName} - Photo ${index + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-3 left-3 text-white font-medium text-sm">
+                      Photo {index + 1}
+                    </div>
+                  </div>
+                  {/* Pink border on hover */}
+                  <div className="absolute inset-0 border-2 border-airbnb-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg md:rounded-xl" />
+                </div>
+              ))}
+
+              {/* Videos */}
+              {videos.map((video, videoIndex) => (
+                <div
+                  key={`grid-video-${videoIndex}`}
+                  className="aspect-square cursor-pointer group relative overflow-hidden rounded-lg md:rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsGridViewOpen(false);
+                    onVideoClick?.(videoIndex);
+                  }}
+                >
+                  {video.thumbnail ? (
+                    <img
+                      src={video.thumbnail}
+                      alt={video.title || `Video ${videoIndex + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                      <Play className="w-16 h-16 text-gray-600" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-50 transition-all flex items-center justify-center">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                      <Play className="w-7 h-7 md:w-9 md:h-9 text-white ml-1 fill-white" />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-3 left-3 text-white font-medium text-sm bg-black bg-opacity-50 px-2 py-1 rounded-md">
+                    {video.title || `Video ${videoIndex + 1}`}
+                  </div>
+                  {/* Pink border on hover */}
+                  <div className="absolute inset-0 border-2 border-airbnb-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg md:rounded-xl" />
+                </div>
+              ))}
+            </div>
+
+            {/* Bottom padding for mobile */}
+            <div className="h-20" />
           </div>
         </div>
       )}
