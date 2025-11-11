@@ -255,16 +255,37 @@ export function HomePage() {
       return;
     }
     setTouchStart(e.targetTouches[0].clientX);
+    setTouchEnd(0);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    // Don't interfere with button interactions
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      setTouchStart(0);
+      setTouchEnd(0);
+      return;
+    }
+
     // Only track move if we started a swipe (touchStart is set)
     if (!touchStart) return;
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      setTouchStart(0);
+      setTouchEnd(0);
+      return;
+    }
+
+    if (!touchStart || !touchEnd) {
+      setTouchStart(0);
+      setTouchEnd(0);
+      return;
+    }
 
     const distance = touchStart - touchEnd;
     const threshold = 50;
