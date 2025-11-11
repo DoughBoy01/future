@@ -247,6 +247,16 @@ export function CampCard({
             />
           </button>
         </div>
+        {/* Category and Age Pills - stacked above date pill */}
+        <div className="absolute bottom-14 left-3 flex flex-col gap-1">
+          <span className="bg-white/90 backdrop-blur-sm text-airbnb-grey-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit">
+            {category}
+          </span>
+          <span className="bg-white/90 backdrop-blur-sm text-airbnb-pink-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit">
+            {ageRange}
+          </span>
+        </div>
+
         {/* Camp Dates - overlaid at bottom of image */}
         {formatDateRange() && (
           <div className="absolute bottom-3 left-3 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg backdrop-blur-sm flex items-center gap-1.5 transition-standard">
@@ -266,16 +276,6 @@ export function CampCard({
             </span>
           </div>
         )}
-
-        {/* Category and Age Pills - overlaid on image */}
-        <div className="absolute top-14 right-3 flex flex-col gap-1.5">
-          <span className="bg-white/95 backdrop-blur-sm border border-airbnb-grey-200 text-airbnb-grey-700 px-2.5 py-1 rounded-full font-medium text-xs shadow-md">
-            {category}
-          </span>
-          <span className="bg-white/95 backdrop-blur-sm border border-airbnb-pink-200 text-airbnb-pink-700 px-2.5 py-1 rounded-full font-medium text-xs shadow-md">
-            {ageRange}
-          </span>
-        </div>
       </div>
 
       {/* Content section - Tighter, more internal space */}
