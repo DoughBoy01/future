@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
 import {
@@ -14,7 +15,9 @@ import {
   Share2,
   Heart,
   ChevronLeft,
-  X
+  X,
+  Home,
+  ChevronRight
 } from 'lucide-react';
 import { ImageGallery } from '../components/camps/ImageGallery';
 import { VideoPlayer } from '../components/camps/VideoPlayer';
@@ -463,8 +466,124 @@ export function CampDetailPage() {
     });
   };
 
+  // Generate structured data for SEO (JSON-LD)
+  const generateStructuredData = () => {
+    const baseUrl = window.location.origin;
+    const currentUrl = window.location.href;
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'EducationalEvent',
+      name: camp.name,
+      description: camp.description || metaDescription,
+      image: images,
+      startDate: camp.start_date,
+      endDate: camp.end_date,
+      eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      location: {
+        '@type': 'Place',
+        name: camp.location,
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: camp.location,
+        },
+      },
+      offers: {
+        '@type': 'Offer',
+        url: currentUrl,
+        price: camp.price,
+        priceCurrency: camp.currency,
+        availability: availablePlaces > 0 ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut',
+        validFrom: new Date().toISOString(),
+      },
+      organizer: organisation ? {
+        '@type': 'Organization',
+        name: organisation.name,
+        url: baseUrl,
+      } : undefined,
+      performer: organisation ? {
+        '@type': 'Organization',
+        name: organisation.name,
+      } : undefined,
+      ...(ratingsSummary && {
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: ratingsSummary.average,
+          reviewCount: ratingsSummary.total,
+          bestRating: 5,
+          worstRating: 1,
+        },
+      }),
+      ...(reviews.length > 0 && {
+        review: reviews.slice(0, 5).map(review => ({
+          '@type': 'Review',
+          author: {
+            '@type': 'Person',
+            name: review.parent_name || 'Anonymous',
+          },
+          datePublished: review.submitted_at,
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: review.overall_rating,
+            bestRating: 5,
+            worstRating: 1,
+          },
+          reviewBody: review.comment,
+        })),
+      }),
+    };
+  };
+
+  // Breadcrumb structured data
+  const breadcrumbStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: window.location.origin,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Camps',
+        item: `${window.location.origin}/camps`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: camp.name,
+        item: window.location.href,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        {/* Structured Data */}
+        <script type="application/ld+json">
+          {JSON.stringify(generateStructuredData())}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify(breadcrumbStructuredData)}
+        </script>
+
+        {/* Canonical URL */}
+        <link rel="canonical" href={window.location.href} />
+
+        {/* Additional SEO Meta Tags */}
+        <meta name="keywords" content={`${camp.category} camp, ${camp.location}, ages ${camp.age_min}-${camp.age_max}, summer camp, kids activities`} />
+        <meta name="author" content={organisation?.name || 'FutureEdge Camps'} />
+        <meta name="robots" content="index, follow" />
+
+        {/* Mobile optimization */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+      </Helmet>
+
       <SocialMeta
         title={camp.name}
         description={metaDescription}
@@ -474,18 +593,55 @@ export function CampDetailPage() {
         location={camp.location}
         dates={`${formatDateShort(camp.start_date)} - ${formatDateShort(camp.end_date)}`}
       />
+      {/* Sticky CTA Bar - Improved Mobile UX */}
       {stickyBar && availabilityStatus !== 'full' && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-gray-200 py-3 animate-slide-down">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-bold text-gray-900 truncate">{camp.name}</h2>
-              {ratingsSummary && (
-                <span className="text-sm text-gray-600">⭐ {ratingsSummary.average.toFixed(1)}</span>
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-gray-200 py-2 sm:py-3 animate-slide-down">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 truncate">{camp.name}</h2>
+              <div className="flex items-center gap-2 text-xs sm:text-sm">
+                {ratingsSummary && (
+                  <span className="text-gray-600 flex items-center gap-1">
+                    ⭐ {ratingsSummary.average.toFixed(1)}
+                  </span>
+                )}
+                <span className="text-airbnb-pink-600 font-semibold">
+                  {formatCurrency(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
+                </span>
+              </div>
+            </div>
+            <Link
+              to={`/camps/${camp.id}/register`}
+              className="px-4 sm:px-6 py-2 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb font-semibold shadow-sm hover:shadow-md text-sm sm:text-base whitespace-nowrap"
+            >
+              Reserve
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Bottom CTA Bar - Only show when spots available */}
+      {availabilityStatus !== 'full' && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white shadow-2xl border-t border-gray-200 p-4 lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
+                </span>
+                {earlyBirdActive && camp.early_bird_price && (
+                  <span className="text-sm text-gray-500 line-through">
+                    {formatCurrency(camp.price, camp.currency)}
+                  </span>
+                )}
+              </div>
+              {availablePlaces <= 5 && availablePlaces > 0 && (
+                <span className="text-xs text-red-600 font-medium">Only {availablePlaces} spots left!</span>
               )}
             </div>
             <Link
               to={`/camps/${camp.id}/register`}
-              className="px-6 py-2 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb font-semibold shadow-sm hover:shadow-md"
+              className="px-6 py-3 bg-airbnb-pink-500 text-white rounded-lg hover:bg-airbnb-pink-600 font-bold shadow-lg hover:shadow-xl transition-airbnb text-base"
             >
               Reserve Now
             </Link>
@@ -494,13 +650,19 @@ export function CampDetailPage() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <Link
-          to="/camps"
-          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-4"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          <span>Back to all camps</span>
-        </Link>
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6" aria-label="Breadcrumb">
+          <Link to="/" className="hover:text-airbnb-pink-500 transition-colors flex items-center gap-1">
+            <Home className="w-4 h-4" />
+            <span>Home</span>
+          </Link>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <Link to="/camps" className="hover:text-airbnb-pink-500 transition-colors">
+            Camps
+          </Link>
+          <ChevronRight className="w-4 h-4 text-gray-400" />
+          <span className="text-gray-900 font-medium truncate max-w-[200px] sm:max-w-none">{camp.name}</span>
+        </nav>
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
@@ -556,7 +718,61 @@ export function CampDetailPage() {
           }}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+        {/* Quick Info Summary Bar */}
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mt-6 border border-gray-200">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-airbnb-pink-50 rounded-lg">
+                <Calendar className="w-5 h-5 text-airbnb-pink-500" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Duration</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {Math.ceil(
+                    (new Date(camp.end_date).getTime() - new Date(camp.start_date).getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  )} days
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Users className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Age Range</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {camp.age_min}-{camp.age_max} yrs
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-50 rounded-lg">
+                <MapPin className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Location</p>
+                <p className="text-sm font-bold text-gray-900 truncate">{camp.location}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-50 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Spots Left</p>
+                <p className={`text-sm font-bold ${availablePlaces <= 5 ? 'text-red-600' : 'text-gray-900'}`}>
+                  {availablePlaces} / {camp.capacity}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8 pb-24 lg:pb-8">
           <div className="lg:col-span-2 space-y-8 min-w-0">
             {highlights.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
