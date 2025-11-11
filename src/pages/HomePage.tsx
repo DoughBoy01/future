@@ -187,6 +187,9 @@ export function HomePage() {
           currency: camp.currency,
           originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
           spotsRemaining,
+          startDate: camp.start_date,
+          endDate: camp.end_date,
+          description: camp.description || undefined,
         };
       })
     : staticCamps;
