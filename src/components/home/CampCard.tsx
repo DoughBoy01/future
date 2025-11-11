@@ -1,4 +1,4 @@
-import { Heart, Star, TrendingUp, AlertCircle, Sparkles, Users, Award, Share2, CheckCircle } from 'lucide-react';
+import { Heart, Star, TrendingUp, AlertCircle, Sparkles, Users, Award, Share2, CheckCircle, Calendar } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/currency';
@@ -23,6 +23,9 @@ interface CampCardProps {
   originalPrice?: number;
   spotsRemaining?: number;
   verificationLevel?: VerificationLevel;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
 }
 
 export function CampCard({
@@ -42,6 +45,9 @@ export function CampCard({
   originalPrice,
   spotsRemaining,
   verificationLevel,
+  startDate,
+  endDate,
+  description,
 }: CampCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -50,6 +56,33 @@ export function CampCard({
   const [justFavorited, setJustFavorited] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Format dates for display
+  const formatDateRange = () => {
+    if (!startDate || !endDate) return null;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const formatOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    const startStr = start.toLocaleDateString('en-US', formatOptions);
+    const endStr = end.toLocaleDateString('en-US', formatOptions);
+
+    // If same year, show year once at the end
+    if (start.getFullYear() === end.getFullYear()) {
+      return `${startStr} - ${endStr}, ${start.getFullYear()}`;
+    }
+    // Different years
+    return `${startStr}, ${start.getFullYear()} - ${endStr}, ${end.getFullYear()}`;
+  };
+
+  // Get a short excerpt from description
+  const getDescriptionExcerpt = () => {
+    if (!description) return null;
+    const maxLength = 120;
+    if (description.length <= maxLength) return description;
+    return description.substring(0, maxLength).trim() + '...';
+  };
 
   const badgeColors = {
     Limited: 'bg-airbnb-pink-600',
@@ -214,13 +247,32 @@ export function CampCard({
             />
           </button>
         </div>
-        {/* Believable social proof - only shown when relevant */}
+        {/* Camp Dates - overlaid at bottom of image */}
+        {formatDateRange() && (
+          <div className="absolute bottom-3 left-3 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg backdrop-blur-sm flex items-center gap-1.5 transition-standard">
+            <Calendar className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+            <span className="whitespace-nowrap">
+              {formatDateRange()}
+            </span>
+          </div>
+        )}
+
+        {/* Believable social proof - repositioned to bottom right when dates present */}
         {socialProof.show && (
-          <div className={`absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-sm text-airbnb-grey-900 px-2.5 py-1.5 rounded-md text-[10px] font-medium shadow-md flex items-center gap-1.5 border border-airbnb-grey-200 transition-standard ${isHovered ? 'opacity-100' : 'opacity-95'}`}>
+          <div className={`absolute bottom-3 ${formatDateRange() ? 'right-3' : 'left-3 right-3'} bg-white/95 backdrop-blur-sm text-airbnb-grey-900 px-2.5 py-1.5 rounded-md text-[10px] font-medium shadow-md flex items-center gap-1.5 border border-airbnb-grey-200 transition-standard ${isHovered ? 'opacity-100' : 'opacity-95'}`}>
             {socialProof.icon && <socialProof.icon className="w-3 h-3 flex-shrink-0 text-airbnb-pink-500" aria-hidden="true" />}
             <span className="truncate flex-1">
               {socialProof.text}
             </span>
+          </div>
+        )}
+
+        {/* Description excerpt on hover - full overlay */}
+        {getDescriptionExcerpt() && (
+          <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent flex items-end p-4 transition-all duration-300 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <p className="text-white text-xs leading-relaxed font-medium drop-shadow-lg">
+              {getDescriptionExcerpt()}
+            </p>
           </div>
         )}
       </div>
