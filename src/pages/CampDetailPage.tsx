@@ -774,6 +774,13 @@ export function CampDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8 pb-24 lg:pb-8">
           <div className="lg:col-span-2 space-y-8 min-w-0">
+            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Camp</h2>
+              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {camp.description || 'No description available.'}
+              </p>
+            </div>
+
             {highlights.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Camp Highlights</h2>
@@ -803,13 +810,6 @@ export function CampDetailPage() {
               />
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Camp</h2>
-              <p className="text-gray-700 whitespace-pre-line leading-relaxed">
-                {camp.description || 'No description available.'}
-              </p>
-            </div>
-
             {ratingsSummary && reviews.length > 0 && (
               <ReviewsSection
                 campId={camp.id}
@@ -821,62 +821,6 @@ export function CampDetailPage() {
                 recommendPercentage={ratingsSummary.recommendPercentage}
               />
             )}
-
-            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Camp Details</h2>
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-airbnb-pink-50 rounded-md">
-                    <Calendar className="w-6 h-6 text-airbnb-pink-500" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Dates</p>
-                    <p className="text-gray-900 font-medium">{formatDate(camp.start_date)}</p>
-                    <p className="text-gray-600 text-sm">to {formatDate(camp.end_date)}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-airbnb-grey-100 rounded-md">
-                    <Users className="w-6 h-6 text-airbnb-grey-700" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Age Range</p>
-                    <p className="text-gray-900 font-medium">
-                      {camp.age_min} - {camp.age_max} years old
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-yellow-100 rounded-lg">
-                    <Clock className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Duration</p>
-                    <p className="text-gray-900 font-medium">
-                      {Math.ceil(
-                        (new Date(camp.end_date).getTime() - new Date(camp.start_date).getTime()) /
-                          (1000 * 60 * 60 * 24)
-                      )}{' '}
-                      days
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-red-100 rounded-lg">
-                    <Users className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 mb-1">Availability</p>
-                    <p className="text-gray-900 font-medium">
-                      {availablePlaces} of {camp.capacity} spots available
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {amenities.length > 0 && <AmenitiesSection amenities={amenities} />}
 
