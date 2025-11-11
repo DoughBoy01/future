@@ -249,10 +249,17 @@ export function HomePage() {
   }, [isNavigating, totalSlides]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      return;
+    }
     setTouchStart(e.targetTouches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    // Only track move if we started a swipe (touchStart is set)
+    if (!touchStart) return;
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
