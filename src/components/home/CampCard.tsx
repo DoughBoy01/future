@@ -272,13 +272,19 @@ export function CampCard({
           </div>
         )}
         {/* Action buttons - better spacing from top edge */}
-        <div className="absolute top-3 right-3 flex gap-2 z-50">
+        <div className="absolute top-3 right-3 flex gap-2 z-50 pointer-events-auto">
           <button
-            onClick={handleShareClick}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleShareClick(e);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
             onTouchEnd={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              handleShareClick(e as any);
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -293,11 +299,17 @@ export function CampCard({
             />
           </button>
           <button
-            onClick={handleFavoriteClick}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFavoriteClick(e);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
             onTouchEnd={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              handleFavoriteClick(e as any);
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -411,8 +423,17 @@ export function CampCard({
           </div>
           {spotsRemaining !== 0 && (
             <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // TODO: Navigate to registration or open booking modal
+                if (id) {
+                  navigate(`/camps/${id}/register`);
+                }
+              }}
               className="bg-airbnb-pink-500 hover:bg-airbnb-pink-600 text-white px-4 py-2 rounded-md font-medium text-xs transition-airbnb shadow-sm hover:shadow-md flex-shrink-0"
               aria-label={`Book ${title}`}
+              data-no-swipe="true"
             >
               Reserve
             </button>
