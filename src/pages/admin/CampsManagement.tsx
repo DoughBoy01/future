@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { DataTable, Column } from '../../components/dashboard/DataTable';
-import { Plus, Edit, Trash2, ExternalLink, Users, TrendingUp, CheckCircle, AlertCircle, Star, MessageSquare } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Users, TrendingUp, CheckCircle, AlertCircle, Star, MessageSquare, Download, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { CampFormModal } from '../../components/camps/CampFormModal';
 import { ReviewManagementModal } from '../../components/reviews/ReviewManagementModal';
+import { importExportService } from '../../services/importExportService';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency } from '../../utils/currency';
 import type { Database } from '../../lib/database.types';
@@ -58,10 +59,53 @@ export function CampsManagement() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedCampForReview, setSelectedCampForReview] = useState<{ id: string; name: string } | null>(null);
   const [editingReview, setEditingReview] = useState<any>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     loadCamps();
   }, []);
+
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      const { data, error } = await supabase
+        .from('camps')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        alert('No camps to export');
+        return;
+      }
+
+      const headers = Object.keys(data[0]).join(',');
+      const rows = data.map(camp => {
+        return Object.values(camp).map(value => {
+          if (value === null || value === undefined) return '';
+          if (typeof value === 'object') {
+            return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+          }
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          return stringValue;
+        }).join(',');
+      });
+
+      const csv = '\uFEFF' + [headers, ...rows].join('\n');
+      const filename = `camps_export_${new Date().toISOString().split('T')[0]}.csv`;
+
+      importExportService.downloadFile(csv, filename, 'text/csv');
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export camps');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   async function loadCamps() {
     try {
@@ -393,13 +437,24 @@ export function CampsManagement() {
               Create and manage your camp programs
             </p>
           </div>
-          <button
-            onClick={handleCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Create New Camp
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={handleExportCSV}
+              disabled={isExporting || camps.length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Export all camps to CSV"
+            >
+              <Download className="w-5 h-5" />
+              {isExporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+            <button
+              onClick={handleCreate}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              Create New Camp
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">

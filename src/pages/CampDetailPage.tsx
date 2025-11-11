@@ -512,9 +512,16 @@ export function CampDetailPage() {
                   <span className="text-gray-600">({ratingsSummary.total} reviews)</span>
                 </div>
               )}
-              <div className="flex items-center gap-1 text-gray-600">
-                <MapPin className="w-4 h-4" />
-                <span>{camp.location}</span>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1 text-gray-600">
+                  <MapPin className="w-4 h-4" />
+                  <span>{camp.location}</span>
+                </div>
+                {(camp as any).camp_address && (
+                  <div className="text-sm text-gray-500 ml-5">
+                    {(camp as any).camp_address}
+                  </div>
+                )}
               </div>
               <span className="px-3 py-1 bg-airbnb-pink-50 text-airbnb-pink-700 rounded-full text-xs font-medium uppercase">
                 {camp.category}

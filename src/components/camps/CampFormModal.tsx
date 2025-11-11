@@ -43,6 +43,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
     start_date: '',
     end_date: '',
     location: '',
+    camp_address: '',
     capacity: 20,
     price: 0,
     currency: 'USD',
@@ -124,6 +125,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
         start_date: camp.start_date,
         end_date: camp.end_date,
         location: camp.location,
+        camp_address: (camp as any).camp_address || '',
         capacity: camp.capacity,
         price: camp.price,
         currency: camp.currency,
@@ -235,6 +237,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
         start_date: formData.start_date,
         end_date: formData.end_date,
         location: formData.location,
+        camp_address: formData.camp_address || null,
         capacity: formData.capacity,
         price: formData.price,
         currency: formData.currency,
@@ -521,6 +524,25 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="School Campus"
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    General location descriptor (e.g., "Tokyo - Japan", "Borneo")
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Camp Address
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.camp_address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, camp_address: e.target.value }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="123 Main Street, Building A, Tokyo 100-0001"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Complete physical address for the camp venue (optional)
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
