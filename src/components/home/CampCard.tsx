@@ -230,16 +230,16 @@ export function CampCard({
   const cardContent = (
     <>
       {/* Tighter image section - overflow-hidden ensures all elements stay within bounds */}
-      <div className="relative h-48 sm:h-52 overflow-hidden rounded-t-lg">
+      <div className="relative h-48 sm:h-52 overflow-hidden rounded-t-lg pointer-events-none">
         {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 bg-gradient-to-r from-airbnb-grey-200 via-airbnb-grey-300 to-airbnb-grey-200 animate-pulse flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-airbnb-grey-200 via-airbnb-grey-300 to-airbnb-grey-200 animate-pulse flex items-center justify-center pointer-events-none">
             <div className="w-12 h-12 border-4 border-airbnb-grey-300 border-t-airbnb-pink-500 rounded-full animate-spin"></div>
           </div>
         )}
         <img
           src={imageError ? fallbackImage : image}
           alt={title}
-          className={`w-full h-48 sm:h-52 object-cover transition-all duration-500 ease-out ${
+          className={`w-full h-48 sm:h-52 object-cover transition-all duration-500 ease-out pointer-events-none ${
             imageLoaded ? 'opacity-100' : 'opacity-0'
           } ${isHovered ? 'scale-105' : 'scale-100'}`}
           onLoad={() => setImageLoaded(true)}
@@ -258,7 +258,7 @@ export function CampCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         {/* Compact badge - better spacing from top edge */}
         {badge && !urgencyBadge.show && (
-          <div className={`absolute top-3 left-3 ${badgeColors[badge]} text-white px-2.5 py-1 rounded-full text-[10px] font-semibold shadow-md backdrop-blur-sm flex items-center gap-1 transition-standard`}>
+          <div className={`absolute top-3 left-3 ${badgeColors[badge]} text-white px-2.5 py-1 rounded-full text-[10px] font-semibold shadow-md backdrop-blur-sm flex items-center gap-1 transition-standard pointer-events-none`}>
             {badge === 'Popular' && <Award className="w-2.5 h-2.5" aria-hidden="true" />}
             {badge === 'New' && <Sparkles className="w-2.5 h-2.5" aria-hidden="true" />}
             {badge}
@@ -266,7 +266,7 @@ export function CampCard({
         )}
         {/* Urgency badge - better spacing from top edge */}
         {urgencyBadge.show && (
-          <div className={`absolute top-3 left-3 ${urgencyBadge.color} text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md backdrop-blur-sm flex items-center gap-1 transition-standard`}>
+          <div className={`absolute top-3 left-3 ${urgencyBadge.color} text-white px-2.5 py-1 rounded-full text-[10px] font-bold shadow-md backdrop-blur-sm flex items-center gap-1 transition-standard pointer-events-none`}>
             {urgencyBadge.icon && <urgencyBadge.icon className="w-3 h-3" aria-hidden="true" />}
             {urgencyBadge.text}
           </div>
@@ -327,7 +327,7 @@ export function CampCard({
           </button>
         </div>
         {/* Category and Age Pills - stacked above date pill */}
-        <div className="absolute bottom-14 left-3 flex flex-col gap-1">
+        <div className="absolute bottom-14 left-3 flex flex-col gap-1 pointer-events-none">
           <span className="bg-white/90 backdrop-blur-sm text-airbnb-grey-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit">
             {category}
           </span>
@@ -338,7 +338,7 @@ export function CampCard({
 
         {/* Camp Dates - overlaid at bottom of image */}
         {formatDateRange() && (
-          <div className="absolute bottom-3 left-3 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg backdrop-blur-sm flex items-center gap-1.5 transition-standard">
+          <div className="absolute bottom-3 left-3 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg backdrop-blur-sm flex items-center gap-1.5 transition-standard pointer-events-none">
             <Calendar className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">
               {formatDateRange()}
@@ -348,7 +348,7 @@ export function CampCard({
 
         {/* Believable social proof - repositioned to bottom right when dates present */}
         {socialProof.show && (
-          <div className={`absolute bottom-3 ${formatDateRange() ? 'right-3' : 'left-3 right-3'} bg-white/95 backdrop-blur-sm text-airbnb-grey-900 px-2.5 py-1.5 rounded-md text-[10px] font-medium shadow-md flex items-center gap-1.5 border border-airbnb-grey-200 transition-standard ${isHovered ? 'opacity-100' : 'opacity-95'}`}>
+          <div className={`absolute bottom-3 ${formatDateRange() ? 'right-3' : 'left-3 right-3'} bg-white/95 backdrop-blur-sm text-airbnb-grey-900 px-2.5 py-1.5 rounded-md text-[10px] font-medium shadow-md flex items-center gap-1.5 border border-airbnb-grey-200 transition-standard pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-95'}`}>
             {socialProof.icon && <socialProof.icon className="w-3 h-3 flex-shrink-0 text-airbnb-pink-500" aria-hidden="true" />}
             <span className="truncate flex-1">
               {socialProof.text}
@@ -361,7 +361,7 @@ export function CampCard({
       <div className="p-5 sm:p-6 flex flex-col flex-grow relative overflow-hidden">
         {/* Benefit message ribbon - stays within card bounds */}
         {getBenefitMessage() && (
-          <div className={`absolute top-0 left-0 right-0 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white text-xs font-bold py-1 px-3 text-center transform transition-standard ${isHovered ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+          <div className={`absolute top-0 left-0 right-0 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white text-xs font-bold py-1 px-3 text-center transform transition-standard pointer-events-none ${isHovered ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
             <Sparkles className="w-3 h-3 inline mr-1" aria-hidden="true" />
             {getBenefitMessage()}
           </div>
