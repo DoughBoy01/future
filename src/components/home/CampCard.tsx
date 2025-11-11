@@ -267,16 +267,15 @@ export function CampCard({
           </div>
         )}
 
-        {/* Description excerpt - visible on mobile, hover on desktop */}
-        {getDescriptionExcerpt() && (
-          <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent flex items-end p-4 transition-all duration-300
-            opacity-100 md:opacity-0 md:pointer-events-none
-            ${isHovered ? 'md:opacity-100 md:pointer-events-auto' : ''}`}>
-            <p className="text-white text-xs leading-relaxed font-medium drop-shadow-lg">
-              {getDescriptionExcerpt()}
-            </p>
-          </div>
-        )}
+        {/* Category and Age Pills - overlaid on image */}
+        <div className="absolute top-14 right-3 flex flex-col gap-1.5">
+          <span className="bg-white/95 backdrop-blur-sm border border-airbnb-grey-200 text-airbnb-grey-700 px-2.5 py-1 rounded-full font-medium text-xs shadow-md">
+            {category}
+          </span>
+          <span className="bg-white/95 backdrop-blur-sm border border-airbnb-pink-200 text-airbnb-pink-700 px-2.5 py-1 rounded-full font-medium text-xs shadow-md">
+            {ageRange}
+          </span>
+        </div>
       </div>
 
       {/* Content section - Tighter, more internal space */}
@@ -290,21 +289,22 @@ export function CampCard({
         )}
 
         {/* Title - Focus on what the camp is, not where */}
-        <h3 className="text-base sm:text-lg font-bold text-airbnb-grey-900 mb-3 line-clamp-2 leading-snug transition-standard group-hover:text-airbnb-pink-500">
+        <h3 className="text-base sm:text-lg font-bold text-airbnb-grey-900 mb-2 line-clamp-2 leading-snug transition-standard group-hover:text-airbnb-pink-500">
           {title}
         </h3>
+
+        {/* Description text */}
+        {getDescriptionExcerpt() && (
+          <p className="text-airbnb-grey-600 text-xs leading-relaxed mb-3 line-clamp-2">
+            {getDescriptionExcerpt()}
+          </p>
+        )}
 
         {/* Benefits-focused badges */}
         <div className="flex items-center gap-1.5 sm:gap-2 mb-3 flex-wrap">
           {verificationLevel && verificationLevel !== 'unverified' && (
             <VerificationBadge level={verificationLevel} size="small" showTooltip={true} />
           )}
-          <span className="bg-airbnb-grey-50 border border-airbnb-grey-200 text-airbnb-grey-700 px-2 sm:px-2.5 py-1 rounded-full font-medium text-xs shrink-0">
-            {category}
-          </span>
-          <span className="bg-airbnb-pink-50 border border-airbnb-pink-200 text-airbnb-pink-700 px-2 sm:px-2.5 py-1 rounded-full font-medium text-xs shrink-0">
-            {ageRange}
-          </span>
           {rating > 0 && (
             <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full shrink-0">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" aria-hidden="true" />
