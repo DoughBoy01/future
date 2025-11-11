@@ -306,7 +306,7 @@ export function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
           </div>
 
-          <div className="relative h-full flex flex-col items-center justify-start text-center px-4 pt-20 sm:pt-24 md:pt-32 lg:pt-40 pb-20 sm:pb-24 md:pb-32">
+          <div className="relative h-full ios-hero-container text-center px-4 pt-20 sm:pt-24 md:pt-32 lg:pt-40 pb-20 sm:pb-24 md:pb-32" style={{ minHeight: '100%' }}>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
               <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
@@ -357,7 +357,7 @@ export function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
           </div>
 
-          <div className="relative h-full flex flex-col items-center justify-start text-center px-4 pt-20 sm:pt-24 md:pt-32 lg:pt-40">
+          <div className="relative h-full ios-hero-container text-center px-4 pt-20 sm:pt-24 md:pt-32 lg:pt-40" style={{ minHeight: '100%' }}>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
               <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
@@ -402,7 +402,7 @@ export function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
         </div>
 
-        <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] flex flex-col items-center justify-start text-center px-4 pt-20 sm:pt-24 md:pt-32 lg:pt-40 pb-16 sm:pb-20 md:pb-24">
+        <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] ios-hero-container text-center px-4 pt-20 sm:pt-24 md:pt-32 lg:pt-40 pb-16 sm:pb-20 md:pb-24" style={{ minHeight: '450px' }}>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
             <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
