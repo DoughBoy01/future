@@ -205,9 +205,27 @@ export function CampDetailPage() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [showCopyToast, setShowCopyToast] = useState(false);
 
+  // Initialize favorite state from localStorage
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (!id) return false;
+    try {
+      const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+      return favorites.includes(id);
+    } catch {
+      return false;
+    }
+  });
+
   useEffect(() => {
     if (id) {
       loadCampData();
+      // Update favorite state when id changes
+      try {
+        const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+        setIsFavorite(favorites.includes(id));
+      } catch {
+        setIsFavorite(false);
+      }
     }
   }, [id]);
 
@@ -332,6 +350,33 @@ export function CampDetailPage() {
       day: 'numeric',
       year: 'numeric',
     });
+  };
+
+  const handleFavorite = () => {
+    if (!id) return;
+
+    const newFavoriteState = !isFavorite;
+    setIsFavorite(newFavoriteState);
+
+    // Persist to localStorage
+    try {
+      const favorites = JSON.parse(localStorage.getItem('campFavorites') || '[]');
+      if (newFavoriteState) {
+        // Add to favorites
+        if (!favorites.includes(id)) {
+          favorites.push(id);
+        }
+      } else {
+        // Remove from favorites
+        const index = favorites.indexOf(id);
+        if (index > -1) {
+          favorites.splice(index, 1);
+        }
+      }
+      localStorage.setItem('campFavorites', JSON.stringify(favorites));
+    } catch (error) {
+      console.error('Error saving favorite:', error);
+    }
   };
 
   const handleShare = async () => {
@@ -700,10 +745,17 @@ export function CampDetailPage() {
               <Share2 className="w-5 h-5 text-gray-600" />
             </button>
             <button
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
-              aria-label="Save to favorites"
+              onClick={handleFavorite}
+              className={`p-2 hover:bg-gray-100 rounded-lg transition-colors border ${
+                isFavorite ? 'border-airbnb-pink-500 bg-airbnb-pink-50' : 'border-gray-300'
+              }`}
+              aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
             >
-              <Heart className="w-5 h-5 text-gray-600" />
+              <Heart
+                className={`w-5 h-5 transition-colors ${
+                  isFavorite ? 'fill-airbnb-pink-500 text-airbnb-pink-500' : 'text-gray-600'
+                }`}
+              />
             </button>
           </div>
         </div>
