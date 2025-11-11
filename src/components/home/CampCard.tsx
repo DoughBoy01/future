@@ -258,24 +258,34 @@ export function CampCard({
           </div>
         )}
         {/* Action buttons - better spacing from top edge */}
-        <div className="absolute top-3 right-3 flex gap-2">
+        <div className="absolute top-3 right-3 flex gap-2 z-10">
           <button
             onClick={handleShareClick}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              handleShareClick(e as any);
+            }}
             aria-label="Share this camp"
-            className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md"
+            className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation"
+            data-no-swipe="true"
           >
             <Share2
-              className="w-4 h-4 text-airbnb-grey-600 hover:text-airbnb-pink-400 transition-standard"
+              className="w-4 h-4 text-airbnb-grey-600 hover:text-airbnb-pink-400 transition-standard pointer-events-none"
               aria-hidden="true"
             />
           </button>
           <button
             onClick={handleFavoriteClick}
+            onTouchEnd={(e) => {
+              e.stopPropagation();
+              handleFavoriteClick(e as any);
+            }}
             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md ${justFavorited ? 'animate-bounce' : ''}`}
+            className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation ${justFavorited ? 'animate-bounce' : ''}`}
+            data-no-swipe="true"
           >
             <Heart
-              className={`w-4 h-4 transition-standard ${
+              className={`w-4 h-4 transition-standard pointer-events-none ${
                 isFavorite ? 'fill-airbnb-pink-500 text-airbnb-pink-500' : 'text-airbnb-grey-600 hover:text-airbnb-pink-400'
               } ${justFavorited && isFavorite ? 'animate-heartbeat' : ''}`}
               aria-hidden="true"
