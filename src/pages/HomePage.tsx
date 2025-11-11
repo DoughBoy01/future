@@ -249,22 +249,43 @@ export function HomePage() {
   }, [isNavigating, totalSlides]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Don't interfere with button clicks
+    // Don't interfere with button clicks - check entire event path
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a')) {
+
+    // Check if touch is on a button, link, or interactive element
+    if (
+      target.closest('button') ||
+      target.closest('a') ||
+      target.tagName === 'BUTTON' ||
+      target.tagName === 'A' ||
+      target.closest('[role="button"]')
+    ) {
       return;
     }
+
     setTouchStart(e.targetTouches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     // Only track move if we started a swipe (touchStart is set)
     if (!touchStart) return;
+
+    // Don't track movement on buttons
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a')) {
+      return;
+    }
+
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (!touchStart || !touchEnd) {
+      // Reset if we didn't complete a valid swipe
+      setTouchStart(0);
+      setTouchEnd(0);
+      return;
+    }
 
     const distance = touchStart - touchEnd;
     const threshold = 50;
