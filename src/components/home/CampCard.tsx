@@ -1,6 +1,6 @@
 import { Heart, Star, TrendingUp, AlertCircle, Sparkles, Users, Award, Share2, CheckCircle, Calendar } from 'lucide-react';
 import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/currency';
 import { shareCamp } from '../../utils/share';
 import { VerificationBadge } from '../trust/VerificationBadge';
@@ -49,6 +49,7 @@ export function CampCard({
   endDate,
   description,
 }: CampCardProps) {
+  const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -154,6 +155,19 @@ export function CampCard({
         setTimeout(() => setShowShareToast(false), 3000);
       }
     );
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on a button or interactive element
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[data-no-swipe="true"]')) {
+      return;
+    }
+
+    // Navigate to camp detail page
+    if (id) {
+      navigate(`/camps/${id}`);
+    }
   };
 
   const getUrgencyBadge = () => {
@@ -423,33 +437,13 @@ export function CampCard({
     </>
   );
 
-  if (id) {
-    return (
-      <Link
-        to={`/camps/${id}`}
-        onClick={(e) => {
-          // Prevent navigation if clicking on interactive elements
-          const target = e.target as HTMLElement;
-          if (target.closest('button') || target.closest('[data-no-swipe="true"]')) {
-            e.preventDefault();
-          }
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className={`bg-white rounded-lg shadow-md overflow-hidden transition-airbnb w-full h-full flex flex-col group relative ${isHovered ? 'shadow-xl -translate-y-1 scale-[1.02]' : 'shadow-md translate-y-0 scale-100'}`}
-        ref={cardRef as React.RefObject<HTMLAnchorElement>}
-      >
-        {cardContent}
-      </Link>
-    );
-  }
-
   return (
     <div
+      onClick={handleCardClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className={`bg-white rounded-lg shadow-md overflow-hidden transition-airbnb w-full h-full flex flex-col relative ${isHovered ? 'shadow-xl -translate-y-1 scale-[1.02]' : 'shadow-md translate-y-0 scale-100'}`}
-      ref={cardRef as React.RefObject<HTMLDivElement>}
+      className={`bg-white rounded-lg shadow-md overflow-hidden transition-airbnb w-full h-full flex flex-col group relative ${id ? 'cursor-pointer' : ''} ${isHovered ? 'shadow-xl -translate-y-1 scale-[1.02]' : 'shadow-md translate-y-0 scale-100'}`}
+      ref={cardRef}
     >
       {cardContent}
     </div>
