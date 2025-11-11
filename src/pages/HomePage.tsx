@@ -249,9 +249,13 @@ export function HomePage() {
   }, [isNavigating, totalSlides]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Don't interfere with button clicks
+    // Don't interfere with interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a')) {
+    const noSwipeElement = target.closest('[data-no-swipe="true"]');
+    const button = target.closest('button');
+    const link = target.closest('a');
+
+    if (noSwipeElement || button || link) {
       return;
     }
     setTouchStart(e.targetTouches[0].clientX);
@@ -259,9 +263,13 @@ export function HomePage() {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    // Don't interfere with button interactions
+    // Don't interfere with interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a')) {
+    const noSwipeElement = target.closest('[data-no-swipe="true"]');
+    const button = target.closest('button');
+    const link = target.closest('a');
+
+    if (noSwipeElement || button || link) {
       setTouchStart(0);
       setTouchEnd(0);
       return;
@@ -273,9 +281,13 @@ export function HomePage() {
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    // Don't interfere with button clicks
+    // Don't interfere with interactive elements
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('a')) {
+    const noSwipeElement = target.closest('[data-no-swipe="true"]');
+    const button = target.closest('button');
+    const link = target.closest('a');
+
+    if (noSwipeElement || button || link) {
       setTouchStart(0);
       setTouchEnd(0);
       return;
