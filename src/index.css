@@ -273,11 +273,24 @@
   @keyframes fade-in-up {
     0% {
       opacity: 0;
-      transform: translateY(30px);
+      transform: translateY(30px) scale(0.95);
     }
     100% {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes hero-text-reveal {
+    0% {
+      opacity: 0;
+      transform: translateY(40px) scale(0.9);
+      filter: blur(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
   }
 
@@ -300,6 +313,11 @@
   .animate-fade-in-up {
     opacity: 0;
     animation: fade-in-up 0.8s ease-out forwards;
+  }
+
+  .animate-hero-text-reveal {
+    opacity: 0;
+    animation: hero-text-reveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-gradient-flow {
