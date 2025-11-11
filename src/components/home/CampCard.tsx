@@ -255,7 +255,7 @@ export function CampCard({
                style={{ animation: 'shimmer 2s infinite' }} />
         )}
         {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
         {/* Compact badge - better spacing from top edge */}
         {badge && !urgencyBadge.show && (
           <div className={`absolute top-3 left-3 ${badgeColors[badge]} text-white px-2.5 py-1 rounded-full text-[10px] font-semibold shadow-md backdrop-blur-sm flex items-center gap-1 transition-standard`}>
