@@ -116,10 +116,10 @@ export function HomePage() {
       id: undefined,
       badge: 'Popular' as const,
       image: 'https://images.pexels.com/photos/1080696/pexels-photo-1080696.jpeg?auto=compress&cs=tinysrgb&w=800',
-      location: 'My house',
+      location: 'My House',
       rating: 4.7,
       reviewCount: 8,
-      title: 'Steves camping day',
+      title: 'Steve\'s Camping Day',
       category: 'Specialty',
       ageRange: 'Ages 21+',
       ageMin: 21,
@@ -360,9 +360,7 @@ export function HomePage() {
           <div
             className="absolute inset-0"
             style={{
-              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              background: '#1e2d3a',
             }}
           />
 
@@ -411,9 +409,7 @@ export function HomePage() {
           <div
             className="absolute inset-0"
             style={{
-              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              background: '#1e2d3a',
             }}
           />
 
@@ -456,9 +452,7 @@ export function HomePage() {
         <div
           className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px]"
           style={{
-            background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center top',
+            background: '#1e2d3a',
           }}
         />
 

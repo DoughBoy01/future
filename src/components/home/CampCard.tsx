@@ -176,10 +176,10 @@ export function CampCard({
         return { text: 'Fully Booked', color: 'bg-gray-500', show: true, icon: null };
       }
       if (spotsRemaining <= 3) {
-        return { text: `Only ${spotsRemaining} spots left!`, color: 'bg-red-500 animate-pulse', show: true, icon: AlertCircle };
+        return { text: `Only ${spotsRemaining} Spots Left!`, color: 'bg-red-500 animate-pulse', show: true, icon: AlertCircle };
       }
       if (spotsRemaining <= 5) {
-        return { text: `${spotsRemaining} spots remaining`, color: 'bg-orange-500', show: true, icon: Users };
+        return { text: `${spotsRemaining} Spots Remaining`, color: 'bg-orange-500', show: true, icon: Users };
       }
     }
     return { text: '', color: '', show: false, icon: null };
@@ -192,12 +192,12 @@ export function CampCard({
   const getSocialProofMessage = () => {
     // Priority 1: High ratings with substantial reviews (rare, highly credible)
     if (rating >= 4.9 && reviewCount >= 20) {
-      return { text: `${reviewCount} parents recommend`, icon: Award, show: true };
+      return { text: `${reviewCount} Parents Recommend`, icon: Award, show: true };
     }
 
     // Priority 2: Genuine urgency - almost sold out (rare)
     if (spotsRemaining && spotsRemaining <= 3 && spotsRemaining > 0) {
-      return { text: 'Almost full', icon: Users, show: true };
+      return { text: 'Almost Full', icon: Users, show: true };
     }
 
     // Priority 3: Significant savings only (15%+)
