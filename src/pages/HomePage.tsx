@@ -360,9 +360,7 @@ export function HomePage() {
           <div
             className="absolute inset-0"
             style={{
-              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              background: '#1e2d3a',
             }}
           />
 
@@ -411,9 +409,7 @@ export function HomePage() {
           <div
             className="absolute inset-0"
             style={{
-              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              background: '#1e2d3a',
             }}
           />
 
@@ -456,9 +452,7 @@ export function HomePage() {
         <div
           className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px]"
           style={{
-            background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center top',
+            background: '#1e2d3a',
           }}
         />
 
