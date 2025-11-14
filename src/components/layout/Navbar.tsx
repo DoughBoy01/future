@@ -72,7 +72,7 @@ export function Navbar() {
         Skip to main content
       </a>
 
-      <nav className="sticky top-0 z-50" style={{ background: 'linear-gradient(135deg, #2C3E50 0%, #34495E 50%, #2C3E50 100%)' }} role="navigation" aria-label="Main navigation">
+      <nav className="sticky top-0 z-50" style={{ background: '#1e2d3a' }} role="navigation" aria-label="Main navigation">
         <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 lg:h-20">
           <div className="flex items-center flex-1">
