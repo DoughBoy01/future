@@ -15,9 +15,9 @@ type Category = Database['public']['Tables']['camp_categories']['Row'];
 // For best performance, use a local image in /public folder (e.g., '/hero.jpg')
 const HERO_IMAGE_URL = '/hero.jpeg';
 
-// Subtle gradient fallback that complements the Airbnb design system
-// Soft neutral gradient that doesn't compete with page elements
-const HERO_GRADIENT_FALLBACK = 'linear-gradient(135deg, #2C3E50 0%, #34495E 50%, #2C3E50 100%)';
+// Seamless background that matches navbar - solid dark color for perfect blend
+// This ensures no visible seam between navbar and hero section
+const HERO_BACKGROUND = '#1e2d3a';
 
 export function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
@@ -360,13 +360,11 @@ export function HomePage() {
           <div
             className="absolute inset-0"
             style={{
-              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_GRADIENT_FALLBACK,
+              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-          </div>
+          />
 
           <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-20 sm:pb-24 md:pb-32" style={{ minHeight: '100%' }}>
             <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
@@ -413,13 +411,11 @@ export function HomePage() {
           <div
             className="absolute inset-0"
             style={{
-              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_GRADIENT_FALLBACK,
+              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-          </div>
+          />
 
           <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32" style={{ minHeight: '100%' }}>
             <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
@@ -460,13 +456,11 @@ export function HomePage() {
         <div
           className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px]"
           style={{
-            background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_GRADIENT_FALLBACK,
+            background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_BACKGROUND,
             backgroundSize: 'cover',
             backgroundPosition: 'center top',
           }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
-        </div>
+        />
 
         <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-16 sm:pb-20 md:pb-24" style={{ minHeight: '450px' }}>
           <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
