@@ -11,6 +11,14 @@ import type { Database } from '../lib/database.types';
 type Camp = Database['public']['Tables']['camps']['Row'];
 type Category = Database['public']['Tables']['camp_categories']['Row'];
 
+// Hero Background Image - Change this URL to update the hero image across the site
+// For best performance, use a local image in /public folder (e.g., '/hero.jpg')
+const HERO_IMAGE_URL = '/hero.jpeg';
+
+// Subtle gradient fallback that complements the Airbnb design system
+// Soft neutral gradient that doesn't compete with page elements
+const HERO_GRADIENT_FALLBACK = 'linear-gradient(135deg, #2C3E50 0%, #34495E 50%, #2C3E50 100%)';
+
 export function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -22,6 +30,7 @@ export function HomePage() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,6 +85,14 @@ export function HomePage() {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  // Check if hero image exists
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setHeroImageLoaded(true);
+    img.onerror = () => setHeroImageLoaded(false);
+    img.src = HERO_IMAGE_URL;
   }, []);
 
   const staticCamps = [
@@ -341,9 +358,11 @@ export function HomePage() {
       <div className="min-h-screen">
         <section className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
           <div
-            className="absolute inset-0 bg-cover bg-center"
+            className="absolute inset-0"
             style={{
-              backgroundImage: 'url(https://images.pexels.com/photos/869258/pexels-photo-869258.jpeg?auto=compress&cs=tinysrgb&w=1920)',
+              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_GRADIENT_FALLBACK,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
@@ -392,9 +411,11 @@ export function HomePage() {
       <div className="min-h-screen">
         <section className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
           <div
-            className="absolute inset-0 bg-cover bg-center"
+            className="absolute inset-0"
             style={{
-              backgroundImage: 'url(https://images.pexels.com/photos/869258/pexels-photo-869258.jpeg?auto=compress&cs=tinysrgb&w=1920)',
+              background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_GRADIENT_FALLBACK,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
             }}
           >
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />
@@ -437,9 +458,11 @@ export function HomePage() {
 
       <section className="relative pb-16 sm:pb-20">
         <div
-          className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] bg-cover bg-center sm:bg-top"
+          className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px]"
           style={{
-            backgroundImage: 'url(https://images.pexels.com/photos/869258/pexels-photo-869258.jpeg?auto=compress&cs=tinysrgb&w=1920)',
+            background: heroImageLoaded ? `url(${HERO_IMAGE_URL})` : HERO_GRADIENT_FALLBACK,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center top',
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/50" />

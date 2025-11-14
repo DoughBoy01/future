@@ -78,9 +78,9 @@ export function Navbar() {
           <div className="flex items-center flex-1">
             <Link to="/" className="flex items-center space-x-2 mr-4 lg:mr-0">
               <img
-                src={siteLogo || "/logo.png"}
+                src={siteLogo || "/logo.gif"}
                 alt="FutureEdge"
-                className="h-6 lg:h-8 w-auto object-contain"
+                className="h-16 lg:h-20 w-auto object-contain"
               />
             </Link>
 
