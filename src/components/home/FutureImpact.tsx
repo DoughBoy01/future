@@ -1,3 +1,4 @@
+import { TrendingUp, Users, Award, Sparkles, ArrowRight, Info, Check } from 'lucide-react';
 import { TrendingUp, Users, Award, Sparkles, ArrowRight, AlertCircle, Shield, Star, Calendar, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -31,51 +32,51 @@ export function FutureImpact() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Content */}
         <div className="text-center mb-12 sm:mb-16">
-          {/* Attention-Grabbing Question */}
-          <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in-up">
-            <AlertCircle className="w-4 h-4" />
-            <span>What if you don't act now?</span>
+          {/* Why Camps Matter */}
+          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in-up">
+            <Info className="w-4 h-4" />
+            <span>Why Camps Matter</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-airbnb-grey-900 mb-4 sm:mb-6 px-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            Your Child's Future Starts Today
+            The Power of Purposeful Summer Experiences
           </h2>
 
           <p className="text-base sm:text-lg md:text-xl text-airbnb-grey-600 max-w-3xl mx-auto mb-8 px-4 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            While other children spend their time scrolling social media, yours could be building skills,
-            confidence, and friendships that last a lifetime.
+            See how FutureEdge camps transform typical summer breaks into opportunities for growth,
+            discovery, and meaningful connections.
           </p>
         </div>
 
-        {/* Reverse Psychology Cards */}
+        {/* Comparison Cards */}
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
-          {/* Without Camp Card */}
+          {/* Traditional Summer Card */}
           <div className="bg-white border-2 border-airbnb-grey-200 rounded-2xl p-6 sm:p-8 relative overflow-hidden animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-airbnb-grey-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
             <div className="relative">
               <h3 className="text-xl sm:text-2xl font-bold text-airbnb-grey-900 mb-4">
-                Without our experience camps
+                Traditional summer
               </h3>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
-                  <span>Another wasted holiday full of boredom</span>
+                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <span>Relaxation and free time at home</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
-                  <span>Missed opportunities to discover new passions</span>
+                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <span>Casual play with neighborhood friends</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
-                  <span>Limited social interaction with peers</span>
+                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <span>Screen time and entertainment</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
-                  <span>Falling behind in skill development</span>
+                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <span>Familiar routines and activities</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
-                  <span>Starting the school year unmotivated</span>
+                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                  <span>Time to rest before school starts</span>
                 </li>
               </ul>
             </div>
@@ -94,23 +95,23 @@ export function FutureImpact() {
               </div>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
-                  <span className="text-white text-lg leading-none mt-0.5">✓</span>
+                  <Check className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <span>Build confidence through hands-on experiences</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-white text-lg leading-none mt-0.5">✓</span>
+                  <Check className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <span>Discover hidden talents and future career paths</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-white text-lg leading-none mt-0.5">✓</span>
+                  <Check className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <span>Form lasting friendships with like-minded peers</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-white text-lg leading-none mt-0.5">✓</span>
+                  <Check className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <span>Develop essential life skills and independence</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-white text-lg leading-none mt-0.5">✓</span>
+                  <Check className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <span>Return to school excited and ahead of the curve</span>
                 </li>
               </ul>
@@ -147,7 +148,7 @@ export function FutureImpact() {
         {/* CTA */}
         <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
           <p className="text-lg sm:text-xl text-airbnb-grey-700 mb-6 font-medium">
-            Don't let another year slip by
+            Ready to give your child an amazing summer?
           </p>
           <Link
             to="/camps"
