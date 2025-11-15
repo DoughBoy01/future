@@ -230,7 +230,7 @@ export function CampCard({
   const cardContent = (
     <>
       {/* Tighter image section - overflow-hidden ensures all elements stay within bounds */}
-      <div className="relative h-48 sm:h-52 overflow-hidden rounded-t-lg pointer-events-none">
+      <div className="relative h-48 sm:h-52 overflow-hidden rounded-t-lg">
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 bg-gradient-to-r from-airbnb-grey-200 via-airbnb-grey-300 to-airbnb-grey-200 animate-pulse flex items-center justify-center pointer-events-none">
             <div className="w-12 h-12 border-4 border-airbnb-grey-300 border-t-airbnb-pink-500 rounded-full animate-spin"></div>
