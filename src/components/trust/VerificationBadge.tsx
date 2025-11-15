@@ -43,11 +43,11 @@ export function VerificationBadge({
   const getColorClasses = () => {
     switch (config.color) {
       case 'green':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'bg-trust-success-50 text-trust-success-700 border-trust-success-200';
       case 'blue':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-trust-verified-50 text-trust-verified-700 border-trust-verified-200';
       case 'gold':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-trust-elite-50 text-trust-elite-700 border-trust-elite-200';
       default:
         return 'bg-airbnb-grey-100 text-airbnb-grey-700 border-airbnb-grey-300';
     }
