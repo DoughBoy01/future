@@ -49,33 +49,33 @@ export function FutureImpact() {
 
         {/* Comparison Cards */}
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
-          {/* Traditional Summer Card */}
+          {/* Without Camp Card */}
           <div className="bg-white border-2 border-airbnb-grey-200 rounded-2xl p-6 sm:p-8 relative overflow-hidden animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-airbnb-grey-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
             <div className="relative">
               <h3 className="text-xl sm:text-2xl font-bold text-airbnb-grey-900 mb-4">
-                Traditional summer
+                Without our experience camps
               </h3>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                  <span>Relaxation and free time at home</span>
+                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
+                  <span>Another wasted holiday full of boredom</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                  <span>Casual play with neighborhood friends</span>
+                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
+                  <span>Missed opportunities to discover new passions</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                  <span>Screen time and entertainment</span>
+                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
+                  <span>Limited social interaction with peers</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                  <span>Familiar routines and activities</span>
+                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
+                  <span>Falling behind in skill development</span>
                 </li>
                 <li className="flex items-start gap-3 text-airbnb-grey-600">
-                  <Check className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                  <span>Time to rest before school starts</span>
+                  <span className="text-airbnb-grey-400 text-lg leading-none mt-0.5">×</span>
+                  <span>Starting the school year unmotivated</span>
                 </li>
               </ul>
             </div>
