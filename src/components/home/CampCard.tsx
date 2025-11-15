@@ -375,7 +375,20 @@ export function CampCard({
         {/* Description text */}
         {getDescriptionExcerpt() && (
           <p className="text-airbnb-grey-600 text-xs leading-relaxed mb-3 line-clamp-2">
-            {getDescriptionExcerpt()}
+            {getDescriptionExcerpt()}{' '}
+            {description && description.length > 120 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (id) navigate(`/camps/${id}`);
+                }}
+                className="text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium underline transition-standard inline"
+                data-no-swipe="true"
+              >
+                Read more
+              </button>
+            )}
           </p>
         )}
 
