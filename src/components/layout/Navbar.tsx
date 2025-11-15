@@ -87,7 +87,7 @@ export function Navbar() {
               <img
                 src={siteLogo || "/logo.gif"}
                 alt="FutureEdge"
-                className="h-16 lg:h-20 w-auto object-contain"
+                className="h-16 lg:h-20 w-auto object-contain p-3"
               />
             </Link>
 
