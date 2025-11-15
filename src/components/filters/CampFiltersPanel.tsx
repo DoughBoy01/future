@@ -109,11 +109,8 @@ export function CampFiltersPanel({
   );
 
   if (isMobile) {
-    return (
-      <div className="fixed inset-0 bg-white z-50 overflow-hidden">
-        {content}
-      </div>
-    );
+    // When mobile, render just the content - the MobileFilterDrawer wrapper handles positioning
+    return <>{content}</>;
   }
 
   return (

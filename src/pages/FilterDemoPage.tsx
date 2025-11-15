@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { CampFiltersPanel } from '../components/filters/CampFiltersPanel';
+import { MobileFilterDrawer } from '../components/filters/MobileFilterDrawer';
+import { MobileFilterButton } from '../components/filters/MobileFilterButton';
 import { CampCard } from '../components/home/CampCard';
 import { SlidersHorizontal } from 'lucide-react';
 import { filterCamps, clearAllFilters, getActiveFilterCount } from '../lib/filters';
@@ -39,18 +41,10 @@ export function FilterDemoPage() {
                 {activeFilterCount > 0 && ` · ${activeFilterCount} filters active`}
               </p>
             </div>
-            <button
+            <MobileFilterButton
               onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden flex items-center gap-2 px-4 py-2 border-2 border-airbnb-grey-900 rounded-lg font-semibold hover:bg-airbnb-grey-900 hover:text-white transition-colors"
-            >
-              <SlidersHorizontal className="w-5 h-5" />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="bg-airbnb-pink-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
+              activeCount={activeFilterCount}
+            />
           </div>
         </div>
       </div>
@@ -107,15 +101,18 @@ export function FilterDemoPage() {
         </div>
       </div>
 
-      {/* Mobile Filters Modal */}
-      {showMobileFilters && (
+      {/* Mobile Filters Drawer */}
+      <MobileFilterDrawer
+        isOpen={showMobileFilters}
+        onClose={() => setShowMobileFilters(false)}
+      >
         <CampFiltersPanel
           filters={filters}
           onChange={setFilters}
           onClose={() => setShowMobileFilters(false)}
           isMobile={true}
         />
-      )}
+      </MobileFilterDrawer>
 
       {/* Demo Notice */}
       <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm">
