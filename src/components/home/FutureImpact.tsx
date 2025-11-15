@@ -1,5 +1,4 @@
-import { TrendingUp, Users, Award, Sparkles, ArrowRight, Info, Check } from 'lucide-react';
-import { TrendingUp, Users, Award, Sparkles, ArrowRight, AlertCircle, Shield, Star, Calendar, Globe } from 'lucide-react';
+import { TrendingUp, Users, Award, Sparkles, ArrowRight, Info, Check, AlertCircle, Shield, Star, Calendar, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function FutureImpact() {
