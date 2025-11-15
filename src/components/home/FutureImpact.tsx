@@ -1,4 +1,5 @@
 import { TrendingUp, Users, Award, Sparkles, ArrowRight, Info, Check } from 'lucide-react';
+import { TrendingUp, Users, Award, Sparkles, ArrowRight, AlertCircle, Shield, Star, Calendar, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function FutureImpact() {
@@ -156,6 +157,63 @@ export function FutureImpact() {
             Explore Camps Now
             <ArrowRight className="w-5 h-5" />
           </Link>
+        </div>
+
+        {/* Trust Section */}
+        <div className="mt-16 sm:mt-20 pt-12 border-t border-airbnb-grey-200">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {/* Partner Families Trust */}
+            <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 rounded-full mb-3">
+                <Shield className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
+                100,000+
+              </div>
+              <p className="text-sm text-airbnb-grey-600 px-2">
+                Partner camps trusted by families
+              </p>
+            </div>
+
+            {/* Trustpilot Ratings */}
+            <div className="text-center animate-fade-in-up" style={{ animationDelay: '1.0s' }}>
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-50 rounded-full mb-3">
+                <Star className="w-6 h-6 text-amber-500" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
+                4.8★
+              </div>
+              <p className="text-sm text-airbnb-grey-600 px-2">
+                Featuring camps rated on Trustpilot
+              </p>
+            </div>
+
+            {/* Established Camps */}
+            <div className="text-center animate-fade-in-up" style={{ animationDelay: '1.1s' }}>
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-airbnb-pink-50 rounded-full mb-3">
+                <Calendar className="w-6 h-6 text-airbnb-pink-500" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
+                Since 2005
+              </div>
+              <p className="text-sm text-airbnb-grey-600 px-2">
+                Curated selection of established camps
+              </p>
+            </div>
+
+            {/* Students Served */}
+            <div className="text-center animate-fade-in-up" style={{ animationDelay: '1.2s' }}>
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-50 rounded-full mb-3">
+                <Globe className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
+                12,000+
+              </div>
+              <p className="text-sm text-airbnb-grey-600 px-2">
+                Our partners have served students worldwide
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
