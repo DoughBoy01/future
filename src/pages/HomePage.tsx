@@ -365,7 +365,7 @@ export function HomePage() {
             }}
           />
 
-          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-64 sm:pb-56 md:pb-60" style={{ minHeight: '100%' }}>
+          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64" style={{ minHeight: '100%' }}>
             <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
               <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
@@ -423,7 +423,7 @@ export function HomePage() {
             }}
           />
 
-          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-64 sm:pb-56 md:pb-60" style={{ minHeight: '100%' }}>
+          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64" style={{ minHeight: '100%' }}>
             <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
               <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
@@ -475,7 +475,7 @@ export function HomePage() {
           }}
         />
 
-        <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-64 sm:pb-56 md:pb-60" style={{ minHeight: '450px' }}>
+        <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64" style={{ minHeight: '450px' }}>
           <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
             <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
@@ -494,7 +494,7 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 -mt-40 sm:-mt-44 md:-mt-48">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 -mt-20 sm:-mt-44 md:-mt-48">
           <div className="max-w-7xl mx-auto relative" role="region" aria-label="Featured camps carousel">
             {camps.length > cardsPerView && (
               <button
