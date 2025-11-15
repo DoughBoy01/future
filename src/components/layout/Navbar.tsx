@@ -1,9 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUserView } from '../../contexts/UserViewContext';
 import { Globe, LogOut, User, Settings, Shield, CheckCircle, Sparkles, LayoutDashboard, Menu, X, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
+import { UserViewToggle } from './UserViewToggle';
 
 const LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English' },
@@ -14,6 +16,7 @@ const LANGUAGES = [
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth();
+  const { currentView, canSwitchView } = useUserView();
   const location = useLocation();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation('common');
@@ -21,6 +24,10 @@ export function Navbar() {
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [siteLogo, setSiteLogo] = useState<string | null>(null);
+
+  // Determine which navigation to show based on current view
+  const showParentNav = !user || (user && (currentView === 'parent' || profile?.role === 'parent'));
+  const showAdminNav = user && currentView === 'camp_organiser' && ['school_admin', 'marketing', 'operations', 'risk', 'super_admin'].includes(profile?.role || '');
 
   useEffect(() => {
     loadSiteLogo();
@@ -85,31 +92,38 @@ export function Navbar() {
             </Link>
 
             <div className="hidden lg:ml-12 lg:flex lg:space-x-4 xl:space-x-8">
-              <Link
-                to="/camps"
-                className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
-              >
-                {t('nav.browse_camps')}
-              </Link>
-              <Link
-                to="/talk-to-advisor"
-                className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
-              >
-                Talk to AI Advisor
-              </Link>
-              {user && profile?.role === 'parent' && (
-                <Link
-                  to="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
-                    isActive('/dashboard')
-                      ? 'text-airbnb-pink-400 border-b-2 border-airbnb-pink-400'
-                      : 'text-white/90 hover:text-white'
-                  }`}
-                >
-                  {t('nav.dashboard')}
-                </Link>
+              {/* Parent Navigation */}
+              {showParentNav && (
+                <>
+                  <Link
+                    to="/camps"
+                    className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
+                  >
+                    {t('nav.browse_camps')}
+                  </Link>
+                  <Link
+                    to="/talk-to-advisor"
+                    className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
+                  >
+                    Talk to AI Advisor
+                  </Link>
+                  {user && (
+                    <Link
+                      to="/dashboard"
+                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
+                        isActive('/dashboard')
+                          ? 'text-airbnb-pink-400 border-b-2 border-airbnb-pink-400'
+                          : 'text-white/90 hover:text-white'
+                      }`}
+                    >
+                      {t('nav.dashboard')}
+                    </Link>
+                  )}
+                </>
               )}
-              {user && ['school_admin', 'marketing', 'operations', 'risk', 'super_admin'].includes(profile?.role || '') && (
+
+              {/* Camp Organiser Navigation */}
+              {showAdminNav && (
                 <>
                   <Link
                     to="/admin/dashboard"
@@ -152,6 +166,9 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center space-x-2 lg:space-x-4">
+            {/* User View Toggle */}
+            {user && canSwitchView && <UserViewToggle />}
+
             {/* Language Selector */}
             <div className="relative hidden sm:block">
               <button
@@ -277,37 +294,43 @@ export function Navbar() {
 
         {mobileMenuOpen && (
           <div className="lg:hidden border-t border-white/20 py-4 space-y-2">
-            <Link
-              to="/camps"
-              onClick={closeMobileMenu}
-              className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
-            >
-              {t('nav.browse_camps')}
-            </Link>
+            {/* Parent Navigation */}
+            {showParentNav && (
+              <>
+                <Link
+                  to="/camps"
+                  onClick={closeMobileMenu}
+                  className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
+                >
+                  {t('nav.browse_camps')}
+                </Link>
 
-            <Link
-              to="/talk-to-advisor"
-              onClick={closeMobileMenu}
-              className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
-            >
-              Talk to AI Advisor
-            </Link>
+                <Link
+                  to="/talk-to-advisor"
+                  onClick={closeMobileMenu}
+                  className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
+                >
+                  Talk to AI Advisor
+                </Link>
 
-            {user && profile?.role === 'parent' && (
-              <Link
-                to="/dashboard"
-                onClick={closeMobileMenu}
-                className={`block px-4 py-2 text-base font-medium rounded-md transition-fast ${
-                  isActive('/dashboard')
-                    ? 'bg-airbnb-pink-500/20 text-airbnb-pink-300'
-                    : 'text-white/90 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                {t('nav.dashboard')}
-              </Link>
+                {user && (
+                  <Link
+                    to="/dashboard"
+                    onClick={closeMobileMenu}
+                    className={`block px-4 py-2 text-base font-medium rounded-md transition-fast ${
+                      isActive('/dashboard')
+                        ? 'bg-airbnb-pink-500/20 text-airbnb-pink-300'
+                        : 'text-white/90 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {t('nav.dashboard')}
+                  </Link>
+                )}
+              </>
             )}
 
-            {user && ['school_admin', 'marketing', 'operations', 'risk', 'super_admin'].includes(profile?.role || '') && (
+            {/* Camp Organiser Navigation */}
+            {showAdminNav && (
               <>
                 <Link
                   to="/admin/dashboard"
