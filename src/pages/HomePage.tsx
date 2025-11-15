@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CampCard } from '../components/home/CampCard';
 import { CategoryCard } from '../components/home/CategoryCard';
@@ -369,9 +370,17 @@ export function HomePage() {
               <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
               <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
             </h1>
-            <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium" style={{ animationDelay: '0.3s' }}>
+            <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-6 sm:mb-8" style={{ animationDelay: '0.3s' }}>
               Accelerate their success with amazing educational experiences
             </p>
+            <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <Link
+                to="/camps"
+                className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base sm:text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                Explore Camps
+              </Link>
+            </div>
           </div>
 
           <div className="absolute bottom-0 left-0 right-0 px-2 sm:px-4 pb-6 sm:pb-8 transform translate-y-1/2">
@@ -418,9 +427,17 @@ export function HomePage() {
               <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
               <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
             </h1>
-            <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium" style={{ animationDelay: '0.3s' }}>
+            <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-6 sm:mb-8" style={{ animationDelay: '0.3s' }}>
               Accelerate their success with amazing educational experiences
             </p>
+            <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <Link
+                to="/camps"
+                className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base sm:text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                Explore Camps
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -461,9 +478,17 @@ export function HomePage() {
             <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
             <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their FutureEdge Today</span>
           </h1>
-          <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium" style={{ animationDelay: '0.3s' }}>
+          <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-6 sm:mb-8" style={{ animationDelay: '0.3s' }}>
             Accelerate their success with amazing educational experiences
           </p>
+          <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+            <Link
+              to="/camps"
+              className="inline-block px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold text-base sm:text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              Explore Camps
+            </Link>
+          </div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-3 sm:px-4 -mt-40 sm:-mt-44 md:-mt-48">
