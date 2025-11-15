@@ -14,15 +14,15 @@ export function FutureImpact() {
       icon: Users,
       value: '92%',
       label: 'of campers develop new friendships',
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      color: 'text-trust-verified-600',
+      bg: 'bg-trust-verified-50',
     },
     {
       icon: Award,
       value: '78%',
       label: 'discover a new passion or interest',
-      color: 'text-amber-600',
-      bg: 'bg-amber-50',
+      color: 'text-trust-elite-600',
+      bg: 'bg-trust-elite-50',
     },
   ];
 
@@ -163,8 +163,8 @@ export function FutureImpact() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {/* Partner Families Trust */}
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 rounded-full mb-3">
-                <Shield className="w-6 h-6 text-blue-600" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-trust-verified-50 rounded-full mb-3">
+                <Shield className="w-6 h-6 text-trust-verified-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
                 100,000+
@@ -176,8 +176,8 @@ export function FutureImpact() {
 
             {/* Trustpilot Ratings */}
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '1.0s' }}>
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-50 rounded-full mb-3">
-                <Star className="w-6 h-6 text-amber-500" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-trust-elite-50 rounded-full mb-3">
+                <Star className="w-6 h-6 text-trust-elite-500" />
               </div>
               <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
                 4.8★
@@ -202,8 +202,8 @@ export function FutureImpact() {
 
             {/* Students Served */}
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '1.2s' }}>
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-50 rounded-full mb-3">
-                <Globe className="w-6 h-6 text-green-600" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-trust-success-50 rounded-full mb-3">
+                <Globe className="w-6 h-6 text-trust-success-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
                 12,000+

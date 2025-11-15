@@ -26,25 +26,25 @@ export function QualityTier({
       case 'elite':
         return {
           label: 'Elite Partner',
-          color: 'text-amber-600',
-          bg: 'bg-amber-50',
-          border: 'border-amber-200',
+          color: 'text-trust-elite-600',
+          bg: 'bg-trust-elite-50',
+          border: 'border-trust-elite-200',
           icon: Award,
         };
       case 'premium':
         return {
           label: 'Premium Partner',
-          color: 'text-blue-600',
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
+          color: 'text-trust-verified-600',
+          bg: 'bg-trust-verified-50',
+          border: 'border-trust-verified-200',
           icon: TrendingUp,
         };
       case 'verified':
         return {
           label: 'Verified Partner',
-          color: 'text-green-600',
-          bg: 'bg-green-50',
-          border: 'border-green-200',
+          color: 'text-trust-success-600',
+          bg: 'bg-trust-success-50',
+          border: 'border-trust-success-200',
           icon: Award,
         };
       default:
