@@ -345,24 +345,24 @@
   /* Ensure content stays at top on iOS - closer to navbar */
   @supports (-webkit-touch-callout: none) {
     .ios-hero-container {
-      padding-top: 5.5rem !important; /* 88px - closer to navbar */
+      padding-top: 4rem !important; /* 64px - closer to navbar */
     }
 
     @media (min-width: 640px) {
       .ios-hero-container {
-        padding-top: 6rem !important; /* 96px */
+        padding-top: 4.5rem !important; /* 72px */
       }
     }
 
     @media (min-width: 768px) {
       .ios-hero-container {
-        padding-top: 6.5rem !important; /* 104px */
+        padding-top: 5rem !important; /* 80px */
       }
     }
 
     @media (min-width: 1024px) {
       .ios-hero-container {
-        padding-top: 7.5rem !important; /* 120px */
+        padding-top: 6rem !important; /* 96px */
       }
     }
   }
