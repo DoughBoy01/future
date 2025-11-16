@@ -449,7 +449,6 @@ export function CampCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // TODO: Navigate to registration or open booking modal
                 if (id) {
                   navigate(`/camps/${id}/register`);
                 }
