@@ -243,7 +243,7 @@ export function CampCard({
   const cardContent = (
     <>
       {/* Tighter image section - overflow-hidden ensures all elements stay within bounds */}
-      <div className="relative h-48 sm:h-52 overflow-hidden rounded-t-lg">
+      <div className="relative h-48 sm:h-52 overflow-hidden rounded-t-lg" style={{ isolation: 'isolate' }}>
         {!imageLoaded && !imageError && (
           <div className="absolute inset-0 bg-gradient-to-r from-airbnb-grey-200 via-airbnb-grey-300 to-airbnb-grey-200 animate-pulse flex items-center justify-center pointer-events-none">
             <div className="w-12 h-12 border-4 border-airbnb-grey-300 border-t-airbnb-pink-500 rounded-full animate-spin"></div>
@@ -287,7 +287,12 @@ export function CampCard({
         {/* Action buttons - better spacing from top edge */}
         <div
           className="absolute top-3 right-3 flex gap-2"
-          style={{ zIndex: 100, pointerEvents: 'auto' }}
+          style={{
+            zIndex: 9999,
+            pointerEvents: 'auto',
+            position: 'absolute',
+            isolation: 'isolate'
+          }}
           data-no-swipe="true"
         >
           <button
@@ -295,9 +300,14 @@ export function CampCard({
             onClick={handleShareClick}
             onPointerDown={(e) => e.stopPropagation()}
             aria-label="Share this camp"
-            className="bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation select-none"
+            className="bg-white p-1.5 rounded-full hover:bg-gray-50 transition-standard shadow-lg hover:shadow-xl touch-manipulation select-none"
             data-no-swipe="true"
-            style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+            style={{
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
+              position: 'relative',
+              zIndex: 1
+            }}
           >
             <Share2
               className="w-4 h-4 text-airbnb-grey-600 hover:text-airbnb-pink-400 transition-standard pointer-events-none"
@@ -309,9 +319,14 @@ export function CampCard({
             onClick={handleFavoriteClick}
             onPointerDown={(e) => e.stopPropagation()}
             aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            className={`bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-white transition-standard shadow-sm hover:shadow-md touch-manipulation select-none ${justFavorited ? 'animate-bounce' : ''}`}
+            className={`bg-white p-1.5 rounded-full hover:bg-gray-50 transition-standard shadow-lg hover:shadow-xl touch-manipulation select-none ${justFavorited ? 'animate-bounce' : ''}`}
             data-no-swipe="true"
-            style={{ WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
+            style={{
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
+              position: 'relative',
+              zIndex: 1
+            }}
           >
             <Heart
               className={`w-4 h-4 transition-standard pointer-events-none ${
@@ -473,6 +488,7 @@ export function CampCard({
       onMouseLeave={() => setIsHovered(false)}
       className={`bg-white rounded-lg shadow-md overflow-hidden transition-airbnb w-full h-full flex flex-col group relative ${id ? 'cursor-pointer' : ''} ${isHovered ? 'shadow-xl -translate-y-1 scale-[1.02]' : 'shadow-md translate-y-0 scale-100'}`}
       ref={cardRef}
+      style={{ position: 'relative', zIndex: 1 }}
     >
       {cardContent}
     </div>
