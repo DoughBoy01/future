@@ -107,7 +107,8 @@ export function CampCard({
     e.stopPropagation();
 
     if (!id) {
-      console.warn('No ID provided, cannot favorite');
+      console.warn('⚠️ No ID provided for this camp - cannot favorite static/demo camps');
+      alert('This is a demo camp. Favorite feature works with real camps from the database.');
       return;
     }
 
@@ -134,7 +135,7 @@ export function CampCard({
       localStorage.setItem('campFavorites', JSON.stringify(favorites));
       console.log('✅ Favorite saved to localStorage:', newFavoriteState);
     } catch (error) {
-      console.error('Error saving favorite:', error);
+      console.error('❌ Error saving favorite:', error);
     }
   };
 
@@ -144,7 +145,8 @@ export function CampCard({
     e.stopPropagation();
 
     if (!id || !ageMin || !ageMax) {
-      console.warn('Missing required data for sharing:', { id, ageMin, ageMax });
+      console.warn('⚠️ Missing required data for sharing - this is likely a demo camp:', { id, ageMin, ageMax });
+      alert('This is a demo camp. Share feature works with real camps from the database.');
       return;
     }
 
@@ -165,7 +167,7 @@ export function CampCard({
         console.log('✅ Share successful, toast shown');
       }
     );
-    console.log('Share result:', success);
+    console.log('📊 Share result:', success);
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
