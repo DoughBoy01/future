@@ -27,6 +27,9 @@ import { SystemDiagnostics } from './pages/admin/SystemDiagnostics';
 import { PartnersPage } from './pages/PartnersPage';
 import { FilterDemoPage } from './pages/FilterDemoPage';
 import { TalkToAdvisorPage } from './pages/TalkToAdvisorPage';
+import BlogIndexPage from './pages/BlogIndexPage';
+import BlogPostPage from './pages/BlogPostPage';
+import ProgrammaticLandingPage from './pages/ProgrammaticLandingPage';
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -60,6 +63,9 @@ function App() {
           <Route path="/partners" element={<PartnersPage />} />
           <Route path="/filter-demo" element={<FilterDemoPage />} />
           <Route path="/talk-to-advisor" element={<TalkToAdvisorPage />} />
+          <Route path="/blog" element={<BlogIndexPage />} />
+          <Route path="/blog/:slug" element={<BlogPostPage />} />
+          <Route path="/explore/:slug" element={<ProgrammaticLandingPage />} />
           <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
         <Route
           path="/payment-success"
