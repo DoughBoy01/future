@@ -30,7 +30,7 @@ Use a numbered system (100-900) for each color family to ensure consistency:
 - `--pink-100`: #FFE8EA (lightest, backgrounds)
 - `--pink-300`: #FFC4CC (subtle alerts)
 - `--pink-500`: #FF385C (primary actions, links, CTAs)
-- `--pink-800`: #E31C5F (hover states, active)
+- `--pink-800`: #fe4d39 (hover states, active)
 - `--pink-900`: #C71742 (emphasis, strong states)
 
 **Neutral Palette:**
@@ -130,7 +130,7 @@ cursor: pointer
 transition: all 0.2s ease
 
 &:hover {
-  background: #E31C5F
+  background: #fe4d39
   transform: scale(1.02)
   box-shadow: 0 4px 12px rgba(255, 56, 92, 0.3)
 }
@@ -391,7 +391,7 @@ Implement as root-level CSS variables for consistency:
 :root {
   /* Colors */
   --color-primary: #FF385C;
-  --color-primary-dark: #E31C5F;
+  --color-primary-dark: #fe4d39;
   --color-text-primary: #222222;
   --color-text-secondary: #717171;
   --color-border: #DDDDDD;

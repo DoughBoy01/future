@@ -22,7 +22,7 @@ Created a comprehensive CSS variable system following Airbnb specifications:
 :root {
   /* Primary Colors - Airbnb Pink Palette */
   --color-primary: #FF385C;
-  --color-primary-hover: #E31C5F;
+  --color-primary-hover: #fe4d39;
 
   /* Typography */
   --font-family: 'Inter', -apple-system, ...;
@@ -54,7 +54,7 @@ Extended Tailwind with Airbnb-specific values:
 'airbnb-pink': {
   50: '#FFE8EA',
   500: '#FF385C',  // Primary
-  600: '#E31C5F',  // Hover
+  600: '#fe4d39',  // Hover
 }
 
 'airbnb-grey': {
@@ -440,7 +440,7 @@ className="rounded-full"  // 9999px
 
 ### Color Palette
 - **Primary Pink:** #FF385C
-- **Pink Hover:** #E31C5F
+- **Pink Hover:** #fe4d39
 - **Text Primary:** #222222
 - **Text Secondary:** #717171
 - **Border:** #DDDDDD
