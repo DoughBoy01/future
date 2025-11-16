@@ -285,6 +285,7 @@ export function CampCard({
             onTouchEnd={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              handleShareClick(e);
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
@@ -310,6 +311,7 @@ export function CampCard({
             onTouchEnd={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              handleFavoriteClick(e);
             }}
             onMouseDown={(e) => {
               e.stopPropagation();
