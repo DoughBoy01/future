@@ -36,7 +36,7 @@ export function VapiOrb({ state, size = 'large', className = '' }: VapiOrbProps)
       case 'thinking':
         return 'from-purple-500 to-pink-500';
       default:
-        return 'from-[#FF385C] to-[#E31C5F]';
+        return 'from-[#FF385C] to-[#fe4d39]';
     }
   };
 

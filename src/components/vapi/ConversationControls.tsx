@@ -97,7 +97,7 @@ export function ConversationControls({
               ${
                 isDisabled
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#FF385C] text-white hover:bg-[#E31C5F] hover:shadow-lg hover:scale-105 active:scale-95'
+                  : 'bg-[#FF385C] text-white hover:bg-[#fe4d39] hover:shadow-lg hover:scale-105 active:scale-95'
               }
               shadow-md
             `}

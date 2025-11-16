@@ -13,7 +13,7 @@ Successfully removed ALL blues, greens, purples, teals, and other rainbow colors
 
 ### Primary Palette (Airbnb Pink)
 - **Main CTA:** `airbnb-pink-500` (#FF385C)
-- **Hover State:** `airbnb-pink-600` (#E31C5F)
+- **Hover State:** `airbnb-pink-600` (#fe4d39)
 - **Backgrounds:** `airbnb-pink-50` (#FFE8EA)
 - **Borders:** `airbnb-pink-200` / `airbnb-pink-300`
 - **Text on Light:** `airbnb-pink-700` / `airbnb-pink-900`
@@ -100,7 +100,7 @@ ALL: {
 ### Badges & Labels
 | Element | Before | After |
 |---------|--------|-------|
-| "Limited" Badge | Red | Pink (#E31C5F) |
+| "Limited" Badge | Red | Pink (#fe4d39) |
 | "Popular" Badge | Green | Pink (#FF385C) |
 | "New" Badge | Blue | Pink (#FF385C) |
 | Category Badge | Blue background | Pink background |
