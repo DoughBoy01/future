@@ -36,7 +36,7 @@ export function VapiOrb({ state, size = 'large', className = '' }: VapiOrbProps)
       case 'thinking':
         return 'from-purple-500 to-pink-500';
       default:
-        return 'from-[#FF385C] to-[#fe4d39]';
+        return 'from-[#fe4d39] to-[#E31C5F]';
     }
   };
 
@@ -93,7 +93,7 @@ export function VapiOrb({ state, size = 'large', className = '' }: VapiOrbProps)
         <div
           className={`
             absolute inset-0 rounded-full
-            border-4 border-[#FF385C]/30
+            border-4 border-[#fe4d39]/30
             ${state === 'listening' ? 'animate-ping-slow' : 'animate-spin-slow'}
           `}
         />

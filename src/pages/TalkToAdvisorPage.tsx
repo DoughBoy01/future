@@ -41,7 +41,7 @@ export function TalkToAdvisorPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-4xl mx-auto">
             <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFE8EA] rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-[#FF385C]" />
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-[#fe4d39]" />
               </div>
               <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-1 sm:mb-2">
                 Personalized Recommendations
@@ -53,7 +53,7 @@ export function TalkToAdvisorPage() {
 
             <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFE8EA] rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-[#FF385C]" />
+                <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-[#fe4d39]" />
               </div>
               <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-1 sm:mb-2">
                 Natural Conversation
@@ -65,7 +65,7 @@ export function TalkToAdvisorPage() {
 
             <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-gray-100">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FFE8EA] rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-[#FF385C]" />
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-[#fe4d39]" />
               </div>
               <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-1 sm:mb-2">
                 Expert Guidance
@@ -111,7 +111,7 @@ export function TalkToAdvisorPage() {
                           max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-2.5 sm:px-5 sm:py-3
                           ${
                             message.role === 'user'
-                              ? 'bg-[#FF385C] text-white'
+                              ? 'bg-[#fe4d39] text-white'
                               : 'bg-gray-100 text-[#222222]'
                           }
                         `}
@@ -144,7 +144,7 @@ export function TalkToAdvisorPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               <div className="text-center">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 font-bold text-[#FF385C] text-lg sm:text-xl shadow-sm">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 font-bold text-[#fe4d39] text-lg sm:text-xl shadow-sm">
                   1
                 </div>
                 <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-2">
@@ -156,7 +156,7 @@ export function TalkToAdvisorPage() {
               </div>
 
               <div className="text-center">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 font-bold text-[#FF385C] text-lg sm:text-xl shadow-sm">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 font-bold text-[#fe4d39] text-lg sm:text-xl shadow-sm">
                   2
                 </div>
                 <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-2">
@@ -168,7 +168,7 @@ export function TalkToAdvisorPage() {
               </div>
 
               <div className="text-center">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 font-bold text-[#FF385C] text-lg sm:text-xl shadow-sm">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 font-bold text-[#fe4d39] text-lg sm:text-xl shadow-sm">
                   3
                 </div>
                 <h3 className="font-semibold text-sm sm:text-base text-[#222222] mb-2">
