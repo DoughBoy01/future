@@ -67,45 +67,48 @@ export function ForSchoolsPage() {
     {
       icon: Award,
       title: 'Bespoke Programs',
-      description: 'Custom-designed camps tailored to your curriculum needs and educational objectives'
+      description: 'Custom-designed camps across STEM, arts, sports, and more—tailored to your curriculum needs and educational objectives'
     },
     {
       icon: Users,
       title: 'Expert Instructors',
-      description: 'Qualified coaches and educators experienced in working with school groups'
+      description: 'Qualified educators, technologists, artists, coaches, and specialists experienced in working with diverse school groups'
     },
     {
       icon: MapPin,
-      title: 'Flexible Locations',
-      description: 'Choose from our partner venues or we can come to your school'
+      title: 'Global Reach',
+      description: 'Partner venues worldwide or on-site at your school—we serve educational institutions globally'
     },
     {
       icon: Calendar,
       title: 'Flexible Scheduling',
-      description: 'Programs that fit your academic calendar, from single days to full weeks'
+      description: 'Programs that fit any academic calendar, from single days to full weeks, year-round'
     }
   ];
 
   const campTypes = [
-    'Football',
-    'Basketball',
-    'Tennis',
-    'Multi-Sport',
-    'Athletics',
-    'Swimming',
-    'Cricket',
-    'Rugby',
-    'STEM & Sports',
+    'STEM & Robotics',
+    'Coding & Technology',
+    'Sports & Athletics',
+    'Arts & Creativity',
+    'Outdoor Adventure',
+    'Science & Innovation',
+    'Leadership & Life Skills',
+    'Music & Performing Arts',
+    'Environmental Studies',
+    'Multi-Activity',
+    'Language Immersion',
+    'Academic Enrichment',
     'Other'
   ];
 
   const ageRanges = [
-    'Reception (4-5 years)',
-    'Key Stage 1 (5-7 years)',
-    'Key Stage 2 (7-11 years)',
-    'Key Stage 3 (11-14 years)',
-    'Key Stage 4 (14-16 years)',
-    'Sixth Form (16-18 years)'
+    '4-6 years (Pre-K/Kindergarten)',
+    '7-9 years (Primary/Elementary)',
+    '10-12 years (Upper Primary/Middle School)',
+    '13-15 years (Secondary/High School)',
+    '16-18 years (Senior/College Prep)',
+    'Mixed age groups'
   ];
 
   const abilityLevels = [
@@ -116,20 +119,21 @@ export function ForSchoolsPage() {
   ];
 
   const budgetRanges = [
-    'Under £1,000',
-    '£1,000 - £2,500',
-    '£2,500 - £5,000',
-    '£5,000 - £10,000',
-    '£10,000+'
+    'Under $2,500',
+    '$2,500 - $5,000',
+    '$5,000 - $10,000',
+    '$10,000 - $25,000',
+    '$25,000 - $50,000',
+    'Over $50,000'
   ];
 
   return (
     <>
       <Helmet>
-        <title>For Schools | FutureEdge - Bespoke Sports Camps</title>
+        <title>For Schools | FutureEdge - Bespoke Educational Camps</title>
         <meta
           name="description"
-          content="Partner with FutureEdge to create bespoke sports camps tailored to your school's extra-curricular needs. Expert coaching, flexible scheduling, and custom programs."
+          content="Partner with FutureEdge to create bespoke educational camps tailored to your school's extra-curricular needs. STEM, arts, sports, outdoor adventure and more. Expert instruction, flexible scheduling, and custom programs."
         />
       </Helmet>
 
@@ -144,10 +148,10 @@ export function ForSchoolsPage() {
                 <span className="text-white/90 font-medium">B2B Partnerships</span>
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-                Bespoke Sports Camps for Your School
+                Bespoke Educational Camps for Your School
               </h1>
               <p className="text-xl sm:text-2xl text-white/95 leading-relaxed mb-8">
-                Partner with FutureEdge to deliver exceptional extra-curricular sports programs tailored to your school's unique needs
+                Partner with FutureEdge to deliver exceptional extra-curricular programs—from STEM and arts to sports and outdoor adventure—tailored to your school's unique needs
               </p>
               <div className="flex flex-wrap gap-4 text-white/90">
                 <div className="flex items-center gap-2">
@@ -175,7 +179,7 @@ export function ForSchoolsPage() {
                 Why Partner With FutureEdge?
               </h2>
               <p className="text-lg text-airbnb-grey-600 max-w-2xl mx-auto">
-                We work closely with schools to create engaging, safe, and educational sports experiences
+                We work closely with schools worldwide to create engaging, safe, and educational experiences across STEM, arts, sports, and more
               </p>
             </div>
 
@@ -341,7 +345,7 @@ export function ForSchoolsPage() {
                         onChange={handleChange}
                         required
                         className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-all"
-                        placeholder="e.g., On-site at school, Local sports centre, etc."
+                        placeholder="e.g., On-site at school, Partner venue, City/Region"
                       />
                     </div>
 
@@ -418,7 +422,7 @@ export function ForSchoolsPage() {
                           value={formData.desiredDates}
                           onChange={handleChange}
                           className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-all"
-                          placeholder="e.g., Half-term October 2025"
+                          placeholder="e.g., Summer 2025, Winter break, Specific dates"
                         />
                       </div>
 
@@ -499,10 +503,10 @@ export function ForSchoolsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl sm:text-4xl font-bold text-airbnb-grey-900 mb-6">
-                Trusted by Schools Across the UK
+                Trusted by Schools Worldwide
               </h2>
               <p className="text-lg text-airbnb-grey-600 max-w-3xl mx-auto mb-8">
-                Join hundreds of schools that have partnered with FutureEdge to deliver outstanding sports programs that inspire, engage, and develop young people
+                Join hundreds of schools globally that have partnered with FutureEdge to deliver outstanding educational programs that inspire, engage, and develop young people
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                 <div className="bg-white rounded-xl p-6 shadow-sm">
