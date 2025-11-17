@@ -1,7 +1,8 @@
 import { Heart, Star, TrendingUp, AlertCircle, Sparkles, Users, Award, Share2, CheckCircle, Calendar } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/currency';
+import { formatPrice, getConvertedPrice, detectUserCurrency } from '../../lib/currency';
 import { shareCamp } from '../../utils/share';
 import { VerificationBadge } from '../trust/VerificationBadge';
 import type { VerificationLevel } from '../../types/verification';
@@ -56,6 +57,28 @@ export function CampCard({
   const [justFavorited, setJustFavorited] = useState(false);
   const [showShareToast, setShowShareToast] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Initialize user's preferred currency from localStorage
+  const [userCurrency, setUserCurrency] = useState<string>(() => {
+    return localStorage.getItem('preferredCurrency') || detectUserCurrency();
+  });
+
+  // Listen for currency changes in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newCurrency = localStorage.getItem('preferredCurrency') || detectUserCurrency();
+      setUserCurrency(newCurrency);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also check periodically in case localStorage changes in same tab
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Initialize favorite state from localStorage
   const [isFavorite, setIsFavorite] = useState(() => {
@@ -435,7 +458,7 @@ export function CampCard({
             )}
             <div className="flex items-baseline gap-1.5">
               <span className="text-lg font-bold text-airbnb-grey-900">
-                {formatCurrency(price, currency)}
+                {formatPrice(price, currency)}
               </span>
               {savingsPercentage && (
                 <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
@@ -443,6 +466,12 @@ export function CampCard({
                 </span>
               )}
             </div>
+            {/* Show converted price in user's preferred currency */}
+            {userCurrency !== currency && (
+              <span className="text-xs text-airbnb-grey-500 mt-0.5">
+                ≈ {formatPrice(getConvertedPrice(price, currency, userCurrency).amount, userCurrency)} in your currency
+              </span>
+            )}
           </div>
           {spotsRemaining !== 0 && (
             <button

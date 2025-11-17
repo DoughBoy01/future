@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../lib/supabase';
 import { formatCurrency } from '../utils/currency';
+import { formatPrice, getConvertedPrice, detectUserCurrency } from '../lib/currency';
 import {
   MapPin,
   Calendar,
@@ -215,6 +216,28 @@ export function CampDetailPage() {
       return false;
     }
   });
+
+  // Initialize user's preferred currency from localStorage
+  const [userCurrency, setUserCurrency] = useState<string>(() => {
+    return localStorage.getItem('preferredCurrency') || detectUserCurrency();
+  });
+
+  // Listen for currency changes in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newCurrency = localStorage.getItem('preferredCurrency') || detectUserCurrency();
+      setUserCurrency(newCurrency);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also check periodically in case localStorage changes in same tab
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -650,9 +673,16 @@ export function CampDetailPage() {
                     ⭐ {ratingsSummary.average.toFixed(1)}
                   </span>
                 )}
-                <span className="text-airbnb-pink-600 font-semibold">
-                  {formatCurrency(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-airbnb-pink-600 font-semibold">
+                    {formatPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
+                  </span>
+                  {userCurrency !== camp.currency && (
+                    <span className="text-xs text-gray-500">
+                      ≈ {formatPrice(getConvertedPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency, userCurrency).amount, userCurrency)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <Link
@@ -672,14 +702,19 @@ export function CampDetailPage() {
             <div className="flex flex-col">
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
+                  {formatPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
                 </span>
                 {earlyBirdActive && camp.early_bird_price && (
                   <span className="text-sm text-gray-500 line-through">
-                    {formatCurrency(camp.price, camp.currency)}
+                    {formatPrice(camp.price, camp.currency)}
                   </span>
                 )}
               </div>
+              {userCurrency !== camp.currency && (
+                <span className="text-xs text-gray-500">
+                  ≈ {formatPrice(getConvertedPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency, userCurrency).amount, userCurrency)} in your currency
+                </span>
+              )}
               {availablePlaces <= 5 && availablePlaces > 0 && (
                 <span className="text-xs text-red-600 font-medium">Only {availablePlaces} spots left!</span>
               )}
