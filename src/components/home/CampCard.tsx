@@ -63,20 +63,25 @@ export function CampCard({
     return localStorage.getItem('preferredCurrency') || detectUserCurrency();
   });
 
-  // Listen for currency changes in localStorage
+  // Listen for currency changes
   useEffect(() => {
     const handleStorageChange = () => {
       const newCurrency = localStorage.getItem('preferredCurrency') || detectUserCurrency();
       setUserCurrency(newCurrency);
     };
 
+    const handleCurrencyChanged = (event: any) => {
+      setUserCurrency(event.detail.currency);
+    };
+
+    // Listen for storage events from other tabs
     window.addEventListener('storage', handleStorageChange);
-    // Also check periodically in case localStorage changes in same tab
-    const interval = setInterval(handleStorageChange, 1000);
+    // Listen for custom currency change events from same tab
+    window.addEventListener('currencyChanged', handleCurrencyChanged);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
+      window.removeEventListener('currencyChanged', handleCurrencyChanged);
     };
   }, []);
 
