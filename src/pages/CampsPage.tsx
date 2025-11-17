@@ -125,7 +125,13 @@ export function CampsPage() {
     const matchesLocation = selectedLocations.length === 0 ||
       selectedLocations.includes(camp.location);
 
-    return matchesSearch && matchesAge && matchesCategory && matchesLocation;
+    // Filter out camps that have already started
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
+    const campStartDate = camp.start_date ? new Date(camp.start_date) : null;
+    const isNotStarted = !campStartDate || campStartDate >= today;
+
+    return matchesSearch && matchesAge && matchesCategory && matchesLocation && isNotStarted;
   });
 
   const formatDate = (dateStr: string) => {

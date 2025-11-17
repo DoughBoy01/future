@@ -180,36 +180,44 @@ export function HomePage() {
   ];
 
   const camps = featuredCamps.length > 0
-    ? featuredCamps.map(camp => {
-        const enrolledCount = (camp as any).enrolled_count || 0;
-        const spotsRemaining = camp.capacity - enrolledCount;
-        const earlyBirdActive = camp.early_bird_price &&
-          camp.early_bird_deadline &&
-          new Date(camp.early_bird_deadline) > new Date();
+    ? featuredCamps
+        .filter(camp => {
+          // Filter out camps that have already started
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const campStartDate = camp.start_date ? new Date(camp.start_date) : null;
+          return !campStartDate || campStartDate >= today;
+        })
+        .map(camp => {
+          const enrolledCount = (camp as any).enrolled_count || 0;
+          const spotsRemaining = camp.capacity - enrolledCount;
+          const earlyBirdActive = camp.early_bird_price &&
+            camp.early_bird_deadline &&
+            new Date(camp.early_bird_deadline) > new Date();
 
-        return {
-          id: camp.id,
-          badge: spotsRemaining <= 5 ? ('Limited' as const) :
-                 camp.featured ? ('Popular' as const) :
-                 ('New' as const),
-          image: camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800',
-          location: camp.location,
-          rating: 0,
-          reviewCount: 0,
-          title: camp.name,
-          category: camp.category,
-          ageRange: `Ages ${camp.age_min}-${camp.age_max}`,
-          ageMin: camp.age_min,
-          ageMax: camp.age_max,
-          price: earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price,
-          currency: camp.currency,
-          originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
-          spotsRemaining,
-          startDate: camp.start_date,
-          endDate: camp.end_date,
-          description: camp.description || undefined,
-        };
-      })
+          return {
+            id: camp.id,
+            badge: spotsRemaining <= 5 ? ('Limited' as const) :
+                   camp.featured ? ('Popular' as const) :
+                   ('New' as const),
+            image: camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800',
+            location: camp.location,
+            rating: 0,
+            reviewCount: 0,
+            title: camp.name,
+            category: camp.category,
+            ageRange: `Ages ${camp.age_min}-${camp.age_max}`,
+            ageMin: camp.age_min,
+            ageMax: camp.age_max,
+            price: earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price,
+            currency: camp.currency,
+            originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
+            spotsRemaining,
+            startDate: camp.start_date,
+            endDate: camp.end_date,
+            description: camp.description || undefined,
+          };
+        })
     : staticCamps;
 
   const updateCarouselDimensions = useCallback(() => {
