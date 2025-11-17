@@ -28,6 +28,7 @@ import { PartnersPage } from './pages/PartnersPage';
 import { FilterDemoPage } from './pages/FilterDemoPage';
 import { TalkToAdvisorPage } from './pages/TalkToAdvisorPage';
 import { ForParentsPage } from './pages/ForParentsPage';
+import { ForSchoolsPage } from './pages/ForSchoolsPage';
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -62,6 +63,7 @@ function App() {
           <Route path="/for-parents" element={<ForParentsPage />} />
           <Route path="/filter-demo" element={<FilterDemoPage />} />
           <Route path="/talk-to-advisor" element={<TalkToAdvisorPage />} />
+          <Route path="/for-schools" element={<ForSchoolsPage />} />
           <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
         <Route
           path="/payment-success"
