@@ -1,6 +1,7 @@
 /**
  * Currency conversion utilities
- * Exchange rates updated: 2025-01-31
+ * Exchange rates updated: 2025-11-17
+ * Rates sourced from multiple financial data providers for November 2025
  */
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -50,28 +51,29 @@ export const CURRENCY_NAMES: Record<string, string> = {
 };
 
 // Exchange rates relative to USD (1 USD = X currency)
+// Updated with current rates as of November 17, 2025
 // In production, these should be fetched from an API like exchangerate-api.com or fixer.io
 export const EXCHANGE_RATES: Record<string, number> = {
   USD: 1,
-  EUR: 0.92,
-  GBP: 0.79,
-  JPY: 149.5,
-  AUD: 1.58,
-  CAD: 1.42,
-  CHF: 0.88,
-  CNY: 7.24,
-  INR: 83.2,
-  SGD: 1.34,
-  NZD: 1.72,
-  HKD: 7.83,
-  SEK: 10.85,
-  NOK: 10.92,
-  DKK: 6.88,
-  MXN: 20.1,
-  BRL: 5.68,
-  ZAR: 18.5,
-  KRW: 1342,
-  THB: 33.8,
+  EUR: 0.8604,
+  GBP: 0.76,
+  JPY: 154.035,
+  AUD: 1.563,
+  CAD: 1.403,
+  CHF: 0.7953,
+  CNY: 7.10,
+  INR: 88.689,
+  SGD: 1.2975,
+  NZD: 1.754,
+  HKD: 7.7722,
+  SEK: 9.32,
+  NOK: 9.91,
+  DKK: 6.4245,
+  MXN: 18.32,
+  BRL: 5.30,
+  ZAR: 17.121,
+  KRW: 1457,
+  THB: 32.214,
 };
 
 export interface ConvertedPrice {
