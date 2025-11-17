@@ -469,7 +469,7 @@ export function CampCard({
             {/* Show converted price in user's preferred currency */}
             {userCurrency !== currency && (
               <span className="text-xs text-airbnb-grey-500 mt-0.5">
-                ≈ {formatPrice(getConvertedPrice(price, currency, userCurrency).amount, userCurrency)} in your currency
+                ≈ {formatPrice(getConvertedPrice(price, currency, userCurrency).amount, userCurrency)}
               </span>
             )}
           </div>
