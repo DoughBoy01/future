@@ -25,6 +25,17 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   ZAR: 'R',
   KRW: '₩',
   THB: '฿',
+  MYR: 'RM',
+  PHP: '₱',
+  IDR: 'Rp',
+  VND: '₫',
+  TWD: 'NT$',
+  AED: 'د.إ',
+  SAR: '﷼',
+  ILS: '₪',
+  PLN: 'zł',
+  CZK: 'Kč',
+  TRY: '₺',
 };
 
 export const CURRENCY_NAMES: Record<string, string> = {
@@ -48,6 +59,17 @@ export const CURRENCY_NAMES: Record<string, string> = {
   ZAR: 'South African Rand',
   KRW: 'South Korean Won',
   THB: 'Thai Baht',
+  MYR: 'Malaysian Ringgit',
+  PHP: 'Philippine Peso',
+  IDR: 'Indonesian Rupiah',
+  VND: 'Vietnamese Dong',
+  TWD: 'Taiwan Dollar',
+  AED: 'UAE Dirham',
+  SAR: 'Saudi Riyal',
+  ILS: 'Israeli Shekel',
+  PLN: 'Polish Zloty',
+  CZK: 'Czech Koruna',
+  TRY: 'Turkish Lira',
 };
 
 // Exchange rates relative to USD (1 USD = X currency)
@@ -74,6 +96,17 @@ export const EXCHANGE_RATES: Record<string, number> = {
   ZAR: 17.121,
   KRW: 1457,
   THB: 32.214,
+  MYR: 4.1325,
+  PHP: 59.106,
+  IDR: 16694,
+  VND: 26350,
+  TWD: 30.654,
+  AED: 3.673,
+  SAR: 3.75,
+  ILS: 3.23,
+  PLN: 3.6374,
+  CZK: 20.825,
+  TRY: 42.3282,
 };
 
 export interface ConvertedPrice {
@@ -191,6 +224,10 @@ export function detectUserCurrency(): string {
       'en-IN': 'INR',
       'en-HK': 'HKD',
       'en-ZA': 'ZAR',
+      'en-MY': 'MYR',
+      'en-PH': 'PHP',
+      'en-AE': 'AED',
+      'en-IL': 'ILS',
       'de': 'EUR',
       'de-DE': 'EUR',
       'de-CH': 'CHF',
@@ -208,10 +245,30 @@ export function detectUserCurrency(): string {
       'zh-CN': 'CNY',
       'zh-HK': 'HKD',
       'zh-SG': 'SGD',
+      'zh-TW': 'TWD',
       'th': 'THB',
       'sv': 'SEK',
       'no': 'NOK',
       'da': 'DKK',
+      'ms': 'MYR',
+      'ms-MY': 'MYR',
+      'id': 'IDR',
+      'id-ID': 'IDR',
+      'vi': 'VND',
+      'vi-VN': 'VND',
+      'fil': 'PHP',
+      'tl': 'PHP',
+      'ar': 'SAR',
+      'ar-SA': 'SAR',
+      'ar-AE': 'AED',
+      'he': 'ILS',
+      'he-IL': 'ILS',
+      'pl': 'PLN',
+      'pl-PL': 'PLN',
+      'cs': 'CZK',
+      'cs-CZ': 'CZK',
+      'tr': 'TRY',
+      'tr-TR': 'TRY',
     };
 
     // Try exact match first
@@ -236,7 +293,7 @@ export function detectUserCurrency(): string {
  * Get popular currencies for quick selection
  */
 export function getPopularCurrencies(): string[] {
-  return ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'JPY', 'CNY'];
+  return ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'JPY', 'CNY', 'MYR', 'THB', 'AED', 'INR'];
 }
 
 /**
