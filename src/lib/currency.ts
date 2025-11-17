@@ -78,7 +78,7 @@ export const CURRENCY_NAMES: Record<string, string> = {
 export const EXCHANGE_RATES: Record<string, number> = {
   USD: 1,
   EUR: 0.8604,
-  GBP: 0.76,
+  GBP: 0.7548,
   JPY: 154.035,
   AUD: 1.563,
   CAD: 1.403,
