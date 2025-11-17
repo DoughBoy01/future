@@ -1,6 +1,8 @@
 import { Calendar, Users, DollarSign, Shield, CreditCard, Zap, AlertCircle, MessageSquare, Star, ThumbsUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/currency';
+import { formatPrice, getConvertedPrice, detectUserCurrency } from '../../lib/currency';
 import { CountdownTimer } from '../urgency/CountdownTimer';
 
 interface EnhancedBookingWidgetProps {
@@ -34,6 +36,28 @@ export function EnhancedBookingWidget({
   cancellationPolicy,
   onEnquiryClick,
 }: EnhancedBookingWidgetProps) {
+  // Initialize user's preferred currency from localStorage
+  const [userCurrency, setUserCurrency] = useState<string>(() => {
+    return localStorage.getItem('preferredCurrency') || detectUserCurrency();
+  });
+
+  // Listen for currency changes in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newCurrency = localStorage.getItem('preferredCurrency') || detectUserCurrency();
+      setUserCurrency(newCurrency);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also check periodically in case localStorage changes in same tab
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   const availabilityStatus = availablePlaces <= 0 ? 'full' : availablePlaces <= 5 ? 'limited' : 'available';
   const earlyBirdActive = earlyBirdPrice && earlyBirdDeadline && new Date(earlyBirdDeadline) > new Date();
   const currentPrice = earlyBirdActive ? earlyBirdPrice : price;
@@ -52,12 +76,18 @@ export function EnhancedBookingWidget({
       {/* Price Section */}
       <div className="p-6 border-b border-airbnb-grey-200">
         <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-3xl font-bold text-airbnb-grey-900">{formatCurrency(currentPrice, currency)}</span>
+          <span className="text-3xl font-bold text-airbnb-grey-900">{formatPrice(currentPrice, currency)}</span>
           <span className="text-base text-airbnb-grey-500">/ camper</span>
           {earlyBirdActive && (
-            <span className="text-lg text-airbnb-grey-400 line-through ml-2">{formatCurrency(price, currency)}</span>
+            <span className="text-lg text-airbnb-grey-400 line-through ml-2">{formatPrice(price, currency)}</span>
           )}
         </div>
+        {/* Show converted price in user's preferred currency */}
+        {userCurrency !== currency && (
+          <div className="text-sm text-airbnb-grey-600 mt-1">
+            ≈ {formatPrice(getConvertedPrice(currentPrice, currency, userCurrency).amount, userCurrency)} / camper in your currency
+          </div>
+        )}
 
         {earlyBirdActive && earlyBirdDeadline && (
           <div className="bg-gradient-to-r from-airbnb-pink-50 to-airbnb-pink-100 border border-airbnb-pink-200 rounded-lg p-4 mt-4">
@@ -180,19 +210,40 @@ export function EnhancedBookingWidget({
 
         <div className="flex justify-between items-center text-sm">
           <span className="text-airbnb-grey-600">Base price</span>
-          <span className="font-medium text-airbnb-grey-900">{formatCurrency(currentPrice, currency)}</span>
+          <div className="text-right">
+            <div className="font-medium text-airbnb-grey-900">{formatPrice(currentPrice, currency)}</div>
+            {userCurrency !== currency && (
+              <div className="text-xs text-airbnb-grey-500">
+                ≈ {formatPrice(getConvertedPrice(currentPrice, currency, userCurrency).amount, userCurrency)}
+              </div>
+            )}
+          </div>
         </div>
 
         {earlyBirdActive && (
           <div className="flex justify-between items-center text-sm text-green-600">
             <span>Early bird discount</span>
-            <span className="font-medium">-{formatCurrency(savings, currency)}</span>
+            <div className="text-right">
+              <div className="font-medium">-{formatPrice(savings, currency)}</div>
+              {userCurrency !== currency && (
+                <div className="text-xs text-green-600/80">
+                  ≈ -{formatPrice(getConvertedPrice(savings, currency, userCurrency).amount, userCurrency)}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
         <div className="pt-3 border-t border-airbnb-grey-200 flex justify-between items-center font-bold">
           <span className="text-airbnb-grey-900">Total</span>
-          <span className="text-airbnb-pink-600">{formatCurrency(currentPrice, currency)}</span>
+          <div className="text-right">
+            <div className="text-airbnb-pink-600">{formatPrice(currentPrice, currency)}</div>
+            {userCurrency !== currency && (
+              <div className="text-sm text-airbnb-grey-600 font-normal">
+                ≈ {formatPrice(getConvertedPrice(currentPrice, currency, userCurrency).amount, userCurrency)}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
