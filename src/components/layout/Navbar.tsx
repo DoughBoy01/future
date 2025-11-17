@@ -108,16 +108,16 @@ export function Navbar() {
                     For Parents
                   </Link>
                   <Link
-                    to="/talk-to-advisor"
-                    className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
-                  >
-                    Talk to AI Advisor
-                  </Link>
-                  <Link
                     to="/for-schools"
                     className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
                   >
                     For Schools
+                  </Link>
+                  <Link
+                    to="/talk-to-advisor"
+                    className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
+                  >
+                    Talk to AI Advisor
                   </Link>
                   {user && (
                     <Link
@@ -326,19 +326,19 @@ export function Navbar() {
                 </Link>
 
                 <Link
-                  to="/talk-to-advisor"
-                  onClick={closeMobileMenu}
-                  className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
-                >
-                  Talk to AI Advisor
-                </Link>
-
-                <Link
                   to="/for-schools"
                   onClick={closeMobileMenu}
                   className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
                 >
                   For Schools
+                </Link>
+
+                <Link
+                  to="/talk-to-advisor"
+                  onClick={closeMobileMenu}
+                  className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
+                >
+                  Talk to AI Advisor
                 </Link>
 
                 {user && (
