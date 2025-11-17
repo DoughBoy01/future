@@ -24,7 +24,7 @@ export function MobileFilterButton({ onClick, activeCount = 0 }: MobileFilterBut
       <Filter className="w-5 h-5" />
       Filters
       {activeCount > 0 && (
-        <span className="bg-airbnb-pink-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+        <span className="bg-airbnb-pink-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
           {activeCount}
         </span>
       )}

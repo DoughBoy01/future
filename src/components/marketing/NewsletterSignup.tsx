@@ -148,7 +148,7 @@ export function NewsletterSignup() {
                     <button
                       type="submit"
                       disabled={isSubmitting || !email}
-                      className="w-full bg-airbnb-pink-500 hover:bg-airbnb-pink-600 disabled:bg-airbnb-grey-300 disabled:cursor-not-allowed text-white font-medium py-3.5 px-6 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center gap-2 group"
+                      className="w-full bg-airbnb-pink-600 hover:bg-airbnb-pink-700 disabled:bg-airbnb-grey-300 disabled:cursor-not-allowed text-white font-medium py-3.5 px-6 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center gap-2 group"
                     >
                       {isSubmitting ? (
                         <>

@@ -71,7 +71,7 @@ export function FilterDemoPage() {
                 </p>
                 <button
                   onClick={() => setFilters(clearAllFilters())}
-                  className="px-6 py-3 bg-airbnb-pink-500 text-white rounded-lg font-semibold hover:bg-airbnb-pink-600 transition-colors"
+                  className="px-6 py-3 bg-airbnb-pink-600 text-white rounded-lg font-semibold hover:bg-airbnb-pink-600 transition-colors"
                 >
                   Clear all filters
                 </button>

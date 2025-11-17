@@ -231,7 +231,7 @@ export function PartnersPage() {
               <div className="bg-gradient-to-br from-airbnb-pink-50 to-white rounded-2xl p-8 border-2 border-airbnb-pink-200">
                 <div className="space-y-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-airbnb-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-airbnb-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
                       <DollarSign className="w-6 h-6 text-white" />
                     </div>
                     <div>

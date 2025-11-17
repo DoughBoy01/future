@@ -8,11 +8,11 @@
 
 :root {
   /* Primary Colors - Airbnb Pink Palette */
-  --color-primary: #FF385C;
+  --color-primary: #fe4d39;
   --color-primary-light: #FFE8EA;
   --color-primary-medium: #FFC4CC;
-  --color-primary-hover: #fe4d39;
-  --color-primary-dark: #C71742;
+  --color-primary-hover: #b13527;
+  --color-primary-dark: #b13527;
 
   /* Neutral Colors */
   --color-text-primary: #222222;

@@ -298,7 +298,7 @@ export function CampRegistrationPage() {
           <p className="text-airbnb-grey-600 mb-6">{error}</p>
           <Link
             to="/camps"
-            className="inline-flex items-center px-6 py-3 bg-airbnb-pink-500 text-white rounded-lg hover:bg-airbnb-pink-600 transition-airbnb"
+            className="inline-flex items-center px-6 py-3 bg-airbnb-pink-600 text-white rounded-lg hover:bg-airbnb-pink-700 transition-airbnb"
           >
             Browse Camps
           </Link>
@@ -469,7 +469,7 @@ export function CampRegistrationPage() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <label className="block text-xl font-bold text-airbnb-grey-900">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-airbnb-pink-500 text-white rounded-full text-sm mr-3">{isGuest ? '1' : '1'}</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-airbnb-pink-600 text-white rounded-full text-sm mr-3">{isGuest ? '1' : '1'}</span>
                     Booking Details
                   </label>
                   <span className="text-sm text-airbnb-grey-500">Required</span>
@@ -505,7 +505,7 @@ export function CampRegistrationPage() {
                       {childrenEntries.map((entry, index) => (
                         <div key={index} className="bg-airbnb-grey-50 rounded-lg p-4 sm:p-5 border border-airbnb-grey-200">
                           <div className="flex items-center gap-2 mb-3">
-                            <div className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                            <div className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
                               {index + 1}
                             </div>
                             <span className="font-semibold text-airbnb-grey-700">Child {index + 1}</span>
@@ -641,7 +641,7 @@ export function CampRegistrationPage() {
               <div className="bg-gradient-to-br from-airbnb-grey-50 to-airbnb-pink-50 rounded-xl p-6 border-2 border-airbnb-grey-200">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-airbnb-grey-900">
-                    <span className="inline-flex items-center justify-center w-8 h-8 bg-airbnb-pink-500 text-white rounded-full text-sm mr-3">{isGuest ? '2' : '2'}</span>
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-airbnb-pink-600 text-white rounded-full text-sm mr-3">{isGuest ? '2' : '2'}</span>
                     Review & Pay
                   </h3>
                   <Shield className="w-6 h-6 text-green-600" />
@@ -702,15 +702,15 @@ export function CampRegistrationPage() {
                 </h4>
                 <ol className="space-y-3">
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                    <span className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
                     <span className="text-airbnb-grey-700 font-medium">Complete secure payment (takes 30 seconds)</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                    <span className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
                     <span className="text-airbnb-grey-700 font-medium">Get instant booking confirmation</span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                    <span className="flex-shrink-0 w-7 h-7 bg-airbnb-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
                     <span className="text-airbnb-grey-700 font-medium">Complete child details at your convenience</span>
                   </li>
                 </ol>
