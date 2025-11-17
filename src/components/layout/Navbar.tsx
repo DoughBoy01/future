@@ -102,6 +102,12 @@ export function Navbar() {
                     {t('nav.browse_camps')}
                   </Link>
                   <Link
+                    to="/for-parents"
+                    className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
+                  >
+                    For Parents
+                  </Link>
+                  <Link
                     to="/talk-to-advisor"
                     className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
                   >
@@ -309,6 +315,14 @@ export function Navbar() {
                   className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
                 >
                   {t('nav.browse_camps')}
+                </Link>
+
+                <Link
+                  to="/for-parents"
+                  onClick={closeMobileMenu}
+                  className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
+                >
+                  For Parents
                 </Link>
 
                 <Link
