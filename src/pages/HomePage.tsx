@@ -494,8 +494,8 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 -mt-20 sm:-mt-44 md:-mt-48" style={{ zIndex: 100 }}>
-          <div className="max-w-7xl mx-auto relative" role="region" aria-label="Featured camps carousel" style={{ zIndex: 100 }}>
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 mt-8 sm:-mt-44 md:-mt-48">
+          <div className="max-w-7xl mx-auto relative" role="region" aria-label="Featured camps carousel">
             {camps.length > cardsPerView && (
               <button
                 onClick={handlePrevSlide}
