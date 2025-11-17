@@ -102,6 +102,8 @@ export function CampsPage() {
     setUserCurrency(currency);
     localStorage.setItem('preferredCurrency', currency);
     setShowCurrencyMenu(false);
+    // Dispatch custom event to notify other components immediately
+    window.dispatchEvent(new CustomEvent('currencyChanged', { detail: { currency } }));
   };
 
   // Extract unique locations from camps
