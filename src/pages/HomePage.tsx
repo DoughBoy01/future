@@ -376,7 +376,7 @@ export function HomePage() {
             <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <Link
                 to="/camps"
-                className="inline-flex items-center gap-2 bg-airbnb-pink-500 hover:bg-airbnb-pink-600 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
+                className="inline-flex items-center gap-2 bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
               >
                 Explore Camps
                 <ArrowRight className="w-4 h-4" />
@@ -434,7 +434,7 @@ export function HomePage() {
             <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
               <Link
                 to="/camps"
-                className="inline-flex items-center gap-2 bg-airbnb-pink-500 hover:bg-airbnb-pink-600 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
+                className="inline-flex items-center gap-2 bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
               >
                 Explore Camps
                 <ArrowRight className="w-4 h-4" />
@@ -486,7 +486,7 @@ export function HomePage() {
           <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
             <Link
               to="/camps"
-              className="inline-flex items-center gap-2 bg-airbnb-pink-500 hover:bg-airbnb-pink-600 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
             >
               Explore Camps
               <ArrowRight className="w-4 h-4" />

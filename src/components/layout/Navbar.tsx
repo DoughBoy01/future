@@ -319,7 +319,7 @@ export function Navbar() {
                     onClick={closeMobileMenu}
                     className={`block px-4 py-2 text-base font-medium rounded-md transition-fast ${
                       isActive('/dashboard')
-                        ? 'bg-airbnb-pink-500/20 text-airbnb-pink-300'
+                        ? 'bg-airbnb-pink-600/20 text-airbnb-pink-300'
                         : 'text-white/90 hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -337,7 +337,7 @@ export function Navbar() {
                   onClick={closeMobileMenu}
                   className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
                     location.pathname.startsWith('/admin/dashboard')
-                      ? 'bg-airbnb-pink-500/20 text-airbnb-pink-300'
+                      ? 'bg-airbnb-pink-600/20 text-airbnb-pink-300'
                       : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }`}
                 >
@@ -349,7 +349,7 @@ export function Navbar() {
                   onClick={closeMobileMenu}
                   className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
                     isActive('/admin/approvals')
-                      ? 'bg-airbnb-pink-500/20 text-airbnb-pink-300'
+                      ? 'bg-airbnb-pink-600/20 text-airbnb-pink-300'
                       : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }`}
                 >
@@ -362,7 +362,7 @@ export function Navbar() {
                     onClick={closeMobileMenu}
                     className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
                       isActive('/admin/roles')
-                        ? 'bg-airbnb-pink-500/20 text-airbnb-pink-300'
+                        ? 'bg-airbnb-pink-600/20 text-airbnb-pink-300'
                         : 'text-white/90 hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -386,7 +386,7 @@ export function Navbar() {
                       onClick={() => handleLanguageChange(language.code)}
                       className={`px-3 py-2 text-sm rounded-md transition-fast ${
                         i18n.language === language.code
-                          ? 'bg-airbnb-pink-500 text-white'
+                          ? 'bg-airbnb-pink-600 text-white'
                           : 'bg-white/10 text-white/90 hover:bg-white/20'
                       }`}
                     >
@@ -416,7 +416,7 @@ export function Navbar() {
               ) : (
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center w-full px-4 py-2 text-base font-medium text-airbnb-pink-300 hover:bg-airbnb-pink-500/20 rounded-md transition-fast"
+                  className="flex items-center w-full px-4 py-2 text-base font-medium text-airbnb-pink-300 hover:bg-airbnb-pink-600/20 rounded-md transition-fast"
                 >
                   <LogOut className="w-5 h-5 mr-2" aria-hidden="true" />
                   {t('nav.sign_out')}

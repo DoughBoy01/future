@@ -7,7 +7,7 @@ export function FutureImpact() {
       icon: TrendingUp,
       value: '87%',
       label: 'of parents report their child gained confidence',
-      color: 'text-airbnb-pink-500',
+      color: 'text-airbnb-pink-600',
       bg: 'bg-airbnb-pink-50',
     },
     {
@@ -190,7 +190,7 @@ export function FutureImpact() {
             {/* Established Camps */}
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '1.1s' }}>
               <div className="inline-flex items-center justify-center w-12 h-12 bg-airbnb-pink-50 rounded-full mb-3">
-                <Calendar className="w-6 h-6 text-airbnb-pink-500" />
+                <Calendar className="w-6 h-6 text-airbnb-pink-600" />
               </div>
               <div className="text-2xl sm:text-3xl font-bold text-airbnb-grey-900 mb-1">
                 Since 2005

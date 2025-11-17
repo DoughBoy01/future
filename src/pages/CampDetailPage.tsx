@@ -177,7 +177,7 @@ function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 px-6 py-3 bg-airbnb-pink-500 text-white rounded-md font-medium hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb disabled:opacity-50 shadow-sm hover:shadow-md"
+                className="flex-1 px-6 py-3 bg-airbnb-pink-600 text-white rounded-md font-medium hover:bg-airbnb-pink-700 hover:scale-[1.02] transition-airbnb disabled:opacity-50 shadow-sm hover:shadow-md"
               >
                 {submitting ? 'Sending...' : 'Send Enquiry'}
               </button>
@@ -433,7 +433,7 @@ export function CampDetailPage() {
           <p className="text-gray-600 mb-6">This camp may not exist or is no longer available.</p>
           <Link
             to="/camps"
-            className="inline-flex items-center px-6 py-3 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb shadow-sm hover:shadow-md"
+            className="inline-flex items-center px-6 py-3 bg-airbnb-pink-600 text-white rounded-md hover:bg-airbnb-pink-700 hover:scale-[1.02] transition-airbnb shadow-sm hover:shadow-md"
           >
             Browse All Camps
           </Link>
@@ -657,7 +657,7 @@ export function CampDetailPage() {
             </div>
             <Link
               to={`/camps/${camp.id}/register`}
-              className="px-4 sm:px-6 py-2 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb font-semibold shadow-sm hover:shadow-md text-sm sm:text-base whitespace-nowrap"
+              className="px-4 sm:px-6 py-2 bg-airbnb-pink-600 text-white rounded-md hover:bg-airbnb-pink-700 hover:scale-[1.02] transition-airbnb font-semibold shadow-sm hover:shadow-md text-sm sm:text-base whitespace-nowrap"
             >
               Reserve
             </Link>
@@ -686,7 +686,7 @@ export function CampDetailPage() {
             </div>
             <Link
               to={`/camps/${camp.id}/register`}
-              className="px-6 py-3 bg-airbnb-pink-500 text-white rounded-lg hover:bg-airbnb-pink-600 font-bold shadow-lg hover:shadow-xl transition-airbnb text-base"
+              className="px-6 py-3 bg-airbnb-pink-600 text-white rounded-lg hover:bg-airbnb-pink-700 font-bold shadow-lg hover:shadow-xl transition-airbnb text-base"
             >
               Reserve Now
             </Link>

@@ -35,7 +35,7 @@ export function CampFiltersPanel({
           <SlidersHorizontal className="w-5 h-5 text-airbnb-grey-600" />
           <h2 className="text-xl font-bold text-airbnb-grey-900">Filters</h2>
           {activeCount > 0 && (
-            <span className="bg-airbnb-pink-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
+            <span className="bg-airbnb-pink-600 text-white text-xs font-semibold px-2 py-1 rounded-full">
               {activeCount}
             </span>
           )}

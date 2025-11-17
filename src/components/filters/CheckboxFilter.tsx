@@ -24,13 +24,13 @@ export function CheckboxFilter({
           onChange={(e) => onChange(e.target.checked)}
           className="sr-only peer"
         />
-        <div className="w-5 h-5 border-2 border-airbnb-grey-400 rounded peer-checked:border-airbnb-pink-500 peer-checked:bg-airbnb-pink-500 transition-all peer-focus:ring-2 peer-focus:ring-airbnb-pink-200 flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-airbnb-grey-400 rounded peer-checked:border-airbnb-pink-600 peer-checked:bg-airbnb-pink-600 transition-all peer-focus:ring-2 peer-focus:ring-airbnb-pink-200 flex items-center justify-center">
           {checked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
         </div>
       </div>
       <div className="flex items-center gap-2 flex-1">
         {icon && <span className="text-airbnb-grey-600">{icon}</span>}
-        <span className="text-sm text-airbnb-grey-900 group-hover:text-airbnb-pink-500 transition-colors">
+        <span className="text-sm text-airbnb-grey-900 group-hover:text-airbnb-pink-600 transition-colors">
           {label}
         </span>
       </div>
