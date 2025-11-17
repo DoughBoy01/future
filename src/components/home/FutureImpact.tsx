@@ -1,4 +1,4 @@
-import { TrendingUp, Users, Award, Sparkles, ArrowRight, Info, Check, AlertCircle, Shield, Star, Calendar, Globe } from 'lucide-react';
+import { TrendingUp, Users, Award, Sparkles, ArrowRight, Check, AlertCircle, Shield, Star, Calendar, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function FutureImpact() {
@@ -31,13 +31,7 @@ export function FutureImpact() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Content */}
         <div className="text-center mb-12 sm:mb-16">
-          {/* Why Camps Matter */}
-          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium mb-6 animate-fade-in-up">
-            <Info className="w-4 h-4" />
-            <span>Why Camps Matter</span>
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-airbnb-grey-900 mb-4 sm:mb-6 px-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-airbnb-grey-900 mb-4 sm:mb-6 px-2 animate-fade-in-up">
             The Power of Purposeful Summer Experiences
           </h2>
 

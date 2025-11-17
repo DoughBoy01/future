@@ -135,7 +135,7 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
                 setIsGridViewOpen(true);
               }}
             >
-              <button className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-airbnb-pink-600 hover:to-airbnb-pink-700 hover:scale-105 transition-all shadow-xl flex items-center gap-2">
+              <button className="bg-gradient-to-r from-airbnb-pink-600 to-airbnb-pink-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-airbnb-pink-700 hover:to-airbnb-pink-800 hover:scale-105 transition-all shadow-xl flex items-center gap-2">
                 <Grid3x3 className="w-5 h-5" />
                 Show all {totalMedia}
               </button>
@@ -378,7 +378,7 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
                     </div>
                   </div>
                   {/* Pink border on hover */}
-                  <div className="absolute inset-0 border-2 border-airbnb-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg md:rounded-xl" />
+                  <div className="absolute inset-0 border-2 border-airbnb-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg md:rounded-xl" />
                 </div>
               ))}
 
@@ -405,7 +405,7 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
                     </div>
                   )}
                   <div className="absolute inset-0 bg-black bg-opacity-30 group-hover:bg-opacity-50 transition-all flex items-center justify-center">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-r from-airbnb-pink-600 to-airbnb-pink-700 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
                       <Play className="w-7 h-7 md:w-9 md:h-9 text-white ml-1 fill-white" />
                     </div>
                   </div>
@@ -413,7 +413,7 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
                     {video.title || `Video ${videoIndex + 1}`}
                   </div>
                   {/* Pink border on hover */}
-                  <div className="absolute inset-0 border-2 border-airbnb-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg md:rounded-xl" />
+                  <div className="absolute inset-0 border-2 border-airbnb-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg md:rounded-xl" />
                 </div>
               ))}
             </div>
