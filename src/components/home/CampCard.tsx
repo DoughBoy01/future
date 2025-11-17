@@ -95,6 +95,12 @@ export function CampCard({
     return description.substring(0, maxLength).trim() + '...';
   };
 
+  // Capitalize first letter of text
+  const capitalizeText = (text: string) => {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
   const badgeColors = {
     Limited: 'bg-airbnb-pink-600',
     Popular: 'bg-airbnb-pink-600',
@@ -339,10 +345,10 @@ export function CampCard({
         {/* Category and Age Pills - stacked above date pill */}
         <div className="absolute bottom-14 left-3 flex flex-col gap-1 pointer-events-none">
           <span className="bg-white/90 backdrop-blur-sm text-airbnb-grey-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit">
-            {category}
+            {capitalizeText(category)}
           </span>
           <span className="bg-white/90 backdrop-blur-sm text-airbnb-pink-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit">
-            {ageRange}
+            {capitalizeText(ageRange)}
           </span>
         </div>
 
@@ -419,7 +425,7 @@ export function CampCard({
 
         {/* Location - de-emphasized */}
         <div className="flex items-center gap-1 text-xs text-airbnb-grey-500 mb-4">
-          <span className="truncate">{location}</span>
+          <span className="truncate">{capitalizeText(location)}</span>
         </div>
 
         {/* Spacer to push footer to bottom */}
