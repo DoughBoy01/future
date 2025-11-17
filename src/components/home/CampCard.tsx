@@ -366,7 +366,7 @@ export function CampCard({
         </div>
         {/* Category and Age Pills - stacked above date pill */}
         <div className="absolute bottom-14 left-3 flex flex-col gap-1 pointer-events-none">
-          <span className="bg-white/90 backdrop-blur-sm text-airbnb-grey-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit">
+          <span className="bg-white/90 backdrop-blur-sm text-airbnb-grey-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit capitalize">
             {category}
           </span>
           <span className="bg-white/90 backdrop-blur-sm text-airbnb-pink-700 px-2 py-0.5 rounded-full font-medium text-[10px] shadow-sm w-fit">
