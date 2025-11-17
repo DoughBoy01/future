@@ -85,7 +85,7 @@ export function EnhancedBookingWidget({
         {/* Show converted price in user's preferred currency */}
         {userCurrency !== currency && (
           <div className="text-sm text-airbnb-grey-600 mt-1">
-            ≈ {formatPrice(getConvertedPrice(currentPrice, currency, userCurrency).amount, userCurrency)} / camper in your currency
+            ≈ {formatPrice(getConvertedPrice(currentPrice, currency, userCurrency).amount, userCurrency)} / camper
           </div>
         )}
 

@@ -712,7 +712,7 @@ export function CampDetailPage() {
               </div>
               {userCurrency !== camp.currency && (
                 <span className="text-xs text-gray-500">
-                  ≈ {formatPrice(getConvertedPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency, userCurrency).amount, userCurrency)} in your currency
+                  ≈ {formatPrice(getConvertedPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency, userCurrency).amount, userCurrency)}
                 </span>
               )}
               {availablePlaces <= 5 && availablePlaces > 0 && (
