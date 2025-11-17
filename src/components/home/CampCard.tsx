@@ -97,8 +97,8 @@ export function CampCard({
 
   const badgeColors = {
     Limited: 'bg-airbnb-pink-600',
-    Popular: 'bg-airbnb-pink-500',
-    New: 'bg-airbnb-pink-500',
+    Popular: 'bg-airbnb-pink-600',
+    New: 'bg-airbnb-pink-600',
   };
 
   const handleFavoriteClick = (e: React.MouseEvent | React.TouchEvent) => {
@@ -330,7 +330,7 @@ export function CampCard({
           >
             <Heart
               className={`w-4 h-4 transition-standard pointer-events-none ${
-                isFavorite ? 'fill-airbnb-pink-500 text-airbnb-pink-500' : 'text-airbnb-grey-600 hover:text-airbnb-pink-400'
+                isFavorite ? 'fill-airbnb-pink-600 text-airbnb-pink-600' : 'text-airbnb-grey-600 hover:text-airbnb-pink-400'
               } ${justFavorited && isFavorite ? 'animate-heartbeat' : ''}`}
               aria-hidden="true"
             />
@@ -348,7 +348,7 @@ export function CampCard({
 
         {/* Camp Dates - overlaid at bottom of image */}
         {formatDateRange() && (
-          <div className="absolute bottom-3 left-3 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg backdrop-blur-sm flex items-center gap-1.5 transition-standard pointer-events-none">
+          <div className="absolute bottom-3 left-3 bg-gradient-to-r from-airbnb-pink-600 to-airbnb-pink-700 text-white px-3 py-1.5 rounded-full text-[11px] font-bold shadow-lg backdrop-blur-sm flex items-center gap-1.5 transition-standard pointer-events-none">
             <Calendar className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">
               {formatDateRange()}
@@ -359,7 +359,7 @@ export function CampCard({
         {/* Believable social proof - repositioned to bottom right when dates present */}
         {socialProof.show && (
           <div className={`absolute bottom-3 ${formatDateRange() ? 'right-3' : 'left-3 right-3'} bg-white/95 backdrop-blur-sm text-airbnb-grey-900 px-2.5 py-1.5 rounded-md text-[10px] font-medium shadow-md flex items-center gap-1.5 border border-airbnb-grey-200 transition-standard pointer-events-none ${isHovered ? 'opacity-100' : 'opacity-95'}`}>
-            {socialProof.icon && <socialProof.icon className="w-3 h-3 flex-shrink-0 text-airbnb-pink-500" aria-hidden="true" />}
+            {socialProof.icon && <socialProof.icon className="w-3 h-3 flex-shrink-0 text-airbnb-pink-600" aria-hidden="true" />}
             <span className="truncate flex-1">
               {socialProof.text}
             </span>
@@ -371,14 +371,14 @@ export function CampCard({
       <div className="p-5 sm:p-6 flex flex-col flex-grow relative overflow-hidden">
         {/* Benefit message ribbon - stays within card bounds */}
         {getBenefitMessage() && (
-          <div className={`absolute top-0 left-0 right-0 bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white text-xs font-bold py-1 px-3 text-center transform transition-standard pointer-events-none ${isHovered ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
+          <div className={`absolute top-0 left-0 right-0 bg-gradient-to-r from-airbnb-pink-600 to-airbnb-pink-700 text-white text-xs font-bold py-1 px-3 text-center transform transition-standard pointer-events-none ${isHovered ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
             <Sparkles className="w-3 h-3 inline mr-1" aria-hidden="true" />
             {getBenefitMessage()}
           </div>
         )}
 
         {/* Title - Focus on what the camp is, not where */}
-        <h3 className="text-base sm:text-lg font-bold text-airbnb-grey-900 mb-2 line-clamp-2 leading-snug transition-standard group-hover:text-airbnb-pink-500">
+        <h3 className="text-base sm:text-lg font-bold text-airbnb-grey-900 mb-2 line-clamp-2 leading-snug transition-standard group-hover:text-airbnb-pink-600">
           {title}
         </h3>
 
@@ -393,7 +393,7 @@ export function CampCard({
                   e.stopPropagation();
                   if (id) navigate(`/camps/${id}`);
                 }}
-                className="text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium underline transition-standard inline"
+                className="text-airbnb-pink-600 hover:text-airbnb-pink-700 font-medium underline transition-standard inline"
                 data-no-swipe="true"
               >
                 Read more
@@ -453,7 +453,7 @@ export function CampCard({
                   navigate(`/camps/${id}/register`);
                 }
               }}
-              className="bg-airbnb-pink-500 hover:bg-airbnb-pink-600 text-white px-4 py-2 rounded-md font-medium text-xs transition-airbnb shadow-sm hover:shadow-md flex-shrink-0"
+              className="bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-4 py-2 rounded-md font-medium text-xs transition-airbnb shadow-sm hover:shadow-md flex-shrink-0"
               aria-label={`Book ${title}`}
               data-no-swipe="true"
             >
