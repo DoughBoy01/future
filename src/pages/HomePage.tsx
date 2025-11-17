@@ -501,7 +501,8 @@ export function HomePage() {
                 onClick={handlePrevSlide}
                 disabled={isNavigating}
                 aria-label="Previous slide"
-                className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ zIndex: 200 }}
               >
                 <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
               </button>
@@ -510,7 +511,7 @@ export function HomePage() {
             <div
               ref={scrollContainerRef}
               className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-1 sm:px-0"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', position: 'relative' }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -521,6 +522,7 @@ export function HomePage() {
                   key={camp.id || index}
                   className="flex-shrink-0 w-[calc(100vw-2rem)] max-w-[280px] sm:w-[320px] md:w-[340px]"
                   role="listitem"
+                  style={{ position: 'relative', zIndex: 1 }}
                 >
                   <CampCard {...camp} />
                 </div>
@@ -532,7 +534,8 @@ export function HomePage() {
                 onClick={handleNextSlide}
                 disabled={isNavigating}
                 aria-label="Next slide"
-                className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ zIndex: 200 }}
               >
                 <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
               </button>
@@ -542,7 +545,8 @@ export function HomePage() {
 
         {camps.length > cardsPerView && totalSlides > 1 && (
           <div
-            className="flex md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 space-x-2 z-10"
+            className="flex md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 space-x-2"
+            style={{ zIndex: 150 }}
             role="tablist"
             aria-label="Carousel pagination"
           >
@@ -563,7 +567,8 @@ export function HomePage() {
 
         {camps.length > cardsPerView && totalSlides > 1 && (
           <div
-            className="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 space-x-2 z-10"
+            className="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 space-x-2"
+            style={{ zIndex: 150 }}
             role="tablist"
             aria-label="Carousel pagination"
           >
