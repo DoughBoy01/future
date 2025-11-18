@@ -6,17 +6,18 @@
 
 Integrating WhatsApp as a messaging channel for **camp organizers to communicate with prospective parents** is technically feasible, strategically valuable, and financially lucrative. The platform's existing architecture (multi-tenant Supabase, enquiry tracking, communications system) provides an excellent foundation for WhatsApp integration.
 
-**Conversation Flow:** Parents ↔ Camp Organizers (School Staff)
+**Conversation Flow:** Parents ↔ Camp Organisers
 - Parents click "Chat on WhatsApp" on camp detail pages
-- Messages route to camp organizer's WhatsApp Business inbox
-- Organizers respond in real-time via admin dashboard
+- Messages route to camp organiser's WhatsApp Business inbox
+- Organisers respond in real-time via admin dashboard
+- **All bookings must be completed through platform** (see Platform Bypass Prevention below)
 - Conversations tracked for analytics and billing
 
-**Monetization Potential:** $168,000/year (100 schools)
-- **Recommended Model:** Hybrid Tiered Subscription + Usage Overage
-- **Professional Tier:** $99/month (1,000 conversations included)
-- **Enterprise Tier:** $199/month (3,000 conversations included)
-- **ROI for Schools:** +20-30% conversion rate, $15K+/month extra revenue per school
+**Monetization Potential:** $168,000/year (100 organisers)
+- **Recommended Model:** Commission on Bookings (3-5%) + Optional Premium Features
+- **Why Commission-Based:** Aligns incentives and ensures platform value capture
+- **ROI for Organisers:** +20-30% conversion rate, $15K+/month extra revenue per organiser
+- **Platform Protection:** Multiple strategies to prevent direct bookings (see below)
 
 ---
 
@@ -747,15 +748,420 @@ export function EnhancedBookingWidget({ camp }) {
 
 ---
 
+## Platform Bypass Prevention Strategy
+
+### Critical Business Risk: Disintermediation
+
+**The Problem:**
+WhatsApp enables direct communication between parents and camp organisers. This creates risk of **platform bypass** where:
+1. Parent contacts organiser via WhatsApp
+2. Organiser provides pricing/details
+3. **Parent books directly with organiser** (bypassing platform)
+4. Platform loses commission/revenue
+5. Platform loses transaction visibility and data
+
+This is the **#1 threat** to marketplace business models. If organisers can convert enquiries without the platform, they have incentive to:
+- Encourage direct bookings
+- Offer discounts for direct payment
+- Move relationships off-platform
+- Eventually abandon the platform entirely
+
+### Prevention Strategy: Multi-Layer Approach
+
+#### **Layer 1: Platform-Owned WhatsApp Numbers (Recommended)**
+
+**Implementation:**
+- Platform owns the WhatsApp Business phone numbers (not organisers)
+- Organisers access messages through platform's admin dashboard only
+- Parents cannot get organiser's personal WhatsApp number
+- All conversation history stored on platform
+
+**Pros:**
+- ✅ Platform has full visibility into all conversations
+- ✅ Organisers cannot move conversations off-platform
+- ✅ Platform can inject automated booking links into conversations
+- ✅ Conversation data owned by platform (for analytics, compliance)
+- ✅ Can monitor for direct payment attempts
+
+**Cons:**
+- ⚠️ Organisers don't "own" their customer relationships
+- ⚠️ Platform must manage WhatsApp Business accounts at scale
+- ⚠️ Requires building robust inbox dashboard
+
+**Technical Implementation:**
+```sql
+-- Platform owns the WhatsApp numbers
+CREATE TABLE platform_whatsapp_numbers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  phone_number VARCHAR(20) UNIQUE NOT NULL,
+  assigned_to_organiser_id UUID REFERENCES schools(id), -- Can reassign
+  business_account_id VARCHAR(255) NOT NULL,
+  phone_number_id VARCHAR(255) NOT NULL,
+  owned_by VARCHAR(50) DEFAULT 'platform', -- Always 'platform'
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Organisers access via dashboard only (no direct WhatsApp app access)
+```
+
+---
+
+#### **Layer 2: Automated Booking Link Injection**
+
+**Implementation:**
+- WhatsApp bot automatically adds booking links to conversations
+- Template messages include clear CTAs to book on platform
+- Auto-responder when organiser quotes pricing: "Click here to book: [link]"
+- Booking links are tracked (know which WhatsApp convo led to booking)
+
+**Example Auto-Message:**
+```
+🎯 Ready to book? Secure your spot now: https://platform.com/camps/123/book
+
+Benefits of booking through our platform:
+✅ Secure payment processing
+✅ Instant booking confirmation
+✅ Easy rescheduling/cancellation
+✅ Insurance coverage
+✅ Access to parent dashboard
+```
+
+**Technical Implementation:**
+```typescript
+// Webhook handler auto-injects booking links
+async function handleOutboundMessage(message, conversation) {
+  // If organiser mentions price or availability, auto-append booking link
+  if (containsBookingIntent(message.content)) {
+    const bookingLink = generateTrackingLink(conversation.camp_id, conversation.id);
+
+    await sendWhatsAppMessage(conversation.parent_phone, {
+      text: message.content + `\n\n🎯 Ready to book? ${bookingLink}`,
+    });
+  }
+}
+```
+
+---
+
+#### **Layer 3: Contractual Obligations**
+
+**Implementation:**
+- Organisers sign Terms of Service requiring platform-only bookings
+- Contract clause: "All bookings from platform-generated leads must be processed through platform"
+- Violation = account suspension + penalty fees
+- Regular audits to detect direct bookings
+
+**Example Contract Clause:**
+> **Exclusive Booking Requirement:** Organiser agrees that all enquiries, leads, or bookings originating from the Platform (including WhatsApp conversations, website enquiries, or platform-generated referrals) must be completed through the Platform's booking system. Direct bookings that circumvent the Platform are prohibited and constitute a material breach, subject to account suspension and recovery of platform fees at 2x the standard commission rate.
+
+**Enforcement:**
+- Monitor for sudden drop in conversion rates (signal of off-platform bookings)
+- Parent survey: "How did you book this camp?"
+- Whistleblower system (parents report direct booking requests)
+
+---
+
+#### **Layer 4: Conversation Monitoring & Alerts**
+
+**Implementation:**
+- NLP/keyword detection for direct payment attempts
+- Alert platform admins when risky phrases detected:
+  - "Pay me directly"
+  - "Cash payment"
+  - "My bank account"
+  - "Skip the platform fee"
+  - "Venmo/PayPal me"
+- Automated warning message to both parties
+
+**Technical Implementation:**
+```typescript
+// Monitor outbound messages for bypass attempts
+const BYPASS_KEYWORDS = [
+  'pay me directly',
+  'cash payment',
+  'my bank account',
+  'skip the fee',
+  'venmo', 'paypal', 'zelle',
+  'my phone number is',
+  'call me at'
+];
+
+async function detectBypassAttempt(message) {
+  const content = message.content.toLowerCase();
+
+  for (const keyword of BYPASS_KEYWORDS) {
+    if (content.includes(keyword)) {
+      // Alert platform admins
+      await alertPlatformAdmin({
+        organiser_id: message.organiser_id,
+        conversation_id: message.conversation_id,
+        detected_phrase: keyword,
+        full_message: content,
+        severity: 'high'
+      });
+
+      // Send warning to organiser
+      await sendWarningToOrganiser(message.organiser_id,
+        "Reminder: All bookings must be completed through the platform. Direct payment requests violate our Terms of Service."
+      );
+
+      return true;
+    }
+  }
+  return false;
+}
+```
+
+---
+
+#### **Layer 5: Payment Escrow & Value-Add Services**
+
+**Implementation:**
+Make booking through platform MORE valuable than direct booking:
+
+**For Parents:**
+- ✅ Secure payment processing (vs. trusting unknown organiser)
+- ✅ Refund protection & dispute resolution
+- ✅ Booking insurance (cancellation coverage)
+- ✅ Verified organiser badges (safety/quality assurance)
+- ✅ Reviews from other parents
+- ✅ Easy rescheduling/cancellation
+- ✅ Unified parent dashboard (all camps in one place)
+- ✅ Automated reminders & updates
+
+**For Organisers:**
+- ✅ Payment guarantee (no chasing parents for payment)
+- ✅ Automated invoicing & receipts
+- ✅ Booking management dashboard
+- ✅ Automated waitlist management
+- ✅ Marketing & exposure on platform
+- ✅ Analytics & reporting
+- ✅ Customer support handled by platform
+
+**Implementation:**
+- Escrow system: Parent pays platform → Platform holds funds → Releases to organiser after camp completion
+- Insurance product: Platform offers cancellation insurance (upsell)
+- Quality assurance: Background checks, certifications, insurance verification
+
+---
+
+#### **Layer 6: Dynamic Commission Adjustment**
+
+**Implementation:**
+- Lower commission rates for high-compliance organisers
+- Higher commission rates for organisers showing bypass signals
+- Reward loyalty & platform-exclusive organisers
+
+**Example Tiers:**
+- **Standard:** 5% commission (baseline)
+- **Trusted Partner:** 3% commission (proven compliance, >50 bookings)
+- **Platform Exclusive:** 2% commission (100% bookings through platform)
+- **At-Risk:** 8% commission (bypass attempt detected or suspicious patterns)
+
+**Technical Implementation:**
+```sql
+-- Track organiser compliance
+CREATE TABLE organiser_compliance_scores (
+  organiser_id UUID PRIMARY KEY REFERENCES schools(id),
+  total_whatsapp_enquiries INTEGER DEFAULT 0,
+  total_platform_bookings INTEGER DEFAULT 0,
+  conversion_rate DECIMAL(5,2), -- % of enquiries that book
+  compliance_score DECIMAL(5,2), -- 0-100
+  commission_rate DECIMAL(5,2) DEFAULT 5.00, -- Dynamic
+  bypass_alerts INTEGER DEFAULT 0,
+  last_audit_date DATE,
+  tier VARCHAR(50) DEFAULT 'standard'
+);
+
+-- Auto-adjust commission based on compliance
+CREATE OR REPLACE FUNCTION calculate_compliance_score(p_organiser_id UUID)
+RETURNS DECIMAL AS $$
+DECLARE
+  v_score DECIMAL;
+BEGIN
+  -- Expected conversion rate: 20-30%
+  -- If actual conversion rate significantly lower = potential bypass
+  SELECT
+    CASE
+      WHEN conversion_rate >= 25 THEN 100 -- Excellent
+      WHEN conversion_rate >= 20 THEN 80  -- Good
+      WHEN conversion_rate >= 15 THEN 60  -- Average
+      WHEN conversion_rate >= 10 THEN 40  -- Suspicious
+      ELSE 20 -- Very suspicious
+    END INTO v_score
+  FROM organiser_compliance_scores
+  WHERE organiser_id = p_organiser_id;
+
+  RETURN v_score;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+---
+
+#### **Layer 7: Booking-Only Payment Processing**
+
+**Implementation:**
+- Organisers do NOT have independent payment processing
+- Platform is the ONLY way to accept payment
+- Organisers cannot charge credit cards directly
+- Parents cannot pay via bank transfer/cash for platform-sourced leads
+
+**How It Works:**
+1. Organiser quotes price on WhatsApp
+2. Platform auto-generates unique payment link
+3. Parent must click link to pay
+4. Payment processed through platform's Stripe account
+5. Platform takes commission automatically
+6. Remaining balance transferred to organiser
+
+**Benefits:**
+- ✅ Impossible to bypass (no alternative payment method)
+- ✅ Automatic commission collection
+- ✅ Full transaction visibility
+- ✅ Compliance is enforced, not voluntary
+
+**Implementation:**
+```typescript
+// Organisers cannot manually create bookings without payment
+async function createBooking(campId, parentId, childId) {
+  // This endpoint REQUIRES a valid Stripe checkout session
+  const sessionId = req.body.stripe_session_id;
+
+  // Verify payment was processed
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+  if (session.payment_status !== 'paid') {
+    throw new Error('Booking requires completed payment');
+  }
+
+  // Create booking with automatic commission deduction
+  const booking = await createRegistration({
+    camp_id: campId,
+    parent_id: parentId,
+    child_id: childId,
+    amount_paid: session.amount_total,
+    platform_commission: session.amount_total * 0.05, // 5%
+    organiser_payout: session.amount_total * 0.95,
+    payment_session_id: sessionId
+  });
+
+  return booking;
+}
+```
+
+---
+
+#### **Layer 8: Relationship Lock-In Features**
+
+**Implementation:**
+Make organisers dependent on platform for core business functions:
+
+**Features Only Available On Platform:**
+1. **Waitlist Management**
+   - Auto-notify parents when spots open
+   - Automatic seat filling
+
+2. **Review System**
+   - Build reputation on platform
+   - Reviews not portable off-platform
+
+3. **Repeat Booking Engine**
+   - Email previous parents for next season
+   - Loyalty discounts for returning families
+
+4. **Registration Forms & Waivers**
+   - Digital liability waivers
+   - Medical info collection
+   - Photo permissions
+
+5. **Check-in/Attendance Tracking**
+   - Daily attendance via mobile app
+   - Parent notifications
+
+6. **Certification & Compliance**
+   - Background check verification
+   - Insurance proof
+   - First aid certifications
+   - Verified badges visible to parents
+
+7. **Marketing & SEO**
+   - Platform promotes camps via SEO/ads
+   - Featured placement for top organisers
+   - Social media integration
+
+**Outcome:**
+Organisers become dependent on platform infrastructure. Leaving means rebuilding all these systems.
+
+---
+
+### Recommended Multi-Layer Implementation
+
+**Phase 1 (MVP - Must Have):**
+1. ✅ Platform-owned WhatsApp numbers
+2. ✅ Automated booking link injection
+3. ✅ Contractual obligations
+4. ✅ Booking-only payment processing
+
+**Phase 2 (Within 3 months):**
+5. ✅ Conversation monitoring & alerts
+6. ✅ Payment escrow & value-add services
+7. ✅ Relationship lock-in features
+
+**Phase 3 (Ongoing):**
+8. ✅ Dynamic commission adjustment
+9. ✅ Compliance scoring & audits
+10. ✅ Continuous monitoring improvements
+
+---
+
+### Success Metrics for Bypass Prevention
+
+**Track These KPIs:**
+- **Platform Conversion Rate:** % of WhatsApp enquiries → platform bookings (Target: >25%)
+- **Organiser Compliance Score:** Average compliance across all organisers (Target: >80/100)
+- **Bypass Attempt Detection:** # of keyword alerts per month (Target: <5)
+- **Parent Payment Method:** % using platform vs. direct (Target: 100% platform)
+- **Repeat Booking Rate:** % of parents who book again via platform (Target: >40%)
+
+**Red Flags (Signals of Bypass):**
+- Organiser with high WhatsApp activity but low bookings
+- Conversion rate <10% (industry average: 20-30%)
+- Sudden drop in bookings for previously active organiser
+- Parent complaints about "organiser asked for direct payment"
+- Organiser requesting payout before camp completion
+
+---
+
+### Legal & Compliance Considerations
+
+**Terms of Service Must Include:**
+1. Exclusive booking requirement for platform-sourced leads
+2. Audit rights (platform can request booking records)
+3. Penalties for violation (account suspension, fee recovery)
+4. Definition of "platform-sourced lead" (any enquiry from platform)
+5. Prohibition on sharing personal contact details
+6. Non-circumvention clause (cannot contact parents off-platform)
+
+**Privacy Considerations:**
+- WhatsApp messages may contain personal data (GDPR/CCPA compliance)
+- Platform must have legal basis to monitor conversations
+- Include in Privacy Policy: "Conversations monitored for quality and compliance"
+- Parent consent: "By using WhatsApp, you consent to platform monitoring"
+
+---
+
 ## Monetization Strategy
 
 ### Overview: How to Monetize WhatsApp Integration
 
-WhatsApp messaging is a **premium value-add service** that justifies charging schools. Parents expect free access (they use their own WhatsApp), but schools receive significant business value through higher conversion rates and faster sales cycles.
+WhatsApp messaging is a **premium value-add service** for camp organisers. Parents expect free access (they use their own WhatsApp), but organisers receive significant business value through higher conversion rates and faster sales cycles.
 
-### Value Proposition for Schools
+**IMPORTANT:** Given the platform bypass risk outlined above, the recommended monetization model is **commission-based** rather than subscription-based. This ensures the platform only makes money when bookings go through the platform, aligning incentives and naturally preventing bypass.
 
-**Why Schools Will Pay:**
+### Value Proposition for Camp Organisers
+
+**Why Organisers Will Use WhatsApp (and Book Through Platform):**
 1. 📈 **Higher Conversion Rates:** +20-30% enquiry-to-booking conversion
 2. ⚡ **Faster Sales Cycle:** Real-time responses vs 24-48hr email delays
 3. 💰 **Increased Revenue:** More bookings = higher revenue
@@ -763,14 +1169,16 @@ WhatsApp messaging is a **premium value-add service** that justifies charging sc
 5. 🎯 **Better Reach:** WhatsApp has 98% open rates vs 20% for email
 6. 🌍 **Global Preference:** Dominant in SEA, LATAM, Europe, Middle East
 7. 📊 **Analytics:** Track response times, conversion attribution
+8. 💳 **Guaranteed Payment:** Platform handles payment processing (no chasing parents)
+9. 🛡️ **Trust & Safety:** Verified badge increases parent confidence
 
-**Estimated Value per School:**
+**Estimated Value per Organiser:**
 - If 40% of enquiries come via WhatsApp
 - 30% better conversion rate on WhatsApp enquiries
 - Average camp fee: $500
 - 100 WhatsApp enquiries/month → 30 conversions → **$15,000/month additional revenue**
 
-Schools earning an extra $15K/month will happily pay $50-200/month for the feature.
+Organisers earning an extra $15K/month will happily pay 3-5% commission ($450-750/month) to access this channel, especially since commission is only paid on successful bookings (no upfront cost/risk).
 
 ---
 
@@ -1215,20 +1623,29 @@ If schools are price-sensitive, consider positioning as infrastructure:
 
 ### Financial Summary
 
-| Model | Setup Complexity | Revenue Potential | Adoption Risk | Recommendation |
-|-------|-----------------|-------------------|---------------|----------------|
-| Tiered Subscription | Low | $166K/year | Low | ⭐⭐⭐⭐⭐ |
-| Usage-Based | Medium | $82K/year | Medium | ⭐⭐⭐ |
-| Setup Fee + Monthly | Medium | $94K/year | High | ⭐⭐ |
-| Commission-Based | High | $1.8M/year | Very High | ⭐⭐⭐⭐ (if tracking works) |
-| Freemium Add-ons | Low | $50K/year | Low | ⭐⭐ |
-| **Hybrid (Recommended)** | **Low** | **$168K/year** | **Low** | **⭐⭐⭐⭐⭐** |
+| Model | Setup Complexity | Revenue Potential | Bypass Prevention | Recommendation |
+|-------|-----------------|-------------------|-------------------|----------------|
+| **Commission-Based (RECOMMENDED)** | **Medium** | **$360K-1.8M/year** | **✅ Best** | **⭐⭐⭐⭐⭐** |
+| Tiered Subscription | Low | $166K/year | ⚠️ Weak | ⭐⭐⭐ |
+| Usage-Based | Medium | $82K/year | ⚠️ Weak | ⭐⭐ |
+| Setup Fee + Monthly | Medium | $94K/year | ⚠️ Weak | ⭐⭐ |
+| Freemium Add-ons | Low | $50K/year | ⚠️ Weak | ⭐⭐ |
+| Hybrid Commission + Subscription | Medium | $450K-2M/year | ✅ Excellent | ⭐⭐⭐⭐⭐ |
 
-**Winner: Hybrid Tiered + Usage Overage**
-- Balances predictable revenue with fair usage pricing
-- Low barrier to entry (most schools fit in free tier limits)
-- High-volume schools pay more (fair and sustainable)
-- Easy to communicate and understand
+**🏆 Winner: Commission-Based (3-5% of bookings)**
+
+**Why Commission Wins for WhatsApp Integration:**
+1. ✅ **Prevents Platform Bypass:** Only get paid when booking goes through platform
+2. ✅ **Aligned Incentives:** Organisers want conversions, platform gets paid on conversions
+3. ✅ **No Barrier to Entry:** Free to join, pay only on success
+4. ✅ **Scales with Value:** High-performing organisers pay more (fair)
+5. ✅ **Enforces Compliance:** If organisers take bookings off-platform, they're stealing from you
+6. ✅ **High Revenue Potential:** 100 organisers × $500 avg booking × 30 bookings/mo × 5% = **$75K/month = $900K/year**
+
+**Alternative: Hybrid Commission + Optional Premium Features**
+- Base: 5% commission (mandatory for WhatsApp access)
+- Optional add-ons: AI auto-responder ($49/mo), Priority support ($99/mo), Featured listing ($199/mo)
+- **Revenue:** $900K/year (commission) + $50K/year (add-ons) = **$950K/year**
 
 ---
 
@@ -1451,33 +1868,43 @@ If schools are price-sensitive, consider positioning as infrastructure:
 
 ## Conclusion
 
-WhatsApp integration is **highly viable, strategically valuable, and financially lucrative** for the camp management platform. The existing architecture provides an excellent foundation, and the WhatsApp Cloud API offers a cost-effective, scalable solution that can generate significant recurring revenue.
+WhatsApp integration is **highly viable, strategically valuable, and financially lucrative** for the camp management platform. The existing architecture provides an excellent foundation, and the WhatsApp Cloud API offers a cost-effective, scalable solution that can generate significant recurring revenue **while protecting against platform bypass**.
 
 **Key Success Factors:**
 - ✅ Strong technical foundation (Supabase, multi-tenant architecture)
 - ✅ Existing enquiry system to build upon
 - ✅ Official WhatsApp SDK with TypeScript support
-- ✅ Clear routing strategy (one number per school)
+- ✅ **Platform-owned WhatsApp numbers** (prevents bypass)
+- ✅ **Commission-based monetization** (aligns incentives)
+- ✅ Multi-layer bypass prevention strategy
 - ✅ Phased rollout approach (pilot → beta → GA)
-- ✅ Low initial cost (free tier covers most schools)
-- ✅ **Proven monetization model with strong ROI for schools**
+- ✅ Low initial cost (free Meta tier for most organisers)
 
 **Expected Outcomes - Product:**
 - 📈 40%+ of enquiries via WhatsApp within 6 months
 - ⚡ <5 minute average response time
-- 🚀 +20-30% conversion rate improvement for schools
+- 🚀 +20-30% conversion rate improvement for organisers
 - 😊 Significantly improved parent satisfaction
+- 🔒 >95% platform booking compliance (minimal bypass)
 
 **Expected Outcomes - Business:**
-- 💰 **$168,000/year recurring revenue** (at 100 schools)
-- 📊 60% of schools on Professional tier ($99/mo)
-- 📊 40% of schools on Enterprise tier ($199/mo)
-- 💸 $6,000/year Meta API costs (3.5% of revenue)
-- 🎯 **Net profit margin: 96.5%** (after API costs)
+- 💰 **$900,000/year recurring revenue** (at 100 organisers, 5% commission)
+- 📊 Average organiser: 30 bookings/month × $500 × 5% = $750/month platform revenue
+- 💸 $6,000/year Meta API costs (0.7% of revenue)
+- 🎯 **Net profit margin: 99.3%** (after API costs)
+- 🚀 **10x higher revenue** than subscription model
+- ✅ **Zero bypass risk** (only paid on platform bookings)
 
-**Recommendation:** ✅ **Proceed with implementation**
+**Critical Implementation Requirements:**
+1. ✅ **Platform MUST own WhatsApp numbers** (not organisers)
+2. ✅ **Automated booking link injection** (every conversation)
+3. ✅ **Payment processing exclusively through platform** (no alternative methods)
+4. ✅ **Conversation monitoring** (detect bypass attempts)
+5. ✅ **Contractual obligations** (Terms of Service enforcement)
 
-Start with Phase 1 (foundation) and pilot with 3-5 schools. Gather feedback, iterate, and scale progressively. Introduce pricing during beta phase to validate willingness to pay. The platform is well-positioned to become the leading camp management solution with integrated WhatsApp support, while generating substantial recurring revenue from this premium feature.
+**Recommendation:** ✅ **Proceed with implementation immediately**
+
+Start with Phase 1 (foundation + bypass prevention) and pilot with 3-5 camp organisers. Implement all critical bypass prevention layers from day one - these are not optional. The commission-based model ensures the platform only succeeds when organisers succeed, creating natural alignment. The platform is well-positioned to become the leading camp marketplace with integrated WhatsApp support, while generating substantial recurring revenue and maintaining marketplace integrity.
 
 ---
 
@@ -1491,12 +1918,22 @@ Start with Phase 1 (foundation) and pilot with 3-5 schools. Gather feedback, ite
 
 ---
 
-**Document Version:** 2.0
+**Document Version:** 3.0
 **Last Updated:** 2025-11-17
 **Author:** AI Planning Agent
-**Status:** ✅ Ready for Review
+**Status:** ✅ Ready for Review & Implementation
 
 **Changelog:**
+- **v3.0: MAJOR UPDATE - Platform Bypass Prevention & Commission-Based Monetization**
+  - Added comprehensive "Platform Bypass Prevention Strategy" section (8 layers of protection)
+  - Shifted primary monetization model from subscription to commission-based (3-5%)
+  - Updated terminology: "schools" → "camp organisers" (more accurate)
+  - Platform-owned WhatsApp numbers (critical requirement)
+  - Automated booking link injection
+  - Conversation monitoring & keyword detection
+  - Compliance scoring system
+  - Updated revenue projections: $900K/year (10x higher than subscription)
+  - Updated executive summary and conclusion with bypass prevention emphasis
 - v2.0: Added comprehensive monetization strategy section with 5 pricing models, billing implementation, and revenue projections
 - v2.0: Clarified conversation participants (Parents ↔ Camp Organizers)
 - v2.0: Updated executive summary and conclusion with business outcomes
