@@ -8,7 +8,6 @@ import type { Database } from '../../lib/database.types';
 type Camp = Database['public']['Tables']['camps']['Row'];
 type CampInsert = Database['public']['Tables']['camps']['Insert'];
 type Organisation = Database['public']['Tables']['organisations']['Row'];
-type Category = Database['public']['Tables']['camp_categories']['Row'];
 
 interface CampFormModalProps {
   isOpen: boolean;
@@ -18,13 +17,22 @@ interface CampFormModalProps {
   schoolId: string;
 }
 
+const categories = [
+  { value: 'sports', label: 'Sports' },
+  { value: 'arts', label: 'Arts' },
+  { value: 'stem', label: 'STEM' },
+  { value: 'language', label: 'Language' },
+  { value: 'adventure', label: 'Adventure' },
+  { value: 'general', label: 'General' },
+  { value: 'academic', label: 'Academic' },
+  { value: 'creative', label: 'Creative' },
+];
+
 export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: CampFormModalProps) {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'pricing' | 'media' | 'content' | 'policies'>('basic');
 
   type CategoryType = 'sports' | 'arts' | 'stem' | 'language' | 'adventure' | 'general' | 'academic' | 'creative';
@@ -76,41 +84,10 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
 
   useEffect(() => {
     loadOrganisations();
-    loadCategories();
   }, []);
-
-  async function loadCategories() {
-    try {
-      const { data, error } = await supabase
-        .from('camp_categories')
-        .select('*')
-        .eq('active', true)
-        .order('display_order', { ascending: true});
-
-      if (error) throw error;
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-  }
-
-  async function loadCampCategories(campId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('camp_category_assignments')
-        .select('category_id')
-        .eq('camp_id', campId);
-
-      if (error) throw error;
-      setSelectedCategoryIds((data || []).map(d => d.category_id));
-    } catch (error) {
-      console.error('Error loading camp categories:', error);
-    }
-  }
 
   useEffect(() => {
     if (camp) {
-      loadCampCategories(camp.id);
       setFormData({
         organisation_id: camp.organisation_id,
         name: camp.name,
@@ -212,11 +189,6 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
       return;
     }
 
-    if (selectedCategoryIds.length === 0) {
-      setError('Please select at least one category for this camp');
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -263,8 +235,6 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
         schedule: {},
       } as any;
 
-      let campId = camp?.id;
-
       if (camp) {
         const { error } = await supabase
           .from('camps')
@@ -275,38 +245,14 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
           console.error('Error updating camp:', error);
           throw error;
         }
-
-        await supabase
-          .from('camp_category_assignments')
-          .delete()
-          .eq('camp_id', camp.id);
       } else {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('camps')
-          .insert([campData])
-          .select()
-          .single();
+          .insert([campData]);
 
         if (error) {
           console.error('Error creating camp:', error);
           throw error;
-        }
-        campId = data.id;
-      }
-
-      if (campId) {
-        const categoryAssignments = selectedCategoryIds.map(categoryId => ({
-          camp_id: campId,
-          category_id: categoryId
-        }));
-
-        const { error: assignmentError } = await supabase
-          .from('camp_category_assignments')
-          .insert(categoryAssignments);
-
-        if (assignmentError) {
-          console.error('Error assigning categories:', assignmentError);
-          throw assignmentError;
         }
       }
 
@@ -460,67 +406,38 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Categories * (Select all that apply)
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {categories.map((category) => {
-                      const isSelected = selectedCategoryIds.includes(category.id);
-                      return (
-                        <button
-                          key={category.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedCategoryIds(prev =>
-                              prev.includes(category.id)
-                                ? prev.filter(id => id !== category.id)
-                                : [...prev, category.id]
-                            );
-                          }}
-                          className={`p-3 rounded-lg border-2 text-left transition-all ${
-                            isSelected
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => {}}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>
-                              {category.name}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1 ml-6">
-                            {category.description}
-                          </p>
-                        </button>
-                      );
-                    })}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Category *
+                    </label>
+                    <select
+                      required
+                      value={formData.category}
+                      onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as any }))}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  {selectedCategoryIds.length === 0 && (
-                    <p className="text-sm text-red-600 mt-2">
-                      Please select at least one category
-                    </p>
-                  )}
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="School Campus"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Location *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="School Campus"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

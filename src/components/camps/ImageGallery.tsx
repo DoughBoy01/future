@@ -1,54 +1,26 @@
-import { useState, useRef, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Grid3x3, Play } from 'lucide-react';
-
-interface VideoItem {
-  url: string;
-  title?: string;
-  thumbnail?: string;
-  type?: 'youtube' | 'vimeo' | 'direct';
-}
+import { useState } from 'react';
+import { X, ChevronLeft, ChevronRight, Grid3x3 } from 'lucide-react';
 
 interface ImageGalleryProps {
   images: string[];
-  videos?: VideoItem[];
   campName: string;
-  onVideoClick?: (videoIndex: number) => void;
 }
 
-export function ImageGallery({ images, videos = [], campName, onVideoClick }: ImageGalleryProps) {
+export function ImageGallery({ images, campName }: ImageGalleryProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [mobileSlide, setMobileSlide] = useState(0);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   if (!images || images.length === 0) {
     return (
-      <div className="relative w-full h-96 md:h-[500px] bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center rounded-2xl">
+      <div className="relative w-full h-96 md:h-[500px] bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
         <p className="text-white text-lg">No images available</p>
       </div>
     );
   }
 
-  const totalMedia = images.length + videos.length;
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (scrollContainerRef.current) {
-        const scrollLeft = scrollContainerRef.current.scrollLeft;
-        const slideWidth = scrollContainerRef.current.offsetWidth;
-        const newSlide = Math.round(scrollLeft / slideWidth);
-        setMobileSlide(newSlide);
-      }
-    };
-
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener('scroll', handleScroll);
-      return () => container.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
+  const mainImage = images[0];
+  const sideImages = images.slice(1, 9);
+  const hasMoreImages = images.length > 9;
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -68,169 +40,61 @@ export function ImageGallery({ images, videos = [], campName, onVideoClick }: Im
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStartX.current - touchEndX.current > 50) {
-      // Swipe left - next slide
-      setMobileSlide((prev) => Math.min(prev + 1, totalMedia - 1));
-    }
-    if (touchStartX.current - touchEndX.current < -50) {
-      // Swipe right - previous slide
-      setMobileSlide((prev) => Math.max(prev - 1, 0));
-    }
-  };
-
-  const goToMobileSlide = (index: number) => {
-    setMobileSlide(index);
-    if (scrollContainerRef.current) {
-      const slideWidth = scrollContainerRef.current.offsetWidth;
-      scrollContainerRef.current.scrollTo({
-        left: slideWidth * index,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const renderMediaItem = (index: number, className: string, isLast: boolean = false) => {
-    const isVideo = index >= images.length;
-    const videoIndex = index - images.length;
-    const video = videos[videoIndex];
-
-    if (isVideo && video) {
-      return (
-        <div
-          key={`video-${videoIndex}`}
-          className={`${className} cursor-pointer group relative overflow-hidden`}
-          onClick={() => onVideoClick?.(videoIndex)}
-        >
-          {video.thumbnail ? (
-            <img
-              src={video.thumbnail}
-              alt={video.title || `${campName} - Video ${videoIndex + 1}`}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-              <Play className="w-16 h-16 text-white opacity-70" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
-            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-xl">
-              <Play className="w-6 h-6 text-gray-900 ml-0.5 fill-gray-900" />
-            </div>
-          </div>
-          {isLast && totalMedia > 5 && (
-            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-              <button className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2">
-                <Grid3x3 className="w-4 h-4" />
-                Show all {totalMedia} photos & videos
-              </button>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    const imageIndex = index;
-    return (
-      <div
-        key={`image-${imageIndex}`}
-        className={`${className} cursor-pointer group relative overflow-hidden`}
-        onClick={() => {
-          setCurrentIndex(imageIndex);
-          setIsLightboxOpen(true);
-        }}
-      >
-        <img
-          src={images[imageIndex]}
-          alt={`${campName} - View ${imageIndex + 1}`}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-        {isLast && totalMedia > 5 && (
-          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-            <button className="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2">
-              <Grid3x3 className="w-4 h-4" />
-              Show all {totalMedia} photos & videos
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <>
-      {/* Airbnb-style collage grid - Mobile: Swipeable carousel, Desktop: Sophisticated grid */}
-      <div className="relative">
-        {/* Mobile Layout - Swipeable Carousel */}
-        <div className="md:hidden relative">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 h-auto md:h-[600px]">
+        <div
+          className="col-span-2 md:row-span-2 cursor-pointer group relative overflow-hidden rounded-lg md:rounded-l-2xl"
+          onClick={() => {
+            setCurrentIndex(0);
+            setIsLightboxOpen(true);
+          }}
+        >
+          <img
+            src={mainImage}
+            alt={`${campName} - Main view`}
+            className="w-full h-64 md:h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+        </div>
+
+        {sideImages.slice(0, 8).map((image, index) => (
           <div
-            ref={scrollContainerRef}
-            className="flex overflow-x-scroll snap-x snap-mandatory scrollbar-hide"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{ scrollSnapType: 'x mandatory' }}
+            key={index}
+            className="cursor-pointer group relative overflow-hidden rounded-lg"
+            onClick={() => {
+              setCurrentIndex(index + 1);
+              setIsLightboxOpen(true);
+            }}
           >
-            {[...Array(totalMedia)].map((_, i) => (
-              <div
-                key={i}
-                className="w-full flex-shrink-0 snap-center"
-                style={{ scrollSnapAlign: 'center' }}
-              >
-                {renderMediaItem(i, 'rounded-lg h-72 w-full', false)}
+            <img
+              src={image}
+              alt={`${campName} - View ${index + 2}`}
+              className="w-full h-32 md:h-[147px] object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+            {index === 7 && hasMoreImages && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <button className="bg-white text-gray-900 px-3 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center gap-2 text-sm">
+                  <Grid3x3 className="w-4 h-4" />
+                  +{images.length - 9} more
+                </button>
               </div>
-            ))}
+            )}
           </div>
-
-          {/* Swipe Indicator Dots */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
-            {[...Array(totalMedia)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => goToMobileSlide(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`transition-all duration-300 ${
-                  i === mobileSlide
-                    ? 'w-8 h-2 bg-white rounded-full'
-                    : 'w-2 h-2 bg-white/60 rounded-full hover:bg-white/80'
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Slide Counter */}
-          <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white text-xs font-medium px-3 py-1.5 rounded-full z-10">
-            {mobileSlide + 1} / {totalMedia}
-          </div>
-        </div>
-
-        {/* Desktop Layout - Airbnb-style grid */}
-        <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[480px]">
-          {/* Main large image - left side */}
-          {totalMedia > 0 && renderMediaItem(0, 'col-span-2 row-span-2 rounded-l-2xl')}
-
-          {/* Top right image */}
-          {totalMedia > 1 && renderMediaItem(1, 'col-span-1 row-span-1 rounded-tr-2xl')}
-
-          {/* Second top right image */}
-          {totalMedia > 2 && renderMediaItem(2, 'col-span-1 row-span-1')}
-
-          {/* Bottom left of right side */}
-          {totalMedia > 3 && renderMediaItem(3, 'col-span-1 row-span-1')}
-
-          {/* Bottom right - last visible with "show all" button */}
-          {totalMedia > 4 && renderMediaItem(4, 'col-span-1 row-span-1 rounded-br-2xl', true)}
-        </div>
+        ))}
       </div>
+
+      <button
+        onClick={() => {
+          setCurrentIndex(0);
+          setIsLightboxOpen(true);
+        }}
+        className="mt-4 md:hidden w-full py-3 border-2 border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+      >
+        <Grid3x3 className="w-5 h-5" />
+        View all {images.length} photos
+      </button>
 
       {isLightboxOpen && (
         <div

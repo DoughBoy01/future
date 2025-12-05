@@ -1,24 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Globe, LogOut, User, Settings, Shield, CheckCircle, Sparkles, LayoutDashboard, Menu, X, ChevronDown } from 'lucide-react';
+import { Globe, LogOut, User, Settings, Shield, CheckCircle, Sparkles, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { useTranslation } from 'react-i18next';
-
-const LANGUAGES = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文' },
-];
 
 export function Navbar() {
   const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation('common');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [siteLogo, setSiteLogo] = useState<string | null>(null);
 
@@ -57,86 +47,99 @@ export function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const handleLanguageChange = (languageCode: string) => {
-    i18n.changeLanguage(languageCode);
-    localStorage.setItem('userLanguage', languageCode);
-    setLanguageMenuOpen(false);
-  };
-
-  const currentLanguage = LANGUAGES.find(lang => lang.code === i18n.language) || LANGUAGES[0];
-
   return (
-    <>
-      {/* Skip to Content Link for Accessibility */}
-      <a href="#main-content" className="skip-to-content">
-        Skip to main content
-      </a>
-
-      <nav className="bg-white shadow-sm sticky top-0 z-50" role="navigation" aria-label="Main navigation">
-        <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 lg:h-20">
+    <nav className="bg-white shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16 lg:h-20">
           <div className="flex items-center flex-1">
             <Link to="/" className="flex items-center space-x-2 mr-4 lg:mr-0">
-              <img
-                src={siteLogo || "/logo.png"}
-                alt="FutureEdge"
-                className="h-6 lg:h-8 w-auto object-contain"
-              />
+              {siteLogo ? (
+                <img
+                  src={siteLogo}
+                  alt="FutureEdge"
+                  className="h-8 lg:h-12 w-auto object-contain"
+                />
+              ) : (
+                <>
+                  <div className="bg-black p-1.5 lg:p-2 rounded-lg">
+                    <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  </div>
+                  <span className="text-lg lg:text-xl font-bold text-gray-900">FutureEdge</span>
+                </>
+              )}
             </Link>
 
             <div className="hidden lg:ml-12 lg:flex lg:space-x-4 xl:space-x-8">
               <Link
                 to="/camps"
-                className="text-airbnb-grey-700 hover:text-airbnb-grey-900 px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
+                className="text-gray-700 hover:text-gray-900 px-1 text-sm xl:text-base font-medium transition-colors whitespace-nowrap"
               >
-                {t('nav.browse_camps')}
+                Browse Camps
+              </Link>
+              <Link
+                to="/how-it-works"
+                className="text-gray-700 hover:text-gray-900 px-1 text-sm xl:text-base font-medium transition-colors whitespace-nowrap"
+              >
+                How it Works
+              </Link>
+              <Link
+                to="/safety"
+                className="text-gray-700 hover:text-gray-900 px-1 text-sm xl:text-base font-medium transition-colors whitespace-nowrap"
+              >
+                Safety & Trust
+              </Link>
+              <Link
+                to="/support"
+                className="text-gray-700 hover:text-gray-900 px-1 text-sm xl:text-base font-medium transition-colors whitespace-nowrap"
+              >
+                Support
               </Link>
               {user && profile?.role === 'parent' && (
                 <Link
                   to="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
                     isActive('/dashboard')
-                      ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
-                      : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-700 hover:text-blue-600'
                   }`}
                 >
-                  {t('nav.dashboard')}
+                  My Dashboard
                 </Link>
               )}
               {user && ['school_admin', 'marketing', 'operations', 'risk', 'super_admin'].includes(profile?.role || '') && (
                 <>
                   <Link
                     to="/admin/dashboard"
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
                       location.pathname.startsWith('/admin/dashboard')
-                        ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
-                        : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-700 hover:text-blue-600'
                     }`}
                   >
-                    <LayoutDashboard className="w-4 h-4 mr-1" aria-hidden="true" />
+                    <LayoutDashboard className="w-4 h-4 mr-1" />
                     Admin Dashboard
                   </Link>
                   <Link
                     to="/admin/approvals"
-                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
+                    className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
                       isActive('/admin/approvals')
-                        ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
-                        : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-700 hover:text-blue-600'
                     }`}
                   >
-                    <CheckCircle className="w-4 h-4 mr-1" aria-hidden="true" />
+                    <CheckCircle className="w-4 h-4 mr-1" />
                     Approvals
                   </Link>
                   {['school_admin', 'super_admin'].includes(profile?.role || '') && (
                     <Link
                       to="/admin/roles"
-                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
+                      className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors ${
                         isActive('/admin/roles')
-                          ? 'text-airbnb-pink-500 border-b-2 border-airbnb-pink-500'
-                          : 'text-airbnb-grey-700 hover:text-airbnb-grey-900'
+                          ? 'text-blue-600 border-b-2 border-blue-600'
+                          : 'text-gray-700 hover:text-blue-600'
                       }`}
                     >
-                      <Shield className="w-4 h-4 mr-1" aria-hidden="true" />
+                      <Shield className="w-4 h-4 mr-1" />
                       Roles
                     </Link>
                   )}
@@ -146,74 +149,34 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center space-x-2 lg:space-x-4">
-            {/* Language Selector */}
-            <div className="relative hidden sm:block">
-              <button
-                onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
-                className="flex items-center space-x-2 text-airbnb-grey-700 hover:text-airbnb-grey-900 px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-standard"
-                aria-label="Change language"
-                aria-expanded={languageMenuOpen}
-                aria-haspopup="true"
-              >
-                <Globe className="w-4 lg:w-5 h-4 lg:h-5" aria-hidden="true" />
-                <span className="hidden md:inline">{currentLanguage.nativeName}</span>
-                <ChevronDown className={`w-3 h-3 transition-transform ${languageMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {languageMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setLanguageMenuOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-20 border border-airbnb-grey-300">
-                    {LANGUAGES.map((language) => (
-                      <button
-                        key={language.code}
-                        onClick={() => handleLanguageChange(language.code)}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-fast flex items-center justify-between ${
-                          i18n.language === language.code
-                            ? 'bg-airbnb-pink-50 text-airbnb-pink-600 font-medium'
-                            : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50'
-                        }`}
-                      >
-                        <span>{language.nativeName}</span>
-                        {i18n.language === language.code && (
-                          <CheckCircle className="w-4 h-4" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <button className="hidden sm:flex items-center space-x-2 text-gray-700 hover:text-gray-900 px-2 lg:px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+              <Globe className="w-4 lg:w-5 h-4 lg:h-5" />
+              <span className="hidden md:inline">English</span>
+            </button>
 
             {!user ? (
               <>
                 <Link
                   to="/auth"
-                  className="hidden sm:block text-airbnb-grey-900 hover:text-airbnb-grey-700 px-3 lg:px-4 py-2 rounded-md text-sm lg:text-base font-medium transition-standard"
+                  className="hidden sm:block text-gray-900 hover:text-gray-700 px-3 lg:px-4 py-2 rounded-lg text-sm lg:text-base font-medium transition-colors"
                 >
-                  {t('nav.sign_in')}
+                  Sign In
                 </Link>
                 <Link
-                  to="/partners"
-                  className="hidden sm:block bg-airbnb-grey-100 text-airbnb-grey-700 px-6 py-3 rounded-md text-sm lg:text-base font-medium hover:bg-airbnb-grey-200 hover:text-airbnb-grey-900 transition-standard border border-airbnb-grey-300"
+                  to="/auth?mode=signup"
+                  className="hidden sm:block bg-orange-400 text-white px-4 lg:px-6 py-2 lg:py-2.5 rounded-full text-sm lg:text-base font-medium hover:bg-orange-500 transition-colors"
                 >
-                  {t('nav.partners')}
+                  Partners
                 </Link>
               </>
             ) : (
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-2 text-airbnb-grey-700 hover:text-airbnb-pink-500 transition-standard"
-                  aria-label="User menu"
-                  aria-expanded={dropdownOpen}
-                  aria-haspopup="true"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
                 >
-                  <div className="w-7 lg:w-8 h-7 lg:h-8 bg-airbnb-pink-50 rounded-full flex items-center justify-center">
-                    <User className="w-4 lg:w-5 h-4 lg:h-5 text-airbnb-pink-500" aria-hidden="true" />
+                  <div className="w-7 lg:w-8 h-7 lg:h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <User className="w-4 lg:w-5 h-4 lg:h-5 text-blue-600" />
                   </div>
                   <span className="text-sm font-medium hidden md:block">
                     {profile?.first_name || 'User'}
@@ -226,27 +189,27 @@ export function Navbar() {
                       className="fixed inset-0 z-10"
                       onClick={() => setDropdownOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20 border border-airbnb-grey-300">
-                      <div className="px-4 py-2 border-b border-airbnb-grey-300">
-                        <p className="text-sm font-medium text-airbnb-grey-900">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20 border border-gray-200">
+                      <div className="px-4 py-2 border-b border-gray-200">
+                        <p className="text-sm font-medium text-gray-900">
                           {profile?.first_name} {profile?.last_name}
                         </p>
-                        <p className="text-xs text-airbnb-grey-500">{user.email}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
                       <Link
                         to="/profile"
-                        className="flex items-center px-4 py-2 text-sm text-airbnb-grey-700 hover:bg-airbnb-grey-50 transition-fast"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <Settings className="w-4 h-4 mr-2" aria-hidden="true" />
-                        {t('nav.settings')}
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
                       </Link>
                       <button
                         onClick={handleSignOut}
-                        className="flex items-center w-full text-left px-4 py-2 text-sm text-airbnb-pink-600 hover:bg-airbnb-pink-50 transition-fast"
+                        className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
-                        <LogOut className="w-4 h-4 mr-2" aria-hidden="true" />
-                        {t('nav.sign_out')}
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
                       </button>
                     </div>
                   </>
@@ -256,40 +219,59 @@ export function Navbar() {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden ml-2 p-2 rounded-md text-airbnb-grey-700 hover:bg-airbnb-grey-50 transition-fast"
-              aria-label="Toggle mobile menu"
-              aria-expanded={mobileMenuOpen}
+              className="lg:hidden ml-2 p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" aria-hidden="true" />
+                <X className="w-6 h-6" />
               ) : (
-                <Menu className="w-6 h-6" aria-hidden="true" />
+                <Menu className="w-6 h-6" />
               )}
             </button>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-airbnb-grey-300 py-4 space-y-2">
+          <div className="lg:hidden border-t border-gray-200 py-4 space-y-2">
             <Link
               to="/camps"
               onClick={closeMobileMenu}
-              className="block px-4 py-2 text-base font-medium text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900 rounded-md transition-fast"
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
             >
-              {t('nav.browse_camps')}
+              Browse Camps
+            </Link>
+            <Link
+              to="/how-it-works"
+              onClick={closeMobileMenu}
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+            >
+              How it Works
+            </Link>
+            <Link
+              to="/safety"
+              onClick={closeMobileMenu}
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+            >
+              Safety & Trust
+            </Link>
+            <Link
+              to="/support"
+              onClick={closeMobileMenu}
+              className="block px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+            >
+              Support
             </Link>
 
             {user && profile?.role === 'parent' && (
               <Link
                 to="/dashboard"
                 onClick={closeMobileMenu}
-                className={`block px-4 py-2 text-base font-medium rounded-md transition-fast ${
+                className={`block px-4 py-2 text-base font-medium rounded-lg transition-colors ${
                   isActive('/dashboard')
-                    ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
-                    : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
-                {t('nav.dashboard')}
+                My Dashboard
               </Link>
             )}
 
@@ -298,10 +280,10 @@ export function Navbar() {
                 <Link
                   to="/admin/dashboard"
                   onClick={closeMobileMenu}
-                  className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
+                  className={`flex items-center px-4 py-2 text-base font-medium rounded-lg transition-colors ${
                     location.pathname.startsWith('/admin/dashboard')
-                      ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
-                      : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   <LayoutDashboard className="w-5 h-5 mr-2" />
@@ -310,10 +292,10 @@ export function Navbar() {
                 <Link
                   to="/admin/approvals"
                   onClick={closeMobileMenu}
-                  className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
+                  className={`flex items-center px-4 py-2 text-base font-medium rounded-lg transition-colors ${
                     isActive('/admin/approvals')
-                      ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
-                      : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   <CheckCircle className="w-5 h-5 mr-2" />
@@ -323,10 +305,10 @@ export function Navbar() {
                   <Link
                     to="/admin/roles"
                     onClick={closeMobileMenu}
-                    className={`flex items-center px-4 py-2 text-base font-medium rounded-md transition-fast ${
+                    className={`flex items-center px-4 py-2 text-base font-medium rounded-lg transition-colors ${
                       isActive('/admin/roles')
-                        ? 'bg-airbnb-pink-50 text-airbnb-pink-500'
-                        : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50 hover:text-airbnb-grey-900'
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >
                     <Shield className="w-5 h-5 mr-2" />
@@ -336,53 +318,31 @@ export function Navbar() {
               </>
             )}
 
-            <div className="pt-4 border-t border-airbnb-grey-300 mt-4">
-              {/* Mobile Language Selector */}
-              <div className="px-4 mb-4">
-                <label className="block text-xs font-medium text-airbnb-grey-600 mb-2">
-                  {t('common.language')}
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {LANGUAGES.map((language) => (
-                    <button
-                      key={language.code}
-                      onClick={() => handleLanguageChange(language.code)}
-                      className={`px-3 py-2 text-sm rounded-md transition-fast ${
-                        i18n.language === language.code
-                          ? 'bg-airbnb-pink-500 text-white'
-                          : 'bg-airbnb-grey-100 text-airbnb-grey-700 hover:bg-airbnb-grey-200'
-                      }`}
-                    >
-                      {language.nativeName}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+            <div className="pt-4 border-t border-gray-200 mt-4">
               {!user ? (
                 <>
                   <Link
                     to="/auth"
                     onClick={closeMobileMenu}
-                    className="block px-4 py-2 text-base font-medium text-airbnb-grey-900 hover:bg-airbnb-grey-50 rounded-md transition-fast"
+                    className="block px-4 py-2 text-base font-medium text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    {t('nav.sign_in')}
+                    Sign In
                   </Link>
                   <Link
-                    to="/partners"
+                    to="/auth?mode=signup"
                     onClick={closeMobileMenu}
-                    className="block px-4 py-2 mt-2 text-base font-medium text-airbnb-grey-700 bg-airbnb-grey-100 hover:bg-airbnb-grey-200 hover:text-airbnb-grey-900 rounded-md transition-fast text-center border border-airbnb-grey-300"
+                    className="block px-4 py-2 mt-2 text-base font-medium text-white bg-orange-400 hover:bg-orange-500 rounded-lg transition-colors text-center"
                   >
-                    {t('nav.partners')}
+                    Partners
                   </Link>
                 </>
               ) : (
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center w-full px-4 py-2 text-base font-medium text-airbnb-pink-600 hover:bg-airbnb-pink-50 rounded-md transition-fast"
+                  className="flex items-center w-full px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
-                  <LogOut className="w-5 h-5 mr-2" aria-hidden="true" />
-                  {t('nav.sign_out')}
+                  <LogOut className="w-5 h-5 mr-2" />
+                  Sign Out
                 </button>
               )}
             </div>
@@ -390,6 +350,5 @@ export function Navbar() {
         )}
       </div>
     </nav>
-    </>
   );
 }

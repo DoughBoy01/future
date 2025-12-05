@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/layout/Navbar';
-import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
 import { AuthPage } from './pages/AuthPage';
 import { CampsPage } from './pages/CampsPage';
@@ -24,7 +23,6 @@ import { OrganisationsManagement } from './pages/admin/OrganisationsManagement';
 import { CommissionsManagement } from './pages/admin/CommissionsManagement';
 import { SiteSettings } from './pages/admin/SiteSettings';
 import { SystemDiagnostics } from './pages/admin/SystemDiagnostics';
-import { PartnersPage } from './pages/PartnersPage';
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -47,16 +45,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/camps" element={<CampsPage />} />
-          <Route path="/camps/:id" element={<CampDetailPage />} />
-          <Route path="/partners" element={<PartnersPage />} />
-          <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/camps" element={<CampsPage />} />
+        <Route path="/camps/:id" element={<CampDetailPage />} />
+        <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
         <Route
           path="/payment-success"
           element={
@@ -221,10 +217,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </main>
-      <Footer />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </div>
   );
 }

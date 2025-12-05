@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { formatCurrency } from '../utils/currency';
 import {
   MapPin,
   Calendar,
@@ -13,11 +12,10 @@ import {
   AlertCircle,
   Share2,
   Heart,
-  ChevronLeft,
-  X
+  ChevronLeft
 } from 'lucide-react';
 import { ImageGallery } from '../components/camps/ImageGallery';
-import { VideoPlayer } from '../components/camps/VideoPlayer';
+import { VideoGallery } from '../components/camps/VideoGallery';
 import { EnhancedBookingWidget } from '../components/camps/EnhancedBookingWidget';
 import { HostInformation } from '../components/camps/HostInformation';
 import { AmenitiesSection } from '../components/camps/AmenitiesSection';
@@ -25,7 +23,6 @@ import { ReviewsSection } from '../components/camps/ReviewsSection';
 import { FAQSection } from '../components/camps/FAQSection';
 import { SocialProof } from '../components/urgency/SocialProof';
 import { CountdownTimer } from '../components/urgency/CountdownTimer';
-import { SocialMeta } from '../components/seo/SocialMeta';
 import type { Database } from '../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
@@ -95,71 +92,71 @@ function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-airbnb-grey-200">
-          <h2 className="text-2xl font-bold text-airbnb-grey-900">Ask about {campName}</h2>
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900">Ask about {campName}</h2>
         </div>
 
         {success ? (
           <div className="p-8 text-center">
-            <CheckCircle className="w-16 h-16 text-airbnb-pink-500 mx-auto mb-4" aria-hidden="true" />
-            <h3 className="text-xl font-bold text-airbnb-grey-900 mb-2">Enquiry Sent!</h3>
-            <p className="text-airbnb-grey-600">We'll get back to you soon.</p>
+            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Enquiry Sent!</h3>
+            <p className="text-gray-600">We'll get back to you soon.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Your Name *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
               <input
                 type="text"
                 required
                 value={formData.parent_name}
                 onChange={(e) => setFormData({ ...formData, parent_name: e.target.value })}
-                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Email *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
               <input
                 type="email"
                 required
                 value={formData.parent_email}
                 onChange={(e) => setFormData({ ...formData, parent_email: e.target.value })}
-                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
               <input
                 type="tel"
                 value={formData.parent_phone}
                 onChange={(e) => setFormData({ ...formData, parent_phone: e.target.value })}
-                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Subject *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
               <input
                 type="text"
                 required
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 placeholder="e.g., Question about dietary requirements"
-                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">Message *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
               <textarea
                 required
                 rows={4}
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 placeholder="Ask us anything about this camp..."
-                className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent transition-standard"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -167,14 +164,14 @@ function EnquiryModal({ isOpen, campName, onClose, onSubmit }: EnquiryModalProps
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 border border-airbnb-grey-300 rounded-lg text-airbnb-grey-700 font-medium hover:bg-airbnb-grey-50 transition-airbnb"
+                className="flex-1 px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 px-6 py-3 bg-airbnb-pink-500 text-white rounded-md font-medium hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb disabled:opacity-50 shadow-sm hover:shadow-md"
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {submitting ? 'Sending...' : 'Send Enquiry'}
               </button>
@@ -198,9 +195,6 @@ export function CampDetailPage() {
   const [stickyBar, setStickyBar] = useState(false);
   const [reviews, setReviews] = useState<any[]>([]);
   const [ratingsSummary, setRatingsSummary] = useState<any>(null);
-  const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [showCopyToast, setShowCopyToast] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -331,40 +325,6 @@ export function CampDetailPage() {
     });
   };
 
-  const handleShare = async () => {
-    if (!camp) return;
-
-    const shareData = {
-      title: camp.name,
-      text: `Check out this amazing camp: ${camp.name}! ${camp.category} camp in ${camp.location} for ages ${camp.age_min}-${camp.age_max}. Starting at ${formatCurrency(camp.price, camp.currency)}.`,
-      url: window.location.href,
-    };
-
-    try {
-      // Check if Web Share API is supported
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        // Fallback: Copy to clipboard
-        await navigator.clipboard.writeText(window.location.href);
-        setShowCopyToast(true);
-        setTimeout(() => setShowCopyToast(false), 3000);
-      }
-    } catch (error) {
-      // User cancelled or error occurred
-      if ((error as Error).name !== 'AbortError') {
-        // Fallback to clipboard
-        try {
-          await navigator.clipboard.writeText(window.location.href);
-          setShowCopyToast(true);
-          setTimeout(() => setShowCopyToast(false), 3000);
-        } catch (clipboardError) {
-          console.error('Failed to copy to clipboard:', clipboardError);
-        }
-      }
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -385,7 +345,7 @@ export function CampDetailPage() {
           <p className="text-gray-600 mb-6">This camp may not exist or is no longer available.</p>
           <Link
             to="/camps"
-            className="inline-flex items-center px-6 py-3 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb shadow-sm hover:shadow-md"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Browse All Camps
           </Link>
@@ -402,28 +362,11 @@ export function CampDetailPage() {
     ...(Array.isArray((camp as any).gallery_urls) ? (camp as any).gallery_urls : [])
   ].filter(Boolean).slice(0, 10);
 
-  const extractYouTubeThumbnail = (url: string): string | undefined => {
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s?]+)/,
-      /youtube\.com\/embed\/([^&\s?]+)/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match && match[1]) {
-        return `https://img.youtube.com/vi/${match[1]}/maxresdefault.jpg`;
-      }
-    }
-    return undefined;
-  };
-
   const videoData = [];
   if ((camp as any).video_url) {
-    const url = (camp as any).video_url;
     videoData.push({
-      url,
+      url: (camp as any).video_url,
       title: 'Camp Introduction',
-      thumbnail: extractYouTubeThumbnail(url),
       type: 'youtube' as const
     });
   }
@@ -431,7 +374,6 @@ export function CampDetailPage() {
     videoData.push(...(camp as any).video_urls.map((url: string, idx: number) => ({
       url,
       title: `Camp Video ${idx + 2}`,
-      thumbnail: extractYouTubeThumbnail(url),
       type: 'youtube' as const
     })));
   }
@@ -440,7 +382,7 @@ export function CampDetailPage() {
       url: meta.url,
       title: meta.title,
       description: meta.description,
-      thumbnail: meta.thumbnail_url || extractYouTubeThumbnail(meta.url),
+      thumbnail: meta.thumbnail_url,
       type: meta.video_type || 'youtube'
     }));
     videoData.push(...metadataVideos);
@@ -450,30 +392,8 @@ export function CampDetailPage() {
   const amenities = Array.isArray((camp as any).amenities) ? (camp as any).amenities : [];
   const faqs = Array.isArray((camp as any).faqs) ? (camp as any).faqs : [];
 
-  // Create meta description
-  const metaDescription = camp.description
-    ? camp.description.substring(0, 155) + (camp.description.length > 155 ? '...' : '')
-    : `${camp.category} camp in ${camp.location} for ages ${camp.age_min}-${camp.age_max}. Starting at ${formatCurrency(camp.price, camp.currency)}.`;
-
-  const formatDateShort = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <SocialMeta
-        title={camp.name}
-        description={metaDescription}
-        image={camp.featured_image_url || undefined}
-        type="website"
-        price={formatCurrency(camp.price, camp.currency)}
-        location={camp.location}
-        dates={`${formatDateShort(camp.start_date)} - ${formatDateShort(camp.end_date)}`}
-      />
       {stickyBar && availabilityStatus !== 'full' && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg border-b border-gray-200 py-3 animate-slide-down">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -485,7 +405,7 @@ export function CampDetailPage() {
             </div>
             <Link
               to={`/camps/${camp.id}/register`}
-              className="px-6 py-2 bg-airbnb-pink-500 text-white rounded-md hover:bg-airbnb-pink-600 hover:scale-[1.02] transition-airbnb font-semibold shadow-sm hover:shadow-md"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
             >
               Reserve Now
             </Link>
@@ -516,48 +436,39 @@ export function CampDetailPage() {
                 <MapPin className="w-4 h-4" />
                 <span>{camp.location}</span>
               </div>
-              <span className="px-3 py-1 bg-airbnb-pink-50 text-airbnb-pink-700 rounded-full text-xs font-medium uppercase">
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium uppercase">
                 {camp.category}
               </span>
             </div>
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleShare}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
-              aria-label="Share this camp"
-            >
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300">
               <Share2 className="w-5 h-5 text-gray-600" />
             </button>
-            <button
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
-              aria-label="Save to favorites"
-            >
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300">
               <Heart className="w-5 h-5 text-gray-600" />
             </button>
           </div>
         </div>
 
-        <ImageGallery
-          images={images}
-          videos={videoData}
-          campName={camp.name}
-          onVideoClick={(videoIndex) => {
-            setSelectedVideoIndex(videoIndex);
-            setIsVideoModalOpen(true);
-          }}
-        />
+        <ImageGallery images={images} campName={camp.name} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-          <div className="lg:col-span-2 space-y-8 min-w-0">
+        {videoData.length > 0 && (
+          <div className="mt-6">
+            <VideoGallery videos={videoData} campName={camp.name} />
+          </div>
+        )}
+
+        <div className="grid lg:grid-cols-3 gap-8 mt-8">
+          <div className="lg:col-span-2 space-y-8">
             {highlights.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">Camp Highlights</h2>
                 <ul className="space-y-3">
                   {highlights.map((highlight: string, index: number) => (
                     <li key={index} className="flex items-start gap-3">
-                      <CheckCircle className="w-6 h-6 text-airbnb-pink-500 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                       <span className="text-gray-700">{highlight}</span>
                     </li>
                   ))}
@@ -603,8 +514,8 @@ export function CampDetailPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Camp Details</h2>
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-airbnb-pink-50 rounded-md">
-                    <Calendar className="w-6 h-6 text-airbnb-pink-500" aria-hidden="true" />
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Calendar className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">Dates</p>
@@ -614,8 +525,8 @@ export function CampDetailPage() {
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-airbnb-grey-100 rounded-md">
-                    <Users className="w-6 h-6 text-airbnb-grey-700" aria-hidden="true" />
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Users className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">Age Range</p>
@@ -674,7 +585,7 @@ export function CampDetailPage() {
             {((camp as any).safety_protocols || (camp as any).insurance_info) && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <Shield className="w-7 h-7 text-airbnb-pink-500" aria-hidden="true" />
+                  <Shield className="w-7 h-7 text-green-600" />
                   <h2 className="text-2xl font-bold text-gray-900">Safety & Insurance</h2>
                 </div>
                 {(camp as any).safety_protocols && (
@@ -695,7 +606,7 @@ export function CampDetailPage() {
             {((camp as any).cancellation_policy || (camp as any).refund_policy) && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <Info className="w-7 h-7 text-airbnb-grey-700" aria-hidden="true" />
+                  <Info className="w-7 h-7 text-blue-600" />
                   <h2 className="text-2xl font-bold text-gray-900">Cancellation & Refund Policy</h2>
                 </div>
                 {(camp as any).cancellation_policy && (
@@ -723,24 +634,22 @@ export function CampDetailPage() {
             {faqs.length > 0 && <FAQSection faqs={faqs} />}
           </div>
 
-          <div className="lg:col-span-1 min-w-0">
-            <div className="lg:sticky lg:top-24">
-              <EnhancedBookingWidget
-                campId={camp.id}
-                price={camp.price}
-                currency={camp.currency}
-                earlyBirdPrice={camp.early_bird_price || undefined}
-                earlyBirdDeadline={camp.early_bird_deadline || undefined}
-                availablePlaces={availablePlaces}
-                capacity={camp.capacity}
-                startDate={camp.start_date}
-                endDate={camp.end_date}
-                averageRating={ratingsSummary?.average}
-                totalReviews={ratingsSummary?.total}
-                cancellationPolicy={(camp as any).cancellation_policy}
-                onEnquiryClick={() => setShowEnquiryModal(true)}
-              />
-            </div>
+          <div className="lg:col-span-1">
+            <EnhancedBookingWidget
+              campId={camp.id}
+              price={camp.price}
+              currency={camp.currency}
+              earlyBirdPrice={camp.early_bird_price || undefined}
+              earlyBirdDeadline={camp.early_bird_deadline || undefined}
+              availablePlaces={availablePlaces}
+              capacity={camp.capacity}
+              startDate={camp.start_date}
+              endDate={camp.end_date}
+              averageRating={ratingsSummary?.average}
+              totalReviews={ratingsSummary?.total}
+              cancellationPolicy={(camp as any).cancellation_policy}
+              onEnquiryClick={() => setShowEnquiryModal(true)}
+            />
           </div>
         </div>
       </div>
@@ -751,57 +660,6 @@ export function CampDetailPage() {
         onClose={() => setShowEnquiryModal(false)}
         onSubmit={handleEnquirySubmit}
       />
-
-      {/* Copy Toast Notification */}
-      {showCopyToast && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 animate-slide-in">
-          <div className="bg-airbnb-grey-900 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-400" />
-            <span className="font-medium">Link copied to clipboard!</span>
-          </div>
-        </div>
-      )}
-
-      {isVideoModalOpen && selectedVideoIndex !== null && videoData[selectedVideoIndex] && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4"
-          onClick={() => setIsVideoModalOpen(false)}
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsVideoModalOpen(false);
-            }}
-            className="absolute top-4 right-4 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors z-10"
-            aria-label="Close video"
-          >
-            <X className="w-8 h-8" />
-          </button>
-
-          <div
-            className="relative w-full max-w-6xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <VideoPlayer
-              url={videoData[selectedVideoIndex].url}
-              title={videoData[selectedVideoIndex].title}
-              thumbnail={videoData[selectedVideoIndex].thumbnail}
-              autoplay={true}
-              className="w-full shadow-2xl"
-            />
-            {(videoData[selectedVideoIndex].title || videoData[selectedVideoIndex].description) && (
-              <div className="mt-4 text-white">
-                {videoData[selectedVideoIndex].title && (
-                  <h3 className="text-xl font-bold mb-2">{videoData[selectedVideoIndex].title}</h3>
-                )}
-                {videoData[selectedVideoIndex].description && (
-                  <p className="text-gray-300">{videoData[selectedVideoIndex].description}</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

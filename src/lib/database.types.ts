@@ -655,13 +655,9 @@ export interface Database {
           photos: Json | null
           helpful_count: number
           verified_booking: boolean
-          parent_name: string | null
-          parent_email: string | null
           parent_location: string | null
           response_from_host: string | null
           response_date: string | null
-          visible: boolean
-          featured: boolean
           submitted_at: string
           created_at: string
         }
@@ -679,16 +675,6 @@ export interface Database {
           comments?: string | null
           would_recommend: boolean
           testimonial_permission?: boolean
-          photos?: Json | null
-          helpful_count?: number
-          verified_booking?: boolean
-          parent_name?: string | null
-          parent_email?: string | null
-          parent_location?: string | null
-          response_from_host?: string | null
-          response_date?: string | null
-          visible?: boolean
-          featured?: boolean
           submitted_at?: string
           created_at?: string
         }
@@ -706,16 +692,6 @@ export interface Database {
           comments?: string | null
           would_recommend?: boolean
           testimonial_permission?: boolean
-          photos?: Json | null
-          helpful_count?: number
-          verified_booking?: boolean
-          parent_name?: string | null
-          parent_email?: string | null
-          parent_location?: string | null
-          response_from_host?: string | null
-          response_date?: string | null
-          visible?: boolean
-          featured?: boolean
           submitted_at?: string
           created_at?: string
         }

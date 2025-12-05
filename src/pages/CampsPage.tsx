@@ -1,112 +1,57 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Search, Filter, Calendar, MapPin, Users, X, DollarSign } from 'lucide-react';
-import { getConvertedPrice, detectUserCurrency, getPopularCurrencies, CURRENCY_SYMBOLS, CURRENCY_NAMES } from '../lib/currency';
+import { Search, Filter, Calendar, MapPin, Users, DollarSign } from 'lucide-react';
 import type { Database } from '../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
-type Category = Database['public']['Tables']['camp_categories']['Row'];
+
+const categories = [
+  { value: '', label: 'All Categories' },
+  { value: 'sports', label: 'Sports' },
+  { value: 'arts', label: 'Arts' },
+  { value: 'stem', label: 'STEM' },
+  { value: 'language', label: 'Language' },
+  { value: 'adventure', label: 'Adventure' },
+  { value: 'academic', label: 'Academic' },
+  { value: 'creative', label: 'Creative' },
+];
 
 export function CampsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [camps, setCamps] = useState<Camp[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [ageFilter, setAgeFilter] = useState('');
-  const [userCurrency, setUserCurrency] = useState<string>(() => {
-    // Try to get saved currency preference or detect from browser
-    return localStorage.getItem('preferredCurrency') || detectUserCurrency();
-  });
-  const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
 
   useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    if (categoryParam) {
-      setSelectedCategories([categoryParam]);
-    }
-  }, [searchParams]);
+    loadCamps();
+  }, [selectedCategory]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
+  async function loadCamps() {
     try {
-      const [campsResponse, categoriesResponse, assignmentsResponse] = await Promise.all([
-        supabase
-          .from('camps')
-          .select('*')
-          .eq('status', 'published')
-          .order('start_date', { ascending: true }),
-        supabase
-          .from('camp_categories')
-          .select('*')
-          .eq('active', true)
-          .order('display_order', { ascending: true }),
-        supabase
-          .from('camp_category_assignments')
-          .select('camp_id, category_id, camp_categories(slug)')
-      ]);
+      let query = supabase
+        .from('camps')
+        .select('*')
+        .eq('status', 'published')
+        .order('start_date', { ascending: true });
 
-      if (campsResponse.error) throw campsResponse.error;
-      if (categoriesResponse.error) throw categoriesResponse.error;
-      if (assignmentsResponse.error) throw assignmentsResponse.error;
+      if (selectedCategory) {
+        query = query.eq('category', selectedCategory);
+      }
 
-      const campsWithCategories = (campsResponse.data || []).map(camp => ({
-        ...camp,
-        category_slugs: (assignmentsResponse.data || [])
-          .filter(a => a.camp_id === camp.id)
-          .map(a => (a.camp_categories as any)?.slug)
-          .filter(Boolean)
-      }));
+      const { data, error } = await query;
 
-      setCamps(campsWithCategories as any);
-      setCategories(categoriesResponse.data || []);
+      if (error) throw error;
+      setCamps(data || []);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Error loading camps:', error);
     } finally {
       setLoading(false);
     }
   }
 
-  const toggleCategory = (slug: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(slug)
-        ? prev.filter(s => s !== slug)
-        : [...prev, slug]
-    );
-  };
-
-  const toggleLocation = (location: string) => {
-    setSelectedLocations(prev =>
-      prev.includes(location)
-        ? prev.filter(l => l !== location)
-        : [...prev, location]
-    );
-  };
-
-  const clearAllFilters = () => {
-    setSearchTerm('');
-    setSelectedCategories([]);
-    setSelectedLocations([]);
-    setAgeFilter('');
-    setSearchParams({});
-  };
-
-  const handleCurrencyChange = (currency: string) => {
-    setUserCurrency(currency);
-    localStorage.setItem('preferredCurrency', currency);
-    setShowCurrencyMenu(false);
-  };
-
-  // Extract unique locations from camps
-  const uniqueLocations = Array.from(new Set(camps.map(camp => camp.location))).sort();
-
-  const filteredCamps = camps.filter((camp: any) => {
+  const filteredCamps = camps.filter((camp) => {
     const matchesSearch =
       camp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       camp.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -116,13 +61,7 @@ export function CampsPage() {
       parseInt(ageFilter) <= camp.age_max
     );
 
-    const matchesCategory = selectedCategories.length === 0 ||
-      (camp.category_slugs && selectedCategories.some((slug: string) => camp.category_slugs.includes(slug)));
-
-    const matchesLocation = selectedLocations.length === 0 ||
-      selectedLocations.includes(camp.location);
-
-    return matchesSearch && matchesAge && matchesCategory && matchesLocation;
+    return matchesSearch && matchesAge;
   });
 
   const formatDate = (dateStr: string) => {
@@ -135,188 +74,106 @@ export function CampsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-airbnb-grey-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-airbnb-pink-500 mx-auto mb-4"></div>
-          <p className="text-airbnb-grey-600">Loading camps...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading camps...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-airbnb-grey-50">
-      {/* Filters Header with Description */}
-      <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          {/* Header Title with Currency Selector */}
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
-              Explore the perfect experiences for your child
-            </h1>
-
-            {/* Currency Selector - Subtle and non-intrusive */}
-            <div className="relative">
-              <button
-                onClick={() => setShowCurrencyMenu(!showCurrencyMenu)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white text-sm font-medium backdrop-blur-sm"
-                title="Change currency"
-              >
-                <DollarSign className="w-4 h-4" />
-                <span className="hidden sm:inline">{userCurrency}</span>
-              </button>
-
-              {/* Currency Dropdown Menu */}
-              {showCurrencyMenu && (
-                <>
-                  {/* Backdrop to close menu */}
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowCurrencyMenu(false)}
-                  />
-
-                  {/* Menu */}
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-20 overflow-hidden">
-                    <div className="p-2 bg-airbnb-grey-50 border-b border-airbnb-grey-200">
-                      <p className="text-xs font-medium text-airbnb-grey-600 px-2">Display prices in:</p>
-                    </div>
-                    <div className="max-h-64 overflow-y-auto py-1">
-                      {getPopularCurrencies().map((currency) => (
-                        <button
-                          key={currency}
-                          onClick={() => handleCurrencyChange(currency)}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-airbnb-grey-50 transition-colors flex items-center justify-between ${
-                            userCurrency === currency ? 'bg-airbnb-pink-50 text-airbnb-pink-600 font-medium' : 'text-airbnb-grey-900'
-                          }`}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span className="font-mono text-xs w-8">{CURRENCY_SYMBOLS[currency]}</span>
-                            <span>{currency}</span>
-                          </span>
-                          <span className="text-xs text-airbnb-grey-500">{CURRENCY_NAMES[currency]}</span>
-                        </button>
-                      ))}
-                    </div>
-                    <div className="p-2 bg-airbnb-grey-50 border-t border-airbnb-grey-200">
-                      <p className="text-xs text-airbnb-grey-500 px-2">Prices are estimates. Check with organizer for exact rates.</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Age Filter Pills & Clear Button */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-white/90 whitespace-nowrap">Age:</span>
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-              {[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((age) => {
-                const isSelected = ageFilter === age.toString();
-                return (
-                  <button
-                    key={age}
-                    onClick={() => setAgeFilter(isSelected ? '' : age.toString())}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
-                      isSelected
-                        ? 'bg-white text-airbnb-pink-600 shadow-sm'
-                        : 'bg-white/20 text-white hover:bg-white/30'
-                    }`}
-                  >
-                    {age}
-                  </button>
-                );
-              })}
-            </div>
-            {(selectedCategories.length > 0 || selectedLocations.length > 0 || ageFilter) && (
-              <button
-                onClick={clearAllFilters}
-                className="ml-auto px-3 py-1.5 text-xs text-white hover:bg-white/20 rounded-lg font-medium transition-standard whitespace-nowrap flex-shrink-0"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-
-          {/* Category Pills Row - Horizontal Scroll */}
-          <div className="flex items-center gap-2 mb-2">
-            <Filter className="w-4 h-4 text-white/90 flex-shrink-0" />
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {categories.map((category) => {
-                const isSelected = selectedCategories.includes(category.slug);
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => toggleCategory(category.slug)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
-                      isSelected
-                        ? 'bg-white text-airbnb-pink-600 shadow-sm'
-                        : 'bg-white/20 text-white hover:bg-white/30'
-                    }`}
-                  >
-                    {category.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Location Pills Row - Horizontal Scroll */}
-          {uniqueLocations.length > 0 && (
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-white/90 flex-shrink-0" />
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {uniqueLocations.map((location) => {
-                  const isSelected = selectedLocations.includes(location);
-                  return (
-                    <button
-                      key={location}
-                      onClick={() => toggleLocation(location)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
-                        isSelected
-                          ? 'bg-white text-airbnb-pink-600 shadow-sm'
-                          : 'bg-white/20 text-white hover:bg-white/30'
-                      }`}
-                    >
-                      {location}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-8 sm:py-10 md:py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Explore Activity Camps</h1>
+          <p className="text-base sm:text-lg md:text-xl text-blue-100">
+            Find the perfect camp experience for your child from {camps.length} available options
+          </p>
         </div>
       </div>
 
-      {/* Camp Cards Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-12">
-        <p className="text-sm text-airbnb-grey-600 mb-6">
-          {filteredCamps.length} {filteredCamps.length === 1 ? 'camp' : 'camps'} available
-        </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Search className="w-4 h-4 inline mr-1" />
+                Search Camps
+              </label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by name or description..."
+                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Filter className="w-4 h-4 inline mr-1" />
+                Category
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {categories.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Child's Age
+              </label>
+              <input
+                type="number"
+                value={ageFilter}
+                onChange={(e) => setAgeFilter(e.target.value)}
+                placeholder="Enter age..."
+                min="5"
+                max="18"
+                className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
 
         {filteredCamps.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-airbnb-grey-600 text-lg">No camps found matching your criteria.</p>
+            <p className="text-gray-600 text-lg">No camps found matching your criteria.</p>
             <button
-              onClick={clearAllFilters}
-              className="mt-4 text-airbnb-pink-500 hover:text-airbnb-pink-600 font-medium transition-standard"
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCategory('');
+                setAgeFilter('');
+              }}
+              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
             >
               Clear filters
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredCamps.map((camp) => (
               <Link
                 key={camp.id}
                 to={`/camps/${camp.id}`}
-                className="bg-white rounded-lg sm:rounded-xl shadow-md hover:shadow-xl transition-airbnb overflow-hidden group hover:-translate-y-1"
+                className="bg-white rounded-lg sm:rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group"
               >
-                <div className="relative h-40 sm:h-48 bg-gradient-to-br from-airbnb-pink-400 to-airbnb-pink-600 overflow-hidden">
+                <div className="relative h-40 sm:h-48 bg-gradient-to-br from-blue-400 to-blue-600 overflow-hidden">
                   {camp.featured_image_url ? (
                     <img
                       src={camp.featured_image_url}
                       alt={camp.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -324,7 +181,7 @@ export function CampsPage() {
                     </div>
                   )}
                   {camp.featured && (
-                    <div className="absolute top-3 right-3 bg-amber-400 text-amber-900 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                    <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold">
                       Featured
                     </div>
                   )}
@@ -332,63 +189,49 @@ export function CampsPage() {
 
                 <div className="p-4 sm:p-6">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 bg-airbnb-grey-100 text-airbnb-grey-700 rounded-full text-xs font-medium capitalize border border-airbnb-grey-200">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium capitalize">
                       {camp.category}
                     </span>
-                    <span className="text-sm text-airbnb-grey-500">
+                    <span className="text-sm text-gray-500">
                       Ages {camp.age_min}-{camp.age_max}
                     </span>
                   </div>
 
-                  <h3 className="text-lg sm:text-xl font-bold text-airbnb-grey-900 mb-2 group-hover:text-airbnb-pink-500 transition-standard">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                     {camp.name}
                   </h3>
 
-                  <p className="text-airbnb-grey-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
+                  <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
                     {camp.description}
                   </p>
 
-                  <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-airbnb-grey-600">
+                  <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600">
                     <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2 text-airbnb-grey-400" />
+                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
                       {formatDate(camp.start_date)} - {formatDate(camp.end_date)}
                     </div>
                     <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-2 text-airbnb-grey-400" />
+                      <MapPin className="w-4 h-4 mr-2 text-gray-400" />
                       {camp.location}
                     </div>
                     <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-2 text-airbnb-grey-400" />
+                      <Users className="w-4 h-4 mr-2 text-gray-400" />
                       Capacity: {camp.capacity}
                     </div>
                   </div>
 
-                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-airbnb-grey-200 flex items-center justify-between">
+                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 flex items-center justify-between">
                     <div>
-                      {(() => {
-                        const convertedPrice = getConvertedPrice(camp.price, camp.currency, userCurrency);
-                        const showOriginal = convertedPrice.isConverted;
-
-                        return (
-                          <>
-                            <div className="text-xl sm:text-2xl font-bold text-airbnb-grey-900">
-                              {convertedPrice.formatted}
-                            </div>
-                            {showOriginal && (
-                              <div className="text-xs text-airbnb-grey-500">
-                                {CURRENCY_SYMBOLS[camp.currency] || camp.currency}{camp.price.toFixed(0)} {camp.currency}
-                              </div>
-                            )}
-                            {camp.early_bird_price && camp.early_bird_deadline && new Date(camp.early_bird_deadline) > new Date() && (
-                              <div className="text-xs text-green-600 font-medium">
-                                Early bird: {getConvertedPrice(camp.early_bird_price, camp.currency, userCurrency).formatted}
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
+                      <div className="text-xl sm:text-2xl font-bold text-gray-900">
+                        ${camp.price}
+                      </div>
+                      {camp.early_bird_price && camp.early_bird_deadline && new Date(camp.early_bird_deadline) > new Date() && (
+                        <div className="text-xs text-green-600 font-medium">
+                          Early bird: ${camp.early_bird_price}
+                        </div>
+                      )}
                     </div>
-                    <span className="text-sm sm:text-base text-airbnb-pink-500 font-medium group-hover:underline">
+                    <span className="text-sm sm:text-base text-blue-600 font-medium group-hover:underline">
                       Learn More →
                     </span>
                   </div>
