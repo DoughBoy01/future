@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { DataTable, Column } from '../../components/dashboard/DataTable';
-import { Plus, Edit, Trash2, ExternalLink, Users, TrendingUp, CheckCircle, AlertCircle, Star, MessageSquare, Download, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, ExternalLink, Users, TrendingUp, CheckCircle, AlertCircle, Star, MessageSquare, Download, Upload, XCircle, FileEdit } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { CampFormModal } from '../../components/camps/CampFormModal';
 import { ReviewManagementModal } from '../../components/reviews/ReviewManagementModal';
@@ -50,10 +50,13 @@ function calculateContentCompleteness(camp: Camp): { completeness: number; quali
   return { completeness: percentage, quality };
 }
 
-export function CampsManagement() {
+// Exported content component (can be wrapped with different layouts)
+export function CampsManagementContent() {
   const { profile } = useAuth();
   const [camps, setCamps] = useState<CampWithAvailability[]>([]);
+  const [organisations, setOrganisations] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCamp, setSelectedCamp] = useState<Camp | undefined>(undefined);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -62,16 +65,42 @@ export function CampsManagement() {
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
-    loadCamps();
+    loadOrganisations().then(() => loadCamps());
   }, []);
+
+  async function loadOrganisations() {
+    try {
+      const { data, error } = await supabase
+        .from('organisations')
+        .select('id, name');
+
+      if (error) throw error;
+
+      const orgMap = new Map<string, string>();
+      (data || []).forEach(org => {
+        orgMap.set(org.id, org.name);
+      });
+      setOrganisations(orgMap);
+    } catch (error) {
+      console.error('Error loading organisations:', error);
+    }
+  }
 
   const handleExportCSV = async () => {
     setIsExporting(true);
     try {
-      const { data, error } = await supabase
+      // Build query based on user role (same filtering as loadCamps)
+      let query = supabase
         .from('camps')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Filter camps for camp organizers (only their organization's camps)
+      if (profile?.role === 'camp_organizer' && profile?.organisation_id) {
+        query = query.eq('organisation_id', profile.organisation_id);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -109,12 +138,40 @@ export function CampsManagement() {
 
   async function loadCamps() {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      setError(null);
+
+      console.log('[CampsManagement] ===== DEBUGGING =====');
+      console.log('[CampsManagement] Profile:', profile);
+      console.log('[CampsManagement] Role:', profile?.role);
+      console.log('[CampsManagement] Organisation ID:', profile?.organisation_id);
+      console.log('[CampsManagement] Is camp_organizer?', profile?.role === 'camp_organizer');
+      console.log('[CampsManagement] Has org ID?', !!profile?.organisation_id);
+
+      // Build query based on user role
+      let query = supabase
         .from('camps')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      // Filter camps for camp organizers (only their organization's camps)
+      if (profile?.role === 'camp_organizer' && profile?.organisation_id) {
+        console.log('[CampsManagement] ✅ FILTERING camps by organisation_id:', profile.organisation_id);
+        query = query.eq('organisation_id', profile.organisation_id);
+      } else {
+        console.log('[CampsManagement] ⚠️ NOT FILTERING - showing all camps');
+        console.log('[CampsManagement] Reason: role is', profile?.role, 'org_id is', profile?.organisation_id);
+      }
+
+      const { data, error: queryError } = await query;
+
+      if (queryError) {
+        console.error('[CampsManagement] Query error:', queryError);
+        setError(`Failed to load camps: ${queryError.message}`);
+        return;
+      }
+
+      console.log('[CampsManagement] Loaded camps count:', data?.length || 0);
 
       const campsWithAvailability: CampWithAvailability[] = await Promise.all(
         (data || []).map(async (camp) => {
@@ -146,8 +203,9 @@ export function CampsManagement() {
       );
 
       setCamps(campsWithAvailability);
-    } catch (error) {
-      console.error('Error loading camps:', error);
+    } catch (err) {
+      console.error('[CampsManagement] Unexpected error:', err);
+      setError('An unexpected error occurred while loading camps');
     } finally {
       setLoading(false);
     }
@@ -158,12 +216,18 @@ export function CampsManagement() {
       key: 'name',
       label: 'Camp Name',
       sortable: true,
-      render: (camp) => (
-        <div>
-          <p className="font-medium text-gray-900">{camp.name}</p>
-          <p className="text-xs text-gray-500 capitalize">{camp.category}</p>
-        </div>
-      ),
+      render: (camp) => {
+        const orgName = camp.organisation_id
+          ? organisations.get(camp.organisation_id) || 'Unknown Organization'
+          : 'No Organization';
+
+        return (
+          <div>
+            <p className="font-medium text-gray-900">{camp.name}</p>
+            <p className="text-xs text-gray-500">{orgName}</p>
+          </div>
+        );
+      },
     },
     {
       key: 'start_date',
@@ -314,20 +378,25 @@ export function CampsManagement() {
       label: 'Status',
       sortable: true,
       render: (camp) => {
-        const statusColors = {
-          draft: 'bg-gray-100 text-gray-700',
-          published: 'bg-green-100 text-green-700',
-          full: 'bg-yellow-100 text-yellow-700',
-          cancelled: 'bg-red-100 text-red-700',
-          completed: 'bg-blue-100 text-blue-700',
+        const statusConfig: Record<string, { color: string; label: string }> = {
+          draft: { color: 'bg-gray-100 text-gray-700', label: 'Draft' },
+          published: { color: 'bg-blue-100 text-blue-700', label: 'Published' },
+          pending_review: { color: 'bg-yellow-100 text-yellow-700', label: 'Pending Review' },
+          requires_changes: { color: 'bg-orange-100 text-orange-700', label: 'Requires Changes' },
+          approved: { color: 'bg-green-100 text-green-700', label: 'Approved' },
+          unpublished: { color: 'bg-gray-100 text-gray-700', label: 'Unpublished' },
+          archived: { color: 'bg-gray-100 text-gray-600', label: 'Archived' },
+          rejected: { color: 'bg-red-100 text-red-700', label: 'Rejected' },
+          full: { color: 'bg-purple-100 text-purple-700', label: 'Full' },
+          cancelled: { color: 'bg-red-100 text-red-700', label: 'Cancelled' },
+          completed: { color: 'bg-blue-100 text-blue-700', label: 'Completed' },
         };
+
+        const config = statusConfig[camp.status] || statusConfig.draft;
+
         return (
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
-              statusColors[camp.status]
-            }`}
-          >
-            {camp.status.charAt(0).toUpperCase() + camp.status.slice(1)}
+          <span className={`px-3 py-1 rounded-full text-xs font-medium ${config.color}`}>
+            {config.label}
           </span>
         );
       },
@@ -337,6 +406,43 @@ export function CampsManagement() {
       label: 'Actions',
       render: (camp) => (
         <div className="flex gap-2">
+          {/* Approval Actions for pending_review camps */}
+          {camp.status === 'pending_review' && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApproveCamp(camp);
+                }}
+                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                title="Approve and publish"
+              >
+                <CheckCircle className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRequestChanges(camp);
+                }}
+                className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                title="Request changes"
+              >
+                <FileEdit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRejectCamp(camp);
+                }}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Reject camp"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </>
+          )}
+
+          {/* Standard Actions */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -410,31 +516,110 @@ export function CampsManagement() {
     }
   };
 
+  const handleApproveCamp = async (camp: Camp) => {
+    if (!confirm(`Approve and publish "${camp.name}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from('camps')
+        .update({
+          status: 'published',
+          published_at: new Date().toISOString()
+        })
+        .eq('id', camp.id);
+
+      if (error) throw error;
+
+      // Reload camps to refresh the list
+      await loadCamps();
+      alert(`"${camp.name}" has been published!`);
+    } catch (error) {
+      console.error('Error approving camp:', error);
+      alert('Failed to approve camp');
+    }
+  };
+
+  const handleRequestChanges = async (camp: Camp) => {
+    const changes = prompt(`What changes are needed for "${camp.name}"?`);
+    if (!changes) return;
+
+    try {
+      const { error } = await supabase
+        .from('camps')
+        .update({
+          status: 'requires_changes',
+          changes_requested: changes
+        })
+        .eq('id', camp.id);
+
+      if (error) throw error;
+
+      await loadCamps();
+      alert('Camp organizer has been notified of required changes');
+    } catch (error) {
+      console.error('Error requesting changes:', error);
+      alert('Failed to request changes');
+    }
+  };
+
+  const handleRejectCamp = async (camp: Camp) => {
+    const reason = prompt(`Reason for rejecting "${camp.name}"?`);
+    if (!reason) return;
+
+    try {
+      const { error } = await supabase
+        .from('camps')
+        .update({
+          status: 'rejected',
+          rejection_reason: reason
+        })
+        .eq('id', camp.id);
+
+      if (error) throw error;
+
+      await loadCamps();
+      alert('Camp has been rejected');
+    } catch (error) {
+      console.error('Error rejecting camp:', error);
+      alert('Failed to reject camp');
+    }
+  };
+
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
   const stats = {
     total: camps.length,
     published: camps.filter(c => c.status === 'published').length,
+    pending: camps.filter(c => c.status === 'pending_review').length,
     draft: camps.filter(c => c.status === 'draft').length,
-    enrolled: camps.reduce((sum, c) => sum + c.enrolled_count, 0),
   };
 
   return (
-    <DashboardLayout>
+    <>
       <div className="space-y-6">
+        {/* DEBUG INFO - Remove this after testing */}
+        <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
+          <p className="text-sm font-mono">
+            <strong>DEBUG:</strong> Role: {profile?.role || 'none'} | Org ID: {profile?.organisation_id || 'none'}
+          </p>
+          <p className="text-xs text-yellow-700 mt-1">
+            {profile?.role === 'camp_organizer' && profile?.organisation_id
+              ? '✅ Filtering camps by your organization'
+              : '⚠️ Showing ALL camps (you are not a camp_organizer or missing org_id)'}
+          </p>
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Camps Management</h2>
             <p className="mt-1 text-sm text-gray-600">
-              Create and manage your camp programs
+              View and manage all camps on the platform
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -457,6 +642,18 @@ export function CampsManagement() {
           </div>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-red-800 font-medium">{error}</p>
+            </div>
+            <p className="text-red-600 text-sm mt-2">
+              If you believe you should have access to camps, please check your permissions or contact support.
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="bg-white rounded-xl border border-gray-200 p-6">
             <p className="text-sm text-gray-600 mb-1">Total Camps</p>
@@ -467,12 +664,12 @@ export function CampsManagement() {
             <p className="text-3xl font-bold text-green-600">{stats.published}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <p className="text-sm text-gray-600 mb-1">Drafts</p>
-            <p className="text-3xl font-bold text-gray-600">{stats.draft}</p>
+            <p className="text-sm text-gray-600 mb-1">Pending Review</p>
+            <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <p className="text-sm text-gray-600 mb-1">Total Enrolled</p>
-            <p className="text-3xl font-bold text-blue-600">{stats.enrolled}</p>
+            <p className="text-sm text-gray-600 mb-1">Drafts</p>
+            <p className="text-3xl font-bold text-gray-600">{stats.draft}</p>
           </div>
         </div>
 
@@ -514,6 +711,15 @@ export function CampsManagement() {
           campName={selectedCampForReview.name}
         />
       )}
+    </>
+  );
+}
+
+// Admin version with DashboardLayout wrapper
+export function CampsManagement() {
+  return (
+    <DashboardLayout>
+      <CampsManagementContent />
     </DashboardLayout>
   );
 }

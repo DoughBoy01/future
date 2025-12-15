@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { logger } from '../utils/logger';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -20,7 +21,7 @@ function validateEnvironmentVariables() {
   }
 
   if (errors.length > 0) {
-    console.error('Supabase Configuration Errors:', errors);
+    logger.error('Supabase Configuration Errors:', errors);
     throw new Error(
       `Missing or invalid Supabase environment variables:\n${errors.join('\n')}\n\n` +
       'Please check your .env file and ensure both VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set correctly.'

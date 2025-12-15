@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { logger } from '../../utils/logger';
 
 interface RoleBasedRouteProps {
   children: ReactNode;
@@ -24,12 +25,12 @@ export function RoleBasedRoute({
   }
 
   if (!profile) {
-    console.warn('[RoleBasedRoute] No profile found, redirecting to:', redirectTo);
+    logger.warn('RoleBasedRoute: No profile found, redirecting to:', redirectTo);
     return <Navigate to={redirectTo} replace />;
   }
 
   if (!allowedRoles.includes(profile.role)) {
-    console.warn('[RoleBasedRoute] User role not allowed:', {
+    logger.warn('RoleBasedRoute: User role not allowed', {
       userRole: profile.role,
       allowedRoles,
       redirectTo,
@@ -37,7 +38,7 @@ export function RoleBasedRoute({
     return <Navigate to={redirectTo} replace />;
   }
 
-  console.log('[RoleBasedRoute] Access granted:', {
+  logger.debug('RoleBasedRoute: Access granted', {
     userRole: profile.role,
     allowedRoles,
   });

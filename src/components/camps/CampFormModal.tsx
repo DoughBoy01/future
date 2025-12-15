@@ -28,7 +28,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
   const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'pricing' | 'media' | 'content' | 'policies'>('basic');
 
   type CategoryType = 'sports' | 'arts' | 'stem' | 'language' | 'adventure' | 'general' | 'academic' | 'creative';
-  type StatusType = 'draft' | 'published' | 'full' | 'cancelled' | 'completed';
+  type StatusType = 'draft' | 'published' | 'pending_review' | 'requires_changes' | 'approved' | 'unpublished' | 'archived' | 'rejected' | 'full' | 'cancelled' | 'completed';
 
   const [formData, setFormData] = useState({
     organisation_id: '',
@@ -224,6 +224,12 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
     try {
       const galleryUrls = mediaData.images.map(img => img.url);
 
+      // Auto-resubmit: If editing a camp that requires changes, set to 'published'
+      const isEditingRequiresChanges = camp?.status === 'requires_changes';
+      const finalStatus = (isEditingRequiresChanges && formData.status === 'requires_changes')
+        ? 'published'
+        : formData.status;
+
       const campData: CampInsert = {
         organisation_id: formData.organisation_id,
         name: formData.name,
@@ -252,7 +258,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
         video_metadata: mediaData.videos as any,
         what_to_bring: formData.what_to_bring || null,
         requirements: formData.requirements || null,
-        status: formData.status,
+        status: finalStatus,
         featured: formData.featured,
         enquiries_enabled: formData.enquiries_enabled,
         commission_rate: formData.commission_rate ? formData.commission_rate / 100 : null,
@@ -973,10 +979,25 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="full">Full</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="completed">Completed</option>
+                {profile?.role === 'super_admin' && (
+                  <>
+                    <option value="pending_review">Pending Review</option>
+                    <option value="requires_changes">Requires Changes</option>
+                    <option value="approved">Approved</option>
+                    <option value="published">Published</option>
+                    <option value="unpublished">Unpublished</option>
+                    <option value="archived">Archived</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="full">Full</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="completed">Completed</option>
+                  </>
+                )}
+                {profile?.role === 'camp_organizer' && (
+                  <>
+                    <option value="pending_review">Request Approval</option>
+                  </>
+                )}
               </select>
             </div>
 

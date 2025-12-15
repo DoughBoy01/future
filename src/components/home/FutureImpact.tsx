@@ -32,7 +32,7 @@ export function FutureImpact() {
         {/* Main Content */}
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-airbnb-grey-900 mb-4 sm:mb-6 px-2 animate-fade-in-up">
-            The Power of Purposeful Summer Experiences
+            The Power of Purposeful Educational Camp Experiences
           </h2>
 
           <p className="text-base sm:text-lg md:text-xl text-airbnb-grey-600 max-w-3xl mx-auto mb-8 px-4 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -83,7 +83,7 @@ export function FutureImpact() {
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="w-6 h-6" />
                 <h3 className="text-xl sm:text-2xl font-bold">
-                  With FutureEdge Camps
+                  With experience camps
                 </h3>
               </div>
               <ul className="space-y-3">

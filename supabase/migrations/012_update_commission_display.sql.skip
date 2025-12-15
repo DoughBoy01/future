@@ -1,0 +1,362 @@
+-- Migration: Create commission summary views for camp organisers
+-- Purpose: Provide camp organisers with clear visibility into commissions PAID to platform
+-- Shows gross revenue, commission paid, and net revenue received
+
+-- =====================================================
+-- CREATE CAMP ORGANIZER COMMISSION SUMMARY VIEW
+-- =====================================================
+
+CREATE OR REPLACE VIEW camp_organizer_commission_summary AS
+SELECT
+  o.id AS organisation_id,
+  o.name AS organisation_name,
+  o.slug AS organisation_slug,
+
+  -- Booking and revenue metrics
+  COUNT(DISTINCT cr.id) AS total_bookings,
+  COUNT(DISTINCT cr.camp_id) AS total_camps,
+
+  -- Revenue calculations (from camp organizer perspective)
+  COALESCE(SUM(cr.registration_amount), 0) AS gross_revenue,
+  COALESCE(SUM(cr.commission_amount), 0) AS total_commission_paid_to_platform,
+  COALESCE(SUM(cr.registration_amount - cr.commission_amount), 0) AS net_revenue_received,
+
+  -- Commission rate
+  CASE
+    WHEN COUNT(cr.id) > 0 THEN ROUND(AVG(cr.commission_rate) * 100, 2)
+    ELSE 0
+  END AS average_commission_rate_percent,
+
+  -- Payment status breakdown
+  COUNT(DISTINCT CASE WHEN cr.payment_status = 'paid' THEN cr.id END) AS paid_bookings_count,
+  COUNT(DISTINCT CASE WHEN cr.payment_status = 'pending' THEN cr.id END) AS pending_bookings_count,
+  COUNT(DISTINCT CASE WHEN cr.payment_status = 'partial' THEN cr.id END) AS partial_bookings_count,
+
+  -- Commission by payment status
+  COALESCE(SUM(CASE WHEN cr.payment_status = 'paid' THEN cr.commission_amount ELSE 0 END), 0) AS commission_paid_completed,
+  COALESCE(SUM(CASE WHEN cr.payment_status = 'pending' THEN cr.commission_amount ELSE 0 END), 0) AS commission_paid_pending,
+
+  -- Net revenue by payment status
+  COALESCE(SUM(CASE WHEN cr.payment_status = 'paid' THEN (cr.registration_amount - cr.commission_amount) ELSE 0 END), 0) AS net_revenue_completed,
+  COALESCE(SUM(CASE WHEN cr.payment_status = 'pending' THEN (cr.registration_amount - cr.commission_amount) ELSE 0 END), 0) AS net_revenue_pending,
+
+  -- Date range
+  MIN(cr.created_at) AS first_booking_date,
+  MAX(cr.created_at) AS most_recent_booking_date
+
+FROM organisations o
+LEFT JOIN commission_records cr ON cr.organisation_id = o.id
+WHERE o.active = true
+GROUP BY o.id, o.name, o.slug;
+
+-- Add view comment
+COMMENT ON VIEW camp_organizer_commission_summary IS 'Commission summary from camp organizer perspective - shows what they PAY to platform (commission) and what they RECEIVE (net revenue)';
+
+-- Column comments
+COMMENT ON COLUMN camp_organizer_commission_summary.gross_revenue IS 'Total revenue from all bookings before commission';
+COMMENT ON COLUMN camp_organizer_commission_summary.total_commission_paid_to_platform IS 'Total commission paid to the platform';
+COMMENT ON COLUMN camp_organizer_commission_summary.net_revenue_received IS 'Net revenue received after commission deduction (gross - commission)';
+
+-- Grant access to the view
+ALTER VIEW camp_organizer_commission_summary OWNER TO postgres;
+
+-- =====================================================
+-- CREATE DETAILED COMMISSION BREAKDOWN VIEW (per booking)
+-- =====================================================
+
+CREATE OR REPLACE VIEW commission_breakdown_by_booking AS
+SELECT
+  cr.id AS commission_record_id,
+  cr.organisation_id,
+  o.name AS organisation_name,
+
+  -- Booking details
+  cr.registration_id AS booking_id,
+  r.created_at AS booking_date,
+  r.status AS booking_status,
+  r.payment_status AS payment_status,
+
+  -- Camp details
+  cr.camp_id,
+  c.name AS camp_name,
+  c.start_date AS camp_start_date,
+  c.end_date AS camp_end_date,
+
+  -- Parent/customer details
+  r.parent_id,
+  COALESCE(prof.first_name || ' ' || prof.last_name, 'Guest') AS parent_name,
+
+  -- Financial breakdown
+  cr.registration_amount AS gross_amount,
+  cr.commission_rate,
+  ROUND(cr.commission_rate * 100, 2) AS commission_rate_percent,
+  cr.commission_amount AS commission_paid_to_platform,
+  (cr.registration_amount - cr.commission_amount) AS net_amount_received,
+
+  -- Payment tracking
+  cr.payment_status AS commission_payment_status,
+  cr.paid_date AS commission_paid_date,
+  cr.payment_reference,
+
+  -- Timestamps
+  cr.created_at AS commission_created_at,
+  cr.updated_at AS commission_updated_at
+
+FROM commission_records cr
+JOIN organisations o ON o.id = cr.organisation_id
+JOIN registrations r ON r.id = cr.registration_id
+JOIN camps c ON c.id = cr.camp_id
+LEFT JOIN parents p ON p.id = r.parent_id
+LEFT JOIN profiles prof ON prof.id = p.profile_id;
+
+-- Add view comment
+COMMENT ON VIEW commission_breakdown_by_booking IS 'Detailed commission breakdown per booking showing gross amount, commission paid, and net received';
+
+-- Grant access to the view
+ALTER VIEW commission_breakdown_by_booking OWNER TO postgres;
+
+-- =====================================================
+-- CREATE MONTHLY COMMISSION SUMMARY VIEW
+-- =====================================================
+
+CREATE OR REPLACE VIEW commission_summary_by_month AS
+SELECT
+  cr.organisation_id,
+  o.name AS organisation_name,
+
+  -- Month grouping
+  DATE_TRUNC('month', cr.created_at) AS month,
+  TO_CHAR(DATE_TRUNC('month', cr.created_at), 'YYYY-MM') AS month_label,
+  TO_CHAR(DATE_TRUNC('month', cr.created_at), 'Month YYYY') AS month_name,
+
+  -- Metrics
+  COUNT(DISTINCT cr.id) AS bookings_count,
+  COUNT(DISTINCT cr.camp_id) AS camps_count,
+
+  -- Revenue
+  COALESCE(SUM(cr.registration_amount), 0) AS gross_revenue,
+  COALESCE(SUM(cr.commission_amount), 0) AS commission_paid,
+  COALESCE(SUM(cr.registration_amount - cr.commission_amount), 0) AS net_revenue,
+
+  -- Average commission rate for the month
+  CASE
+    WHEN COUNT(cr.id) > 0 THEN ROUND(AVG(cr.commission_rate) * 100, 2)
+    ELSE 0
+  END AS average_commission_rate_percent
+
+FROM commission_records cr
+JOIN organisations o ON o.id = cr.organisation_id
+GROUP BY cr.organisation_id, o.name, DATE_TRUNC('month', cr.created_at)
+ORDER BY cr.organisation_id, month DESC;
+
+-- Add view comment
+COMMENT ON VIEW commission_summary_by_month IS 'Monthly commission summary for trend analysis and accounting';
+
+-- Grant access to the view
+ALTER VIEW commission_summary_by_month OWNER TO postgres;
+
+-- =====================================================
+-- ROW LEVEL SECURITY FOR VIEWS
+-- =====================================================
+
+-- Note: Views inherit RLS policies from underlying tables
+-- But we can add explicit policies for clarity
+
+-- Allow camp organizers to see their own organisation's summary
+CREATE OR REPLACE FUNCTION can_view_organisation_data(p_organisation_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (
+    is_super_admin() OR
+    EXISTS (
+      SELECT 1 FROM organisation_members
+      WHERE organisation_id = p_organisation_id
+        AND profile_id = auth.uid()
+        AND status = 'active'
+    ) OR
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+        AND role IN ('school_admin', 'operations', 'risk', 'marketing')
+    )
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION can_view_organisation_data IS 'Returns true if the current user can view data for the specified organisation';
+
+-- =====================================================
+-- HELPER FUNCTIONS FOR COMMISSION QUERIES
+-- =====================================================
+
+-- Function to get commission summary for a specific organisation
+CREATE OR REPLACE FUNCTION get_organisation_commission_summary(p_organisation_id UUID)
+RETURNS TABLE (
+  organisation_id UUID,
+  organisation_name TEXT,
+  total_bookings BIGINT,
+  gross_revenue NUMERIC,
+  commission_paid NUMERIC,
+  net_revenue NUMERIC,
+  average_commission_rate NUMERIC
+) AS $$
+BEGIN
+  -- Check permission
+  IF NOT can_view_organisation_data(p_organisation_id) THEN
+    RAISE EXCEPTION 'Permission denied';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    cos.organisation_id,
+    cos.organisation_name,
+    cos.total_bookings,
+    cos.gross_revenue,
+    cos.total_commission_paid_to_platform,
+    cos.net_revenue_received,
+    cos.average_commission_rate_percent
+  FROM camp_organizer_commission_summary cos
+  WHERE cos.organisation_id = p_organisation_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION get_organisation_commission_summary IS 'Returns commission summary for a specific organisation with permission check';
+
+-- Function to get commission breakdown for a specific camp
+CREATE OR REPLACE FUNCTION get_camp_commission_breakdown(p_camp_id UUID)
+RETURNS TABLE (
+  commission_record_id UUID,
+  booking_id UUID,
+  booking_date TIMESTAMPTZ,
+  parent_name TEXT,
+  gross_amount NUMERIC,
+  commission_rate NUMERIC,
+  commission_paid NUMERIC,
+  net_amount NUMERIC,
+  payment_status TEXT
+) AS $$
+DECLARE
+  v_organisation_id UUID;
+BEGIN
+  -- Get organisation_id for the camp
+  SELECT organisation_id INTO v_organisation_id
+  FROM camps
+  WHERE id = p_camp_id;
+
+  -- Check permission
+  IF NOT can_view_organisation_data(v_organisation_id) THEN
+    RAISE EXCEPTION 'Permission denied';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    cb.commission_record_id,
+    cb.booking_id,
+    cb.booking_date,
+    cb.parent_name,
+    cb.gross_amount,
+    cb.commission_rate,
+    cb.commission_paid_to_platform,
+    cb.net_amount_received,
+    cb.commission_payment_status
+  FROM commission_breakdown_by_booking cb
+  WHERE cb.camp_id = p_camp_id
+  ORDER BY cb.booking_date DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION get_camp_commission_breakdown IS 'Returns detailed commission breakdown for a specific camp with permission check';
+
+-- Function to get monthly trend for an organisation
+CREATE OR REPLACE FUNCTION get_organisation_monthly_trend(
+  p_organisation_id UUID,
+  p_months_back INTEGER DEFAULT 12
+)
+RETURNS TABLE (
+  month TEXT,
+  month_name TEXT,
+  bookings_count BIGINT,
+  gross_revenue NUMERIC,
+  commission_paid NUMERIC,
+  net_revenue NUMERIC
+) AS $$
+BEGIN
+  -- Check permission
+  IF NOT can_view_organisation_data(p_organisation_id) THEN
+    RAISE EXCEPTION 'Permission denied';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    csm.month_label,
+    csm.month_name,
+    csm.bookings_count,
+    csm.gross_revenue,
+    csm.commission_paid,
+    csm.net_revenue
+  FROM commission_summary_by_month csm
+  WHERE csm.organisation_id = p_organisation_id
+    AND csm.month >= DATE_TRUNC('month', NOW() - (p_months_back || ' months')::INTERVAL)
+  ORDER BY csm.month DESC;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+COMMENT ON FUNCTION get_organisation_monthly_trend IS 'Returns monthly commission trend for an organisation over specified period';
+
+-- =====================================================
+-- PLATFORM ADMIN COMMISSION SUMMARY (all organisations)
+-- =====================================================
+
+CREATE OR REPLACE VIEW platform_commission_summary AS
+SELECT
+  COUNT(DISTINCT cr.organisation_id) AS total_organisations,
+  COUNT(DISTINCT cr.camp_id) AS total_camps,
+  COUNT(DISTINCT cr.id) AS total_bookings,
+
+  -- Platform revenue (commission received FROM organisers)
+  COALESCE(SUM(cr.commission_amount), 0) AS platform_revenue,
+  COALESCE(SUM(cr.registration_amount), 0) AS gross_booking_value,
+  COALESCE(SUM(cr.registration_amount - cr.commission_amount), 0) AS total_paid_to_organisers,
+
+  -- Average commission rate across platform
+  CASE
+    WHEN COUNT(cr.id) > 0 THEN ROUND(AVG(cr.commission_rate) * 100, 2)
+    ELSE 0
+  END AS platform_average_commission_rate,
+
+  -- Payment status
+  COUNT(DISTINCT CASE WHEN cr.payment_status = 'paid' THEN cr.id END) AS paid_bookings,
+  COUNT(DISTINCT CASE WHEN cr.payment_status = 'pending' THEN cr.id END) AS pending_bookings,
+
+  -- Commission by status
+  COALESCE(SUM(CASE WHEN cr.payment_status = 'paid' THEN cr.commission_amount ELSE 0 END), 0) AS revenue_completed,
+  COALESCE(SUM(CASE WHEN cr.payment_status = 'pending' THEN cr.commission_amount ELSE 0 END), 0) AS revenue_pending
+
+FROM commission_records cr;
+
+-- Add view comment
+COMMENT ON VIEW platform_commission_summary IS 'Platform-wide commission summary showing revenue received from all camp organisers';
+
+-- Grant access to the view (admin only via RLS)
+ALTER VIEW platform_commission_summary OWNER TO postgres;
+
+-- =====================================================
+-- VERIFICATION QUERIES (commented out - for manual testing)
+-- =====================================================
+
+-- View camp organizer commission summary
+-- SELECT * FROM camp_organizer_commission_summary;
+
+-- View detailed breakdown for a specific organisation
+-- SELECT * FROM commission_breakdown_by_booking WHERE organisation_id = '[uuid]';
+
+-- View monthly trend
+-- SELECT * FROM commission_summary_by_month WHERE organisation_id = '[uuid]' LIMIT 12;
+
+-- Test helper functions
+-- SELECT * FROM get_organisation_commission_summary('[organisation-uuid]');
+-- SELECT * FROM get_camp_commission_breakdown('[camp-uuid]');
+-- SELECT * FROM get_organisation_monthly_trend('[organisation-uuid]', 6);
+
+-- View platform summary (admin only)
+-- SELECT * FROM platform_commission_summary;

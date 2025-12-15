@@ -61,6 +61,8 @@ serve(async (req: Request) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const registrationId = session.metadata?.registrationId;
+        const campId = session.metadata?.campId;
+        const organisationId = session.metadata?.organisationId;
 
         if (!registrationId) {
           console.error('Missing registrationId in session metadata');
@@ -70,6 +72,7 @@ serve(async (req: Request) => {
         const paymentIntent = session.payment_intent as string;
         const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
 
+        // Update payment record
         await supabase
           .from('payment_records')
           .update({
@@ -84,26 +87,119 @@ serve(async (req: Request) => {
           })
           .eq('stripe_checkout_session_id', session.id);
 
-        const { data: registrations } = await supabase
-          .from('registrations')
-          .select('id, amount_due')
+        // Update bookings (formerly registrations)
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('id, amount_due, camp_id')
           .eq('stripe_checkout_session_id', session.id);
 
-        if (registrations && registrations.length > 0) {
-          for (const reg of registrations) {
+        if (bookings && bookings.length > 0) {
+          for (const booking of bookings) {
             await supabase
-              .from('registrations')
+              .from('bookings')
               .update({
                 payment_status: 'paid',
-                amount_paid: reg.amount_due,
+                amount_paid: booking.amount_due,
                 status: 'confirmed',
                 confirmation_date: new Date().toISOString(),
               })
-              .eq('id', reg.id);
+              .eq('id', booking.id);
+
+            // Create commission record for this booking
+            const { data: camp } = await supabase
+              .from('camps')
+              .select('commission_rate, organisation_id')
+              .eq('id', booking.camp_id)
+              .single();
+
+            if (camp) {
+              const commissionRate = camp.commission_rate || 0.15;
+              const commissionAmount = booking.amount_due * commissionRate;
+
+              await supabase.from('commission_records').insert({
+                booking_id: booking.id,
+                camp_id: booking.camp_id,
+                organisation_id: camp.organisation_id,
+                commission_rate: commissionRate,
+                registration_amount: booking.amount_due,
+                commission_amount: commissionAmount,
+                payment_status: 'pending',
+                created_at: new Date().toISOString(),
+              });
+
+              console.log(`Commission record created: ${commissionAmount} (${commissionRate * 100}%)`);
+            }
           }
-          console.log(`Payment successful for ${registrations.length} registration(s)`);
+          console.log(`Payment successful for ${bookings.length} booking(s)`);
         }
 
+        break;
+      }
+
+      case 'account.updated': {
+        // Stripe Connect account status changed
+        const account = event.data.object as Stripe.Account;
+        const organisationId = account.metadata?.organisation_id;
+
+        if (organisationId) {
+          await supabase
+            .from('organisations')
+            .update({
+              stripe_account_status: account.details_submitted ? 'active' : 'pending',
+              payout_enabled: account.payouts_enabled || false,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', organisationId);
+
+          console.log('Account updated:', account.id, account.details_submitted);
+        }
+        break;
+      }
+
+      case 'transfer.created': {
+        // Transfer to connected account created
+        const transfer = event.data.object as Stripe.Transfer;
+        console.log('Transfer created:', transfer.id, transfer.amount / 100);
+        break;
+      }
+
+      case 'transfer.paid': {
+        // Transfer successfully sent to connected account
+        const transfer = event.data.object as Stripe.Transfer;
+        console.log('Transfer paid:', transfer.id, transfer.amount / 100);
+        break;
+      }
+
+      case 'payout.paid': {
+        // Payout sent to connected account bank
+        const payout = event.data.object as Stripe.Payout;
+
+        // Update payout record if it exists
+        await supabase
+          .from('payouts')
+          .update({
+            status: 'paid',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('stripe_payout_id', payout.id);
+
+        console.log('Payout paid:', payout.id, payout.amount / 100);
+        break;
+      }
+
+      case 'payout.failed': {
+        // Payout failed
+        const payout = event.data.object as Stripe.Payout;
+
+        await supabase
+          .from('payouts')
+          .update({
+            status: 'failed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('stripe_payout_id', payout.id);
+
+        console.log('Payout failed:', payout.id);
         break;
       }
 

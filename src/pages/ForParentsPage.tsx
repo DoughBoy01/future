@@ -104,7 +104,7 @@ export function ForParentsPage() {
   const trustIndicators = [
     {
       stat: "100%",
-      label: "Background Checks",
+      label: "Background Checks check",
       description: "Every staff member"
     },
     {
@@ -140,7 +140,7 @@ export function ForParentsPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
               <h1 className="text-4xl lg:text-5xl font-bold mb-6">
-                Your Child's Safety, Health & Happiness Come First
+                Your Child's Safety, Health & Happiness Come First.
               </h1>
               <p className="text-xl lg:text-2xl mb-8 text-pink-50">
                 We understand that choosing the right camp for your child is one of the most important decisions you'll make. That's why we maintain the highest standards for safety, health, and well-being.

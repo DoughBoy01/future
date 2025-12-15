@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS camp_organizer_invites (
   email TEXT NOT NULL,
   token TEXT UNIQUE NOT NULL,  -- Cryptographically secure random token
 
-  -- Organisation linkage
-  organisation_id UUID NOT NULL REFERENCES organisations(id) ON DELETE CASCADE,
+  -- Organisation linkage (optional - camp organizer can create their own during onboarding)
+  organisation_id UUID REFERENCES organisations(id) ON DELETE CASCADE,
 
   -- Admin tracking
   invited_by UUID NOT NULL REFERENCES profiles(id),
@@ -168,10 +168,12 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Get organisation details
-  SELECT name INTO org_record
-  FROM organisations
-  WHERE id = invite_record.organisation_id;
+  -- Get organisation details (if organisation_id is not NULL)
+  IF invite_record.organisation_id IS NOT NULL THEN
+    SELECT name INTO org_record
+    FROM organisations
+    WHERE id = invite_record.organisation_id;
+  END IF;
 
   -- Get inviter details
   SELECT first_name || ' ' || last_name INTO inviter_record
@@ -202,7 +204,7 @@ DECLARE
 BEGIN
   SELECT o.name INTO org_name
   FROM camp_organizer_invites i
-  JOIN organisations o ON o.id = i.organisation_id
+  LEFT JOIN organisations o ON o.id = i.organisation_id
   WHERE i.token = p_token
     AND i.status = 'pending'
     AND i.expires_at > NOW();

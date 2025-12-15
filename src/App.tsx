@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -22,14 +22,23 @@ import { AnalyticsDashboard } from './pages/admin/AnalyticsDashboard';
 import { DataManagement } from './pages/admin/DataManagement';
 import { OrganisationsManagement } from './pages/admin/OrganisationsManagement';
 import { CommissionsManagement } from './pages/admin/CommissionsManagement';
+import { CommissionRatesManagement } from './pages/admin/CommissionRatesManagement';
+import { PayoutsManagement } from './pages/admin/PayoutsManagement';
+import { PaymentAnalytics } from './pages/admin/PaymentAnalytics';
+import { CampOrganizerManagement } from './pages/admin/CampOrganizerManagement';
 import { SiteSettings } from './pages/admin/SiteSettings';
 import { SystemDiagnostics } from './pages/admin/SystemDiagnostics';
+import UserRoleManagement from './pages/admin/UserRoleManagement';
 import { PartnersPage } from './pages/PartnersPage';
 import { FilterDemoPage } from './pages/FilterDemoPage';
 import { TalkToAdvisorPage } from './pages/TalkToAdvisorPage';
 import { ForParentsPage } from './pages/ForParentsPage';
-import { ForSchoolsPage } from './pages/ForSchoolsPage';
+import ForSchoolsPage from './pages/ForSchoolsPage';
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
+import { DevContentEditor } from './components/dev/DevContentEditor';
+
+// Organizer Dashboard Pages
+import OrganizerDashboardOverview from './pages/organizer/OrganizerDashboardOverview';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -50,9 +59,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  const location = useLocation();
+
+  // Check if current route is a dashboard route (admin or organizer)
+  const isDashboardRoute = location.pathname.startsWith('/admin') ||
+    location.pathname.startsWith('/organizer-dashboard');
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      {!isDashboardRoute && <Navbar />}
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -65,174 +80,253 @@ function App() {
           <Route path="/talk-to-advisor" element={<TalkToAdvisorPage />} />
           <Route path="/for-schools" element={<ForSchoolsPage />} />
           <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
-        <Route
-          path="/payment-success"
-          element={
-            <ProtectedRoute>
-              <PaymentSuccessPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/registration/:registrationId/child-details"
-          element={
-            <ProtectedRoute>
-              <RegistrationChildDetailsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <ParentDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/roles"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin']}>
-                <RoleManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/approvals"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations', 'risk']}>
-                <ApprovalDashboard />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations', 'risk']}>
-                <DashboardOverview />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/camps"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
-                <CampsManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/enquiries"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
-                <EnquiriesManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/customers"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
-                <CustomersManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/registrations"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
-                <RegistrationsManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/communications"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing']}>
-                <CommunicationsCenter />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/analytics"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
-                <AnalyticsDashboard />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/data-management"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
-                <DataManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/schools"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin']}>
-                <OrganisationsManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/dashboard/commissions"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
-                <CommissionsManagement />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin']}>
-                <SiteSettings />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/diagnostics"
-          element={
-            <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={['super_admin']}>
-                <SystemDiagnostics />
-              </RoleBasedRoute>
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/payment-success"
+            element={
+              <ProtectedRoute>
+                <PaymentSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/registration/:registrationId/child-details"
+            element={
+              <ProtectedRoute>
+                <RegistrationChildDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <ParentDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ============================================ */}
+          {/* CAMP ORGANIZER DASHBOARD ROUTES */}
+          {/* Separate dashboard for camp organisers */}
+          {/* ============================================ */}
+          <Route
+            path="/organizer-dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                  <OrganizerDashboardOverview />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Additional organizer routes (to be implemented) */}
+          {/* <Route path="/organizer-dashboard/bookings" element={...} /> */}
+          {/* <Route path="/organizer-dashboard/registrations" element={...} /> */}
+          {/* <Route path="/organizer-dashboard/enquiries" element={...} /> */}
+          {/* <Route path="/organizer-dashboard/commissions" element={...} /> */}
+
+          {/* ============================================ */}
+          {/* ADMIN DASHBOARD ROUTES */}
+          {/* Platform admin only - camp_organizer removed */}
+          {/* ============================================ */}
+          <Route
+            path="/admin/roles"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin']}>
+                  <RoleManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/approvals"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations', 'risk']}>
+                  <ApprovalDashboard />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/camp-organizers"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin']}>
+                  <CampOrganizerManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/user-roles"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin']}>
+                  <UserRoleManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations', 'risk']}>
+                  <DashboardOverview />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/camps"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
+                  <CampsManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/enquiries"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
+                  <EnquiriesManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/customers"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                  <CustomersManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/registrations"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                  <RegistrationsManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/communications"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing']}>
+                  <CommunicationsCenter />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/analytics"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
+                  <AnalyticsDashboard />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/data-management"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                  <DataManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/schools"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin']}>
+                  <OrganisationsManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/commissions"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                  <CommissionsManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/commission-rates"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin']}>
+                  <CommissionRatesManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/payouts"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                  <PayoutsManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/payment-analytics"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                  <PaymentAnalytics />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin']}>
+                  <SiteSettings />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/diagnostics"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin']}>
+                  <SystemDiagnostics />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
-      <Footer />
+      {!isDashboardRoute && <Footer />}
+
+      {/* Dev-only inline content editor */}
+      {import.meta.env.DEV && <DevContentEditor />}
     </div>
   );
 }

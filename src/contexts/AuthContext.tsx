@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
+import { authLogger } from '../utils/logger';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -29,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (error) {
-          console.error('Error getting session:', error);
+          authLogger.error('Error getting session:', error);
           setLoading(false);
           return;
         }
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch((err) => {
-        console.error('Fatal error in auth initialization:', err);
+        authLogger.error('Fatal error in auth initialization:', err);
         setLoading(false);
       });
 
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(false);
           }
         } catch (err) {
-          console.error('Error in auth state change:', err);
+          authLogger.error('Error in auth state change:', err);
           setLoading(false);
         }
       })();
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loadProfile(userId: string) {
     try {
-      console.log('[Auth] Loading profile for user:', userId);
+      authLogger.debug('Loading profile for user:', userId);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -78,15 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error('[Auth] Error loading profile:', error);
+        authLogger.error('Error loading profile:', error);
         throw error;
       }
 
       if (!data) {
-        console.warn('[Auth] No profile found for user:', userId);
+        authLogger.warn('No profile found for user:', userId);
         setProfile(null);
       } else {
-        console.log('[Auth] Profile loaded successfully:', {
+        authLogger.info('Profile loaded successfully:', {
           id: data.id,
           role: data.role,
           name: `${data.first_name} ${data.last_name}`,
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(data);
       }
     } catch (error) {
-      console.error('[Auth] Failed to load profile:', error);
+      authLogger.error('Failed to load profile:', error);
       setProfile(null);
     } finally {
       setLoading(false);
@@ -121,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
       if (profileError) {
-        console.error('Error creating profile:', profileError);
+        authLogger.error('Error creating profile:', profileError);
       }
 
       return { error: null };
@@ -140,18 +141,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function signOut() {
     try {
-      console.log('[Auth] Signing out user');
+      authLogger.debug('Signing out user');
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('[Auth] Error signing out:', error);
+        authLogger.error('Error signing out:', error);
         throw error;
       }
       setProfile(null);
       setUser(null);
       setSession(null);
-      console.log('[Auth] User signed out successfully');
+      authLogger.info('User signed out successfully');
     } catch (error) {
-      console.error('[Auth] Failed to sign out:', error);
+      authLogger.error('Failed to sign out:', error);
     }
   }
 

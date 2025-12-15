@@ -10,7 +10,7 @@ type AuthMode = 'login' | 'signup' | 'reset';
 export function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
 
   useEffect(() => {
@@ -21,13 +21,20 @@ export function AuthPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
+    if (user && profile) {
+      // Redirect based on user role
+      if (profile.role === 'camp_organizer') {
+        navigate('/organizer-dashboard');
+      } else if (profile.role === 'super_admin' || profile.role === 'school_admin') {
+        navigate('/admin/overview');
+      } else {
+        navigate('/dashboard');
+      }
     }
-  }, [user, navigate]);
+  }, [user, profile, navigate]);
 
   const handleSuccess = () => {
-    navigate('/dashboard');
+    // Let the useEffect above handle navigation based on role
   };
 
   return (
