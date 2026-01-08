@@ -12,13 +12,7 @@ import type { Database } from '../lib/database.types';
 type Camp = Database['public']['Tables']['camps']['Row'];
 type Category = Database['public']['Tables']['camp_categories']['Row'];
 
-// Hero Background Image - Change this URL to update the hero image across the site
-// For best performance, use a local image in /public folder (e.g., '/hero.jpg')
-const HERO_IMAGE_URL = '/hero.jpeg';
 
-// Seamless background that matches navbar - solid dark color for perfect blend
-// This ensures no visible seam between navbar and hero section
-const HERO_BACKGROUND = '#1e2d3a';
 
 export function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
@@ -31,7 +25,7 @@ export function HomePage() {
   const [isNavigating, setIsNavigating] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -88,13 +82,7 @@ export function HomePage() {
     };
   }, []);
 
-  // Check if hero image exists
-  useEffect(() => {
-    const img = new Image();
-    img.onload = () => setHeroImageLoaded(true);
-    img.onerror = () => setHeroImageLoaded(false);
-    img.src = HERO_IMAGE_URL;
-  }, []);
+
 
   const staticCamps = [
     {
@@ -181,43 +169,43 @@ export function HomePage() {
 
   const camps = featuredCamps.length > 0
     ? featuredCamps
-        .filter(camp => {
-          // Filter out camps that have already started
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          const campStartDate = camp.start_date ? new Date(camp.start_date) : null;
-          return !campStartDate || campStartDate >= today;
-        })
-        .map(camp => {
-          const enrolledCount = (camp as any).enrolled_count || 0;
-          const spotsRemaining = camp.capacity - enrolledCount;
-          const earlyBirdActive = camp.early_bird_price &&
-            camp.early_bird_deadline &&
-            new Date(camp.early_bird_deadline) > new Date();
+      .filter(camp => {
+        // Filter out camps that have already started
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const campStartDate = camp.start_date ? new Date(camp.start_date) : null;
+        return !campStartDate || campStartDate >= today;
+      })
+      .map(camp => {
+        const enrolledCount = (camp as any).enrolled_count || 0;
+        const spotsRemaining = camp.capacity - enrolledCount;
+        const earlyBirdActive = camp.early_bird_price &&
+          camp.early_bird_deadline &&
+          new Date(camp.early_bird_deadline) > new Date();
 
-          return {
-            id: camp.id,
-            badge: spotsRemaining <= 5 ? ('Limited' as const) :
-                   camp.featured ? ('Popular' as const) :
-                   ('New' as const),
-            image: camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800',
-            location: camp.location,
-            rating: 0,
-            reviewCount: 0,
-            title: camp.name,
-            category: camp.category,
-            ageRange: `Ages ${camp.age_min}-${camp.age_max}`,
-            ageMin: camp.age_min,
-            ageMax: camp.age_max,
-            price: earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price,
-            currency: camp.currency,
-            originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
-            spotsRemaining,
-            startDate: camp.start_date,
-            endDate: camp.end_date,
-            description: camp.description || undefined,
-          };
-        })
+        return {
+          id: camp.id,
+          badge: spotsRemaining <= 5 ? ('Limited' as const) :
+            camp.featured ? ('Popular' as const) :
+              ('New' as const),
+          image: camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800',
+          location: camp.location,
+          rating: 0,
+          reviewCount: 0,
+          title: camp.name,
+          category: camp.category || 'General',
+          ageRange: `Ages ${camp.age_min}-${camp.age_max}`,
+          ageMin: camp.age_min,
+          ageMax: camp.age_max,
+          price: earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price,
+          currency: camp.currency || undefined,
+          originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
+          spotsRemaining,
+          startDate: camp.start_date,
+          endDate: camp.end_date,
+          description: camp.description || undefined,
+        };
+      })
     : staticCamps;
 
   const updateCarouselDimensions = useCallback(() => {
@@ -367,16 +355,28 @@ export function HomePage() {
       <div className="min-h-screen">
         <section className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 z-0"
             style={{
               background: '#1e2d3a',
             }}
-          />
+          >
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: 'brightness(0.6)' }}
+            >
+              <source src="/hero_background.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50" />
+          </div>
 
-          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64" style={{ minHeight: '100%' }}>
+          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64 z-10" style={{ minHeight: '100%' }}>
             <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
-              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their Future Today.</span>
+              <span className="block mb-2 sm:mb-2 tracking-tight">Unlock Top University Admissions</span>
+              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">With Proven Camp Experiences</span>
             </h1>
             <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-4 sm:mb-5" style={{ animationDelay: '0.3s' }}>
               Accelerate their success with amazing educational experiences
@@ -425,16 +425,28 @@ export function HomePage() {
       <div className="min-h-screen">
         <section className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 z-0"
             style={{
               background: '#1e2d3a',
             }}
-          />
+          >
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: 'brightness(0.6)' }}
+            >
+              <source src="/hero_background.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50" />
+          </div>
 
-          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64" style={{ minHeight: '100%' }}>
+          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64 z-10" style={{ minHeight: '100%' }}>
             <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
-              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their Future Today.</span>
+              <span className="block mb-2 sm:mb-2 tracking-tight">Unlock Top University Admissions</span>
+              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">With Proven Camp Experiences</span>
             </h1>
             <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-4 sm:mb-5" style={{ animationDelay: '0.3s' }}>
               Accelerate their success with amazing educational experiences
@@ -476,124 +488,137 @@ export function HomePage() {
       />
 
       <section className="relative pb-16 sm:pb-20">
-        <div
-          className="absolute inset-0 h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px]"
-          style={{
-            background: '#1e2d3a',
-          }}
-        />
-
-        <div className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64" style={{ minHeight: '450px' }}>
-          <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            <span className="block mb-2 sm:mb-2 tracking-tight">Give Your Child the Edge</span>
-            <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">Unlock Their Future Today.</span>
-          </h1>
-          <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-4 sm:mb-5" style={{ animationDelay: '0.3s' }}>
-            Accelerate their success with amazing educational experiences
-          </p>
-          <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-            <Link
-              to="/camps"
-              className="inline-flex items-center gap-2 bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
-            >
-              Explore Camps
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 mt-8 sm:-mt-44 md:-mt-48">
-          <div className="max-w-7xl mx-auto relative" role="region" aria-label="Featured camps carousel">
-            {camps.length > cardsPerView && (
-              <button
-                onClick={handlePrevSlide}
-                disabled={isNavigating}
-                aria-label="Previous slide"
-                className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ zIndex: 200 }}
+        {/* Hero Content with Video Background */}
+        <div className="relative min-h-[500px] sm:min-h-[550px] md:min-h-[600px]">
+          {/* Video Background Layer - Absolute positioned within hero section */}
+          <div
+            className="absolute inset-0"
+            style={{ zIndex: 0 }}
+          >
+            <div className="absolute inset-0" style={{ background: '#1e2d3a' }}>
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ filter: 'brightness(0.7)' }}
               >
-                <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
-              </button>
-            )}
+                <source src="/hero_background.mp4" type="video/mp4" />
+              </video>
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/60" />
+            </div>
+          </div>
 
-            <div
-              ref={scrollContainerRef}
-              className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-1 sm:px-0"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', position: 'relative' }}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              role="list"
-            >
-              {camps.map((camp, index) => (
-                <div
-                  key={camp.id || index}
-                  className="flex-shrink-0 w-[calc(100vw-2rem)] max-w-[280px] sm:w-[320px] md:w-[340px]"
-                  role="listitem"
-                  style={{ position: 'relative', zIndex: 1 }}
+          {/* Hero Text Content - Above video */}
+          <div className="relative ios-hero-container text-center px-4 pt-24 sm:pt-28 md:pt-32 lg:pt-36 pb-72 sm:pb-56 md:pb-60" style={{ zIndex: 1 }}>
+            <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl mx-auto leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <span className="block mb-2 sm:mb-2 tracking-tight">Unlock Top University Admissions</span>
+              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">With Proven Camp Experiences</span>
+            </h1>
+            <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl mx-auto px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-4 sm:mb-5" style={{ animationDelay: '0.3s' }}>
+              Accelerate their success with amazing educational experiences
+            </p>
+            <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <Link
+                to="/camps"
+                className="inline-flex items-center gap-2 bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
+              >
+                Explore Camps
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Camp Cards Carousel - Overlapping hero */}
+          <div className="relative max-w-7xl mx-auto px-3 sm:px-4 -mt-40 sm:-mt-44 md:-mt-48" style={{ zIndex: 10 }}>
+            <div className="max-w-7xl mx-auto relative" role="region" aria-label="Featured camps carousel">
+              {camps.length > cardsPerView && (
+                <button
+                  onClick={handlePrevSlide}
+                  disabled={isNavigating}
+                  aria-label="Previous slide"
+                  className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-20"
                 >
-                  <CampCard {...camp} />
-                </div>
+                  <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
+                </button>
+              )}
+
+              <div
+                ref={scrollContainerRef}
+                className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-1 sm:px-0"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                role="list"
+              >
+                {camps.map((camp, index) => (
+                  <div
+                    key={camp.id || index}
+                    className="flex-shrink-0 w-[calc(100vw-2rem)] max-w-[280px] sm:w-[320px] md:w-[340px]"
+                    role="listitem"
+                  >
+                    <CampCard {...camp} />
+                  </div>
+                ))}
+              </div>
+
+              {camps.length > cardsPerView && (
+                <button
+                  onClick={handleNextSlide}
+                  disabled={isNavigating}
+                  aria-label="Next slide"
+                  className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-20"
+                >
+                  <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Pagination Dots */}
+          {camps.length > cardsPerView && totalSlides > 1 && (
+            <div
+              className="flex md:hidden justify-center mt-4 space-x-2"
+              role="tablist"
+              aria-label="Carousel pagination"
+            >
+              {Array.from({ length: totalSlides }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveSlide(index)}
+                  role="tab"
+                  aria-selected={index === activeSlide}
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${index === activeSlide ? 'bg-blue-600 w-8' : 'bg-gray-400'
+                    }`}
+                />
               ))}
             </div>
+          )}
 
-            {camps.length > cardsPerView && (
-              <button
-                onClick={handleNextSlide}
-                disabled={isNavigating}
-                aria-label="Next slide"
-                className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ zIndex: 200 }}
-              >
-                <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
-              </button>
-            )}
-          </div>
+          {/* Desktop Pagination Dots */}
+          {camps.length > cardsPerView && totalSlides > 1 && (
+            <div
+              className="hidden md:flex justify-center mt-6 space-x-2"
+              role="tablist"
+              aria-label="Carousel pagination"
+            >
+              {Array.from({ length: totalSlides }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveSlide(index)}
+                  role="tab"
+                  aria-selected={index === activeSlide}
+                  aria-label={`Go to slide ${index + 1}`}
+                  className={`w-2 h-2 rounded-full transition-all ${index === activeSlide ? 'bg-white w-8' : 'bg-white/50'
+                    }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
-
-        {camps.length > cardsPerView && totalSlides > 1 && (
-          <div
-            className="flex md:hidden absolute bottom-2 left-1/2 -translate-x-1/2 space-x-2"
-            style={{ zIndex: 150 }}
-            role="tablist"
-            aria-label="Carousel pagination"
-          >
-            {Array.from({ length: totalSlides }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveSlide(index)}
-                role="tab"
-                aria-selected={index === activeSlide}
-                aria-label={`Go to slide ${index + 1}`}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${
-                  index === activeSlide ? 'bg-blue-600 w-8' : 'bg-gray-400'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-
-        {camps.length > cardsPerView && totalSlides > 1 && (
-          <div
-            className="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 space-x-2"
-            style={{ zIndex: 150 }}
-            role="tablist"
-            aria-label="Carousel pagination"
-          >
-            {Array.from({ length: totalSlides }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveSlide(index)}
-                role="tab"
-                aria-selected={index === activeSlide}
-                aria-label={`Go to slide ${index + 1}`}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === activeSlide ? 'bg-white w-8' : 'bg-white/50'
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </section>
 
       {/* Future Impact Section - Reverse Psychology */}
