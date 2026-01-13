@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { CampCard } from '../components/home/CampCard';
 import { CategoryCard } from '../components/home/CategoryCard';
 import { FutureImpact } from '../components/home/FutureImpact';
+import { QuizHomeModule } from '../components/quiz/QuizHomeModule';
 import { PromotionalPopup } from '../components/marketing/PromotionalPopup';
 import { NewsletterSignup } from '../components/marketing/NewsletterSignup';
 import type { Database } from '../lib/database.types';
@@ -623,6 +624,9 @@ export function HomePage() {
 
       {/* Future Impact Section - Reverse Psychology */}
       <FutureImpact />
+
+      {/* Camp Finder Quiz Module */}
+      <QuizHomeModule />
 
       <section className="py-16 sm:py-20 md:py-28 lg:py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
