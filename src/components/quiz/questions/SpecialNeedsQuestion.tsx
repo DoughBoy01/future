@@ -74,8 +74,8 @@ export function SpecialNeedsQuestion({ name = 'your child', value, onChange }: S
   };
 
   return (
-    <div className="space-y-10 pt-4">
-      <div className="max-w-2xl space-y-6">
+    <div className="space-y-6 md:space-y-10 pt-4">
+      <div className="max-w-2xl space-y-4 md:space-y-6">
         {/* Dietary Restrictions */}
         <div className={`border-2 rounded-[2rem] overflow-hidden bg-white transition-all duration-200 border-b-[8px] active:border-b-2 ${dietaryExpanded ? 'border-orange-400 border-b-orange-500' : 'border-airbnb-grey-200 hover:bg-airbnb-grey-50'}`}>
           <button
@@ -224,10 +224,11 @@ export function SpecialNeedsQuestion({ name = 'your child', value, onChange }: S
         </motion.button>
       </div>
 
-      <div className="p-6 bg-purple-50 border-2 border-purple-100 rounded-[2rem] flex items-start gap-4">
-        <ShieldCheck className="w-10 h-10 text-purple-400 flex-shrink-0" />
-        <p className="text-sm text-purple-800 font-bold leading-relaxed">
-          Privacy: Your information is secure. Our AI only uses this data to find the most inclusive environments for {name}.
+      <div className="p-4 md:p-6 bg-purple-50 border-2 border-purple-100 rounded-2xl md:rounded-[2rem] flex items-start gap-3 md:gap-4">
+        <ShieldCheck className="w-8 h-8 md:w-10 md:h-10 text-purple-400 flex-shrink-0" />
+        <p className="text-xs md:text-sm text-purple-800 font-bold leading-snug md:leading-relaxed">
+          <span className="hidden sm:inline">Privacy: Your information is secure. Our AI only uses this data to find the most inclusive environments for {name}.</span>
+          <span className="sm:hidden">Your information is secure and private.</span>
         </p>
       </div>
     </div>

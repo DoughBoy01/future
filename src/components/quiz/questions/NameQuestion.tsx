@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
 
 interface NameQuestionProps {
@@ -29,10 +28,10 @@ export function NameQuestion({ value = '', onChange, onEnter }: NameQuestionProp
     };
 
     return (
-        <div className="space-y-10 pt-4">
+        <div className="space-y-6 md:space-y-10 pt-4">
             <div className="relative max-w-md">
-                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-airbnb-grey-300">
-                    <User className="w-8 h-8" />
+                <div className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-airbnb-grey-300">
+                    <User className="w-6 h-6 md:w-8 md:h-8" />
                 </div>
                 <input
                     ref={inputRef}
@@ -41,23 +40,15 @@ export function NameQuestion({ value = '', onChange, onEnter }: NameQuestionProp
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     placeholder="Enter name..."
-                    className="w-full pl-16 pr-8 py-6 bg-white border-2 border-airbnb-grey-200 border-b-[8px] rounded-[2rem] text-2xl font-black text-airbnb-grey-900 placeholder:text-airbnb-grey-200 focus:outline-none focus:border-airbnb-pink-500 transition-all"
+                    className="w-full pl-12 md:pl-16 pr-6 md:pr-8 py-4 md:py-6 bg-white border-2 border-airbnb-grey-200 border-b-[6px] md:border-b-[8px] rounded-[2rem] text-xl md:text-2xl font-black text-airbnb-grey-900 placeholder:text-airbnb-grey-200 focus:outline-none focus:border-airbnb-pink-500 transition-all"
                 />
-
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: name.length > 0 ? 1 : 0 }}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 text-airbnb-pink-600 font-black text-xs uppercase tracking-widest"
-                >
-                    Press Enter ↵
-                </motion.div>
             </div>
 
-            <div className="flex items-center gap-4 text-airbnb-grey-400 font-bold text-sm uppercase tracking-widest">
-                <div className="w-10 h-10 bg-airbnb-grey-50 rounded-full flex items-center justify-center border border-airbnb-grey-100">
+            <div className="flex items-center gap-3 md:gap-4 text-airbnb-grey-400 font-bold text-xs md:text-sm uppercase tracking-widest px-1">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-airbnb-grey-50 rounded-full flex items-center justify-center border border-airbnb-grey-100 flex-shrink-0">
                     ✨
                 </div>
-                We'll use this to customize recommendations.
+                <span className="leading-tight">We'll use this to customize recommendations.</span>
             </div>
         </div>
     );

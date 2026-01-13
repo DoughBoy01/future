@@ -255,9 +255,9 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 min-h-screen flex flex-col">
+    <div className="max-w-4xl mx-auto px-4 py-4 md:py-8 pb-32 md:pb-24 min-h-screen flex flex-col">
       {/* Header Area */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-6 md:mb-8">
         <button
           onClick={() => setState(prev => ({ ...prev, currentStep: 0 }))}
           className="p-2 hover:bg-airbnb-grey-100 rounded-full transition-colors"
@@ -267,20 +267,20 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
         <QuizProgress currentStep={state.currentStep} totalSteps={TOTAL_STEPS} />
       </div>
 
-      <div className="flex-1 max-w-2xl mx-auto w-full flex flex-col pt-8">
+      <div className="flex-1 max-w-2xl mx-auto w-full flex flex-col pt-4 md:pt-8">
         {/* Chat Thread Aesthetic */}
-        <div className="flex-1 space-y-12">
+        <div className="flex-1 space-y-8 md:space-y-12">
           {/* AI Advisor "Message" */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-start gap-4"
+            className="flex items-start gap-3 md:gap-4"
           >
-            <div className="w-12 h-12 bg-airbnb-pink-50 rounded-2xl flex items-center justify-center border-2 border-airbnb-pink-100 flex-shrink-0 mt-1">
-              <Sparkles className="w-6 h-6 text-airbnb-pink-600" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-airbnb-pink-50 rounded-2xl flex items-center justify-center border-2 border-airbnb-pink-100 flex-shrink-0 mt-1">
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-airbnb-pink-600" />
             </div>
 
-            <div className="relative bg-white p-6 rounded-[2rem] rounded-tl-none shadow-sm border border-airbnb-grey-100 max-w-[90%]">
+            <div className="relative bg-white p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] rounded-tl-none shadow-sm border border-airbnb-grey-100 max-w-full md:max-w-[90%]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={state.currentStep}
@@ -300,13 +300,13 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
                     </div>
                   ) : (
                     <>
-                      {state.currentStep === 1 && <span className="text-lg font-bold text-airbnb-grey-700 leading-relaxed">First things first - what's your child's name? We'll use this to personalize our recommendations.</span>}
-                      {state.currentStep === 2 && <span className="text-lg font-bold text-airbnb-grey-700 leading-relaxed">How old is {state.responses.childName} right now? This helps us match them with age-appropriate programs where they'll thrive.</span>}
-                      {state.currentStep === 3 && <span className="text-lg font-bold text-airbnb-grey-700 leading-relaxed">What are you hoping {state.responses.childName} will gain from camp this summer? Select up to 2 goals that matter most to your family.</span>}
-                      {state.currentStep === 4 && <span className="text-lg font-bold text-airbnb-grey-700 leading-relaxed">What gets {state.responses.childName} excited? Pick up to 3 interests - tap any card to see real examples of what kids do!</span>}
-                      {state.currentStep === 5 && <span className="text-lg font-bold text-airbnb-grey-700 leading-relaxed">Let's talk budget. What feels right for your family this summer? (Many camps offer early bird discounts and sibling rates!)</span>}
-                      {state.currentStep === 6 && <span className="text-lg font-bold text-airbnb-grey-700 leading-relaxed">What kind of schedule works for your family? Half-day? Full-day? Week-long intensives?</span>}
-                      {state.currentStep === 7 && <span className="text-lg font-bold text-airbnb-grey-700 leading-relaxed">Last question! Does {state.responses.childName} have any dietary needs or accessibility requirements we should prioritize?</span>}
+                      {state.currentStep === 1 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">First things first - what's your child's name? We'll use this to personalize our recommendations.</span>}
+                      {state.currentStep === 2 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">How old is {state.responses.childName} right now? This helps us match them with age-appropriate programs where they'll thrive.</span>}
+                      {state.currentStep === 3 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">What are you hoping {state.responses.childName} will gain from camp this summer? Select up to 2 goals that matter most to your family.</span>}
+                      {state.currentStep === 4 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">What gets {state.responses.childName} excited? Pick up to 3 interests - tap any card to see real examples of what kids do!</span>}
+                      {state.currentStep === 5 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Let's talk budget. What feels right for your family this summer? (Many camps offer early bird discounts and sibling rates!)</span>}
+                      {state.currentStep === 6 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">What kind of schedule works for your family? Half-day? Full-day? Week-long intensives?</span>}
+                      {state.currentStep === 7 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Last question! Does {state.responses.childName} have any dietary needs or accessibility requirements we should prioritize?</span>}
                     </>
                   )}
                 </motion.div>
@@ -323,7 +323,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -30 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
-                className="w-full"
+                className="w-full pb-4"
               >
                 {state.currentStep === 1 && (
                   <NameQuestion
@@ -438,18 +438,18 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
       {/* Manual steps: Name (1), Parent Goals (3), Interests (4), Budget (5), Special Needs (7) */}
       {/* Auto-advance steps: Age (2), Duration (6) */}
       {[1, 3, 4, 5, 7].includes(state.currentStep) && (
-        <div className="sticky bottom-0 left-0 right-0 bg-white border-t-2 border-airbnb-grey-100 p-6 md:p-8 mt-auto -mx-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-6">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t-2 border-airbnb-grey-100 pb-safe">
+          <div className="max-w-4xl mx-auto px-4 py-4 md:py-6 flex items-center justify-between gap-3 md:gap-6">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleBack}
               disabled={state.currentStep === 1 || isLoading}
               className={`
-                flex items-center gap-2 px-10 py-5 rounded-2xl font-black text-xl transition-all
+                flex items-center gap-2 px-6 py-3 md:px-10 md:py-5 rounded-xl md:rounded-2xl font-black text-base md:text-xl transition-all min-h-[44px]
                 ${state.currentStep === 1
                   ? 'opacity-0 pointer-events-none'
-                  : 'text-airbnb-grey-700 bg-white border-2 border-airbnb-grey-200 border-b-4 hover:bg-airbnb-grey-50 active:border-b-2 active:translate-y-[2px]'
+                  : 'text-airbnb-grey-700 bg-white border-2 border-airbnb-grey-200 border-b-[3px] md:border-b-4 hover:bg-airbnb-grey-50 active:border-b-2 active:translate-y-[2px]'
                 }
               `}
             >
@@ -462,15 +462,19 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
               onClick={handleNext}
               disabled={!isCurrentStepValid() || isLoading}
               className={`
-                flex-1 md:flex-none md:min-w-[240px] flex items-center justify-center gap-3 px-12 py-5 rounded-[1.5rem] font-black text-xl transition-all
+                flex-1 md:flex-none md:min-w-[240px] flex items-center justify-center gap-2 md:gap-3 px-8 py-3 md:px-12 md:py-5 rounded-xl md:rounded-[1.5rem] font-black text-base md:text-xl transition-all min-h-[44px]
                 ${!isCurrentStepValid() || isLoading
-                  ? 'bg-airbnb-grey-100 text-airbnb-grey-400 cursor-not-allowed border-b-4 border-airbnb-grey-200'
-                  : 'bg-[#58cc02] hover:bg-[#46a302] text-white border-b-[6px] border-[#46a302] active:border-b-0 active:translate-y-[6px]'
+                  ? 'bg-airbnb-grey-100 text-airbnb-grey-400 cursor-not-allowed border-b-[3px] md:border-b-4 border-airbnb-grey-200'
+                  : 'bg-[#58cc02] hover:bg-[#46a302] text-white border-b-4 md:border-b-[6px] border-[#46a302] active:border-b-0 active:translate-y-[4px] md:active:translate-y-[6px]'
                 }
               `}
             >
               {state.currentStep === TOTAL_STEPS ? (
-                <>FIND PERFECT MATCHES 🎉</>
+                <>
+                  <span className="hidden sm:inline">FIND PERFECT MATCHES</span>
+                  <span className="sm:hidden">FIND MATCHES</span>
+                  <span>🎉</span>
+                </>
               ) : (
                 <>CONTINUE</>
               )}
@@ -481,11 +485,11 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
 
       {/* Small Back button for auto-advancing steps */}
       {[2, 6].includes(state.currentStep) && (
-        <div className="sticky bottom-0 left-0 right-0 bg-white/50 backdrop-blur-sm p-4 mt-auto">
-          <div className="max-w-2xl mx-auto">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/50 backdrop-blur-sm pb-safe">
+          <div className="max-w-2xl mx-auto px-4 py-3 md:py-4">
             <button
               onClick={handleBack}
-              className="text-airbnb-grey-400 hover:text-airbnb-grey-900 font-bold text-sm uppercase tracking-widest transition-colors flex items-center gap-2"
+              className="text-airbnb-grey-400 hover:text-airbnb-grey-900 font-bold text-xs md:text-sm uppercase tracking-widest transition-colors flex items-center gap-2 min-h-[44px]"
             >
               ← Back to previous question
             </button>

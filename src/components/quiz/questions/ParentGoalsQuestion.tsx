@@ -111,8 +111,8 @@ export function ParentGoalsQuestion({
   };
 
   return (
-    <div className="space-y-10 pt-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div className="space-y-6 md:space-y-10 pt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         {parentGoals.map((goal) => {
           const isSelected = selectedGoals.includes(goal.key);
 
@@ -174,13 +174,23 @@ export function ParentGoalsQuestion({
         )}
       </AnimatePresence>
 
-      <div className="p-6 bg-blue-50 border-2 border-blue-100 rounded-[2rem] flex items-start gap-4">
+      <div className="hidden sm:flex p-6 bg-blue-50 border-2 border-blue-100 rounded-[2rem] items-start gap-4">
         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl flex-shrink-0">
           💡
         </div>
         <p className="text-sm text-blue-800 font-bold leading-relaxed">
           <strong>Pro tip:</strong> Select up to 2 goals that matter most to your family. This helps
           us find the perfect match for {name}!
+        </p>
+      </div>
+
+      {/* Compact version for mobile */}
+      <div className="sm:hidden p-4 bg-blue-50 border-2 border-blue-100 rounded-2xl flex items-center gap-3">
+        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-base flex-shrink-0">
+          💡
+        </div>
+        <p className="text-xs text-blue-800 font-bold leading-snug">
+          Select up to 2 goals that matter most
         </p>
       </div>
     </div>
