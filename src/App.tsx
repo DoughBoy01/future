@@ -17,6 +17,7 @@ import { CampsManagement } from './pages/admin/CampsManagement';
 import { EnquiriesManagement } from './pages/admin/EnquiriesManagement';
 import { CustomersManagement } from './pages/admin/CustomersManagement';
 import { RegistrationsManagement } from './pages/admin/RegistrationsManagement';
+import { BookingsManagement } from './pages/admin/BookingsManagement';
 import { CommunicationsCenter } from './pages/admin/CommunicationsCenter';
 import { AnalyticsDashboard } from './pages/admin/AnalyticsDashboard';
 import { DataManagement } from './pages/admin/DataManagement';
@@ -34,6 +35,8 @@ import { FilterDemoPage } from './pages/FilterDemoPage';
 import { TalkToAdvisorPage } from './pages/TalkToAdvisorPage';
 import { ForParentsPage } from './pages/ForParentsPage';
 import ForSchoolsPage from './pages/ForSchoolsPage';
+import { QuizLandingPage } from './pages/QuizLandingPage';
+import { ConversationalCampFinderPage } from './pages/ConversationalCampFinderPage';
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 import { DevContentEditor } from './components/dev/DevContentEditor';
 
@@ -76,6 +79,8 @@ function App() {
           <Route path="/camps/:id" element={<CampDetailPage />} />
           <Route path="/partners" element={<PartnersPage />} />
           <Route path="/for-parents" element={<ForParentsPage />} />
+          <Route path="/find-your-camp" element={<QuizLandingPage />} />
+          <Route path="/quiz" element={<Navigate to="/find-your-camp" replace />} />
           <Route path="/filter-demo" element={<FilterDemoPage />} />
           <Route path="/talk-to-advisor" element={<TalkToAdvisorPage />} />
           <Route path="/for-schools" element={<ForSchoolsPage />} />
@@ -216,6 +221,16 @@ function App() {
               <ProtectedRoute>
                 <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
                   <RegistrationsManagement />
+                </RoleBasedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/dashboard/bookings"
+            element={
+              <ProtectedRoute>
+                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                  <BookingsManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
             }
