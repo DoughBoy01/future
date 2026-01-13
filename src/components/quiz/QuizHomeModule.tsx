@@ -28,22 +28,6 @@ export function QuizHomeModule() {
               <p className="text-base md:text-lg text-airbnb-grey-600 leading-relaxed">
                 Answer a few quick questions and get personalized camp recommendations tailored to your child's interests and needs.
               </p>
-
-              {/* Social Proof */}
-              <div className="flex items-center gap-3 justify-center md:justify-start pt-2">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-500 border-2 border-white shadow-md"
-                      aria-hidden="true"
-                    />
-                  ))}
-                </div>
-                <span className="text-sm md:text-base text-airbnb-grey-700">
-                  Over <strong className="text-airbnb-pink-600 font-bold">3,200 parents</strong> found their perfect camp
-                </span>
-              </div>
             </div>
 
             {/* CTA Button */}
@@ -56,25 +40,6 @@ export function QuizHomeModule() {
                 Find My Camp
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-            </div>
-          </div>
-
-          {/* Trust Badges */}
-          <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-airbnb-grey-200">
-            <div className="text-center">
-              <div className="text-2xl mb-1" aria-hidden="true">⚡</div>
-              <p className="text-xs md:text-sm font-medium text-airbnb-grey-900">2-Minute Quiz</p>
-              <p className="text-xs text-airbnb-grey-600 hidden md:block">Quick & easy</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-1" aria-hidden="true">🎯</div>
-              <p className="text-xs md:text-sm font-medium text-airbnb-grey-900">Personalized</p>
-              <p className="text-xs text-airbnb-grey-600 hidden md:block">Just for your child</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-1" aria-hidden="true">🔒</div>
-              <p className="text-xs md:text-sm font-medium text-airbnb-grey-900">100% Free</p>
-              <p className="text-xs text-airbnb-grey-600 hidden md:block">No commitment</p>
             </div>
           </div>
         </div>
