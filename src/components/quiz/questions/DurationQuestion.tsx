@@ -11,7 +11,6 @@ interface DurationQuestionProps {
 
 export function DurationQuestion({ name = 'your child', value, onChange, onSelect }: DurationQuestionProps) {
   const [selectedDuration, setSelectedDuration] = useState<string | undefined>(value);
-  const [isSelecting, setIsSelecting] = useState(false);
 
   const durationOptions = [
     {
@@ -49,15 +48,11 @@ export function DurationQuestion({ name = 'your child', value, onChange, onSelec
   ];
 
   const handleSelect = (key: string) => {
-    if (isSelecting) return; // Prevent double-clicks
-
-    setIsSelecting(true);
     setSelectedDuration(key);
     onChange(key as 'half-day' | 'full-day' | 'week' | 'multi-week');
     setTimeout(() => {
       onSelect?.();
-      setIsSelecting(false);
-    }, 400);
+    }, 300);
   };
 
   return (
@@ -73,7 +68,6 @@ export function DurationQuestion({ name = 'your child', value, onChange, onSelec
               whileTap={{ scale: 0.98 }}
               key={option.key}
               onClick={() => handleSelect(option.key)}
-              disabled={isSelecting}
               className={`
                 relative flex flex-col items-start
                 p-8 rounded-[2rem]
@@ -82,7 +76,6 @@ export function DurationQuestion({ name = 'your child', value, onChange, onSelec
                   ? 'bg-airbnb-pink-50 border-airbnb-pink-500 border-b-airbnb-pink-700 active:border-b-2'
                   : 'bg-white border-airbnb-grey-200 hover:bg-airbnb-grey-50 active:border-b-2'
                 }
-                ${isSelecting ? 'pointer-events-none' : ''}
               `}
             >
               <AnimatePresence>
