@@ -111,8 +111,8 @@ export function ParentGoalsQuestion({
   };
 
   return (
-    <div className="space-y-6 md:space-y-10 pt-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+    <div className="space-y-6 md:space-y-8 pt-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-5">
         {parentGoals.map((goal) => {
           const isSelected = selectedGoals.includes(goal.key);
 
@@ -124,8 +124,8 @@ export function ParentGoalsQuestion({
               onClick={() => handleGoalClick(goal.key)}
               className={`
                 relative flex flex-col items-start
-                p-8 rounded-[2rem]
-                border-2 border-b-[8px] transition-all duration-100
+                p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem]
+                border-2 border-b-[6px] md:border-b-[8px] transition-all duration-100
                 ${
                   isSelected
                     ? `${goal.color.bg} ${goal.color.border} ${goal.color.borderBottom} active:border-b-2`
@@ -139,20 +139,20 @@ export function ParentGoalsQuestion({
                     initial={{ scale: 0, rotate: -45 }}
                     animate={{ scale: 1, rotate: 0 }}
                     exit={{ scale: 0, rotate: 45 }}
-                    className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-[#58cc02] border-4 border-white flex items-center justify-center shadow-lg z-10"
+                    className="absolute -top-2 -right-2 md:-top-3 md:-right-3 w-8 h-8 md:w-10 md:h-10 rounded-full bg-[#58cc02] border-3 md:border-4 border-white flex items-center justify-center shadow-lg z-10"
                   >
-                    <Check className="w-6 h-6 text-white stroke-[4px]" />
+                    <Check className="w-4 h-4 md:w-6 md:h-6 text-white stroke-[4px]" />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="text-5xl mb-6">{goal.emoji}</div>
+              <div className="text-4xl md:text-5xl mb-4 md:mb-6">{goal.emoji}</div>
 
               <div className="space-y-1 text-left">
-                <h3 className="text-xl font-black text-airbnb-grey-900 leading-tight">
+                <h3 className="text-lg md:text-xl font-black text-airbnb-grey-900 leading-tight">
                   {goal.label}
                 </h3>
-                <p className={`${goal.color.text} font-bold text-sm leading-relaxed`}>
+                <p className={`${goal.color.text} font-bold text-xs md:text-sm leading-relaxed`}>
                   {goal.description}
                 </p>
               </div>

@@ -96,8 +96,8 @@ export function InterestsQuestion({ name = 'your child', value = [], onChange }:
   }
 
   return (
-    <div className="space-y-10 pt-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+    <div className="space-y-6 md:space-y-8 pt-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {categories.map((category) => {
           const isSelected = selectedInterests.includes(category.id);
           const IconComponent = getIconComponent(category.icon_name);

@@ -2,8 +2,8 @@ import { QuizContainer } from '../components/quiz/QuizContainer';
 
 export function QuizLandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-airbnb-pink-50 to-white">
-      {/* Hero Section */}
+    <div className="bg-gradient-to-b from-white via-airbnb-pink-50 to-white md:min-h-screen">
+      {/* Hero Section - Only show on desktop or before quiz starts */}
       <section className="pt-24 pb-12 bg-gradient-to-br from-airbnb-pink-50 to-purple-50">
         <div className="max-w-4xl mx-auto px-4 text-center">
           {/* Badge */}
@@ -29,7 +29,7 @@ export function QuizLandingPage() {
       </section>
 
       {/* Quiz Container */}
-      <section className="pb-20">
+      <section className="md:pb-20">
         <QuizContainer autoStart={false} />
       </section>
     </div>

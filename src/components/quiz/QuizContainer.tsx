@@ -255,21 +255,22 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-4 md:py-8 pb-32 md:pb-24 min-h-screen flex flex-col">
-      {/* Header Area */}
-      <div className="flex items-center gap-4 mb-6 md:mb-8">
-        <button
-          onClick={() => setState(prev => ({ ...prev, currentStep: 0 }))}
-          className="p-2 hover:bg-airbnb-grey-100 rounded-full transition-colors"
-        >
-          <X className="w-6 h-6 text-airbnb-grey-400" />
-        </button>
-        <QuizProgress currentStep={state.currentStep} totalSteps={TOTAL_STEPS} />
-      </div>
+    <div className="fixed inset-0 flex flex-col bg-white md:relative md:inset-auto md:min-h-screen">
+      <div className="max-w-4xl mx-auto px-4 w-full flex-1 flex flex-col overflow-hidden md:overflow-visible">
+        {/* Header Area */}
+        <div className="flex items-center gap-4 py-4 flex-shrink-0">
+          <button
+            onClick={() => setState(prev => ({ ...prev, currentStep: 0 }))}
+            className="p-2 hover:bg-airbnb-grey-100 rounded-full transition-colors"
+          >
+            <X className="w-6 h-6 text-airbnb-grey-400" />
+          </button>
+          <QuizProgress currentStep={state.currentStep} totalSteps={TOTAL_STEPS} />
+        </div>
 
-      <div className="flex-1 max-w-2xl mx-auto w-full flex flex-col pt-4 md:pt-8">
-        {/* Chat Thread Aesthetic */}
-        <div className="flex-1 space-y-8 md:space-y-12">
+        <div className="flex-1 max-w-2xl mx-auto w-full flex flex-col overflow-y-auto md:overflow-visible md:py-8">
+          {/* Chat Thread Aesthetic */}
+          <div className="flex-1 space-y-6 md:space-y-8 px-1">
           {/* AI Advisor "Message" */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -422,16 +423,17 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
           </AnimatePresence>
         </div>
 
-        {error && (
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="p-6 bg-red-50 border-b-4 border-red-200 rounded-[2rem] flex items-center gap-4 mt-8 w-full"
-          >
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl">⚠️</div>
-            <p className="font-bold text-red-800 text-lg">{error}</p>
-          </motion.div>
-        )}
+          {error && (
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="p-6 bg-red-50 border-b-4 border-red-200 rounded-[2rem] flex items-center gap-4 mt-6 w-full"
+            >
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl">⚠️</div>
+              <p className="font-bold text-red-800 text-lg">{error}</p>
+            </motion.div>
+          )}
+        </div>
       </div>
 
       {/* Navigation Footer - Only show if current step is not an auto-advance step OR it's the final results step */}

@@ -74,27 +74,27 @@ export function SpecialNeedsQuestion({ name = 'your child', value, onChange }: S
   };
 
   return (
-    <div className="space-y-6 md:space-y-10 pt-4">
-      <div className="max-w-2xl space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-6 pt-2">
+      <div className="max-w-2xl space-y-3 md:space-y-4">
         {/* Dietary Restrictions */}
-        <div className={`border-2 rounded-[2rem] overflow-hidden bg-white transition-all duration-200 border-b-[8px] active:border-b-2 ${dietaryExpanded ? 'border-orange-400 border-b-orange-500' : 'border-airbnb-grey-200 hover:bg-airbnb-grey-50'}`}>
+        <div className={`border-2 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden bg-white transition-all duration-200 border-b-[6px] md:border-b-[8px] active:border-b-2 ${dietaryExpanded ? 'border-orange-400 border-b-orange-500' : 'border-airbnb-grey-200 hover:bg-airbnb-grey-50'}`}>
           <button
             onClick={() => {
               setDietaryExpanded(!dietaryExpanded);
               if (noneSelected) setNoneSelected(false);
             }}
-            className="w-full flex items-center justify-between p-8 focus:outline-none"
+            className="w-full flex items-center justify-between p-5 md:p-8 focus:outline-none"
           >
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center text-3xl">🥗</div>
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-orange-100 flex items-center justify-center text-2xl md:text-3xl">🥗</div>
               <div className="text-left">
-                <h3 className="text-xl font-black text-airbnb-grey-900 uppercase tracking-tight">Dietary</h3>
-                <p className="text-sm font-bold text-airbnb-grey-400">
+                <h3 className="text-lg md:text-xl font-black text-airbnb-grey-900 uppercase tracking-tight">Dietary</h3>
+                <p className="text-xs md:text-sm font-bold text-airbnb-grey-400">
                   {dietary.length > 0 ? `${dietary.length} selected` : 'Allergies, diets, etc.'}
                 </p>
               </div>
             </div>
-            {dietaryExpanded ? <ChevronUp className="w-8 h-8 text-airbnb-grey-400" /> : <ChevronDown className="w-8 h-8 text-airbnb-grey-400" />}
+            {dietaryExpanded ? <ChevronUp className="w-6 h-6 md:w-8 md:h-8 text-airbnb-grey-400" /> : <ChevronDown className="w-6 h-6 md:w-8 md:h-8 text-airbnb-grey-400" />}
           </button>
 
           <AnimatePresence>
@@ -103,9 +103,9 @@ export function SpecialNeedsQuestion({ name = 'your child', value, onChange }: S
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="px-8 pb-8 space-y-3"
+                className="px-5 pb-5 md:px-8 md:pb-8 space-y-3"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t-2 border-orange-50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 pt-3 md:pt-4 border-t-2 border-orange-50">
                   {dietaryOptions.map((option) => {
                     const isSelected = dietary.includes(option.value);
                     return (
@@ -133,24 +133,24 @@ export function SpecialNeedsQuestion({ name = 'your child', value, onChange }: S
         </div>
 
         {/* Accessibility Needs */}
-        <div className={`border-2 rounded-[2rem] overflow-hidden bg-white transition-all duration-200 border-b-[8px] active:border-b-2 ${accessibilityExpanded ? 'border-blue-400 border-b-blue-500' : 'border-airbnb-grey-200 hover:bg-airbnb-grey-50'}`}>
+        <div className={`border-2 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden bg-white transition-all duration-200 border-b-[6px] md:border-b-[8px] active:border-b-2 ${accessibilityExpanded ? 'border-blue-400 border-b-blue-500' : 'border-airbnb-grey-200 hover:bg-airbnb-grey-50'}`}>
           <button
             onClick={() => {
               setAccessibilityExpanded(!accessibilityExpanded);
               if (noneSelected) setNoneSelected(false);
             }}
-            className="w-full flex items-center justify-between p-8 focus:outline-none"
+            className="w-full flex items-center justify-between p-5 md:p-8 focus:outline-none"
           >
-            <div className="flex items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center text-3xl">♿</div>
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-blue-100 flex items-center justify-center text-2xl md:text-3xl">♿</div>
               <div className="text-left">
-                <h3 className="text-xl font-black text-airbnb-grey-900 uppercase tracking-tight">Accessibility</h3>
-                <p className="text-sm font-bold text-airbnb-grey-400">
+                <h3 className="text-lg md:text-xl font-black text-airbnb-grey-900 uppercase tracking-tight">Accessibility</h3>
+                <p className="text-xs md:text-sm font-bold text-airbnb-grey-400">
                   {accessibility.length > 0 ? `${accessibility.length} selected` : 'Support, access, etc.'}
                 </p>
               </div>
             </div>
-            {accessibilityExpanded ? <ChevronUp className="w-8 h-8 text-airbnb-grey-400" /> : <ChevronDown className="w-8 h-8 text-airbnb-grey-400" />}
+            {accessibilityExpanded ? <ChevronUp className="w-6 h-6 md:w-8 md:h-8 text-airbnb-grey-400" /> : <ChevronDown className="w-6 h-6 md:w-8 md:h-8 text-airbnb-grey-400" />}
           </button>
 
           <AnimatePresence>
@@ -159,9 +159,9 @@ export function SpecialNeedsQuestion({ name = 'your child', value, onChange }: S
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="px-8 pb-8 space-y-3"
+                className="px-5 pb-5 md:px-8 md:pb-8 space-y-3"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t-2 border-blue-50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3 pt-3 md:pt-4 border-t-2 border-blue-50">
                   {accessibilityOptions.map((option) => {
                     const isSelected = accessibility.includes(option.value);
                     return (
@@ -195,17 +195,17 @@ export function SpecialNeedsQuestion({ name = 'your child', value, onChange }: S
           onClick={handleNoneClick}
           className={`
             w-full flex items-center justify-between
-            p-8 rounded-[2rem]
-            border-2 transition-all duration-100 border-b-[8px] active:border-b-2
+            p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem]
+            border-2 transition-all duration-100 border-b-[6px] md:border-b-[8px] active:border-b-2
             ${noneSelected
               ? 'bg-green-50 border-green-500 border-b-green-600'
               : 'bg-white border-airbnb-grey-200 hover:bg-airbnb-grey-50'
             }
           `}
         >
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center text-3xl">✅</div>
-            <span className="text-xl font-black text-airbnb-grey-900 uppercase tracking-tight">
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-green-100 flex items-center justify-center text-2xl md:text-3xl">✅</div>
+            <span className="text-lg md:text-xl font-black text-airbnb-grey-900 uppercase tracking-tight">
               None of the above
             </span>
           </div>
