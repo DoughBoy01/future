@@ -56,32 +56,6 @@ export function QuizLandingPage() {
       <section className="pb-20">
         <QuizContainer autoStart={false} />
       </section>
-
-      {/* Bottom CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-airbnb-grey-50 to-white border-t border-airbnb-grey-200">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-airbnb-grey-900">
-            Why Use Our Camp Finder?
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6 mt-8">
-            <FeatureCard
-              emoji="🎯"
-              title="Smart Matching"
-              description="Our algorithm analyzes your child's unique needs and preferences to find the best camps."
-            />
-            <FeatureCard
-              emoji="⚡"
-              title="Save Time"
-              description="No more endless browsing. Get personalized recommendations in under 2 minutes."
-            />
-            <FeatureCard
-              emoji="💯"
-              title="Trusted Results"
-              description="All camps are carefully vetted and verified by our team for quality and safety."
-            />
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
@@ -97,25 +71,6 @@ function TrustBadge({ icon: Icon, text }: TrustBadgeProps) {
     <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md border border-airbnb-grey-200">
       <Icon className="w-5 h-5 text-airbnb-pink-600" aria-hidden="true" />
       <span className="text-sm font-medium text-airbnb-grey-900">{text}</span>
-    </div>
-  );
-}
-
-// Feature Card Component
-interface FeatureCardProps {
-  emoji: string;
-  title: string;
-  description: string;
-}
-
-function FeatureCard({ emoji, title, description }: FeatureCardProps) {
-  return (
-    <div className="bg-white rounded-xl p-6 shadow-md border border-airbnb-grey-200 hover:shadow-lg transition-shadow">
-      <div className="text-4xl mb-3" aria-hidden="true">
-        {emoji}
-      </div>
-      <h3 className="text-lg font-bold text-airbnb-grey-900 mb-2">{title}</h3>
-      <p className="text-sm text-airbnb-grey-600 leading-relaxed">{description}</p>
     </div>
   );
 }
