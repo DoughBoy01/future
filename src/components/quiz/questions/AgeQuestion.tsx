@@ -10,13 +10,20 @@ interface AgeQuestionProps {
 
 export function AgeQuestion({ name = 'your child', value, onChange, onSelect }: AgeQuestionProps) {
   const [selectedAge, setSelectedAge] = useState<number | undefined>(value);
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const ages = Array.from({ length: 15 }, (_, i) => i + 4); // Ages 4 to 18
 
   const handleAgeClick = (age: number) => {
+    if (isSelecting) return; // Prevent double-clicks
+
+    setIsSelecting(true);
     setSelectedAge(age);
     onChange(age);
-    setTimeout(() => onSelect?.(), 300); // Brief delay for visual feedback
+    setTimeout(() => {
+      onSelect?.();
+      setIsSelecting(false);
+    }, 400); // Brief delay for visual feedback
   };
   return (
     <div className="space-y-10">
@@ -29,6 +36,7 @@ export function AgeQuestion({ name = 'your child', value, onChange, onSelect }: 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleAgeClick(age)}
+              disabled={isSelecting}
               className={`
                 flex items-center justify-center
                 h-16 rounded-2xl font-black text-xl
@@ -37,6 +45,7 @@ export function AgeQuestion({ name = 'your child', value, onChange, onSelect }: 
                   ? 'bg-airbnb-pink-50 text-airbnb-pink-600 border-2 border-airbnb-pink-500 border-b-[6px] active:border-b-2'
                   : 'bg-white text-airbnb-grey-700 border-2 border-airbnb-grey-200 border-b-[6px] hover:bg-airbnb-grey-50 active:border-b-2'
                 }
+                ${isSelecting ? 'pointer-events-none' : ''}
               `}
             >
               {age}

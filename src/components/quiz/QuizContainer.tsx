@@ -70,6 +70,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     if (state.currentStep > 0 && !state.isComplete) {
@@ -91,18 +92,22 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
   };
 
   const handleNext = async () => {
-    if (!isCurrentStepValid()) return;
+    if (!isCurrentStepValid() || isTransitioning || isLoading) return;
 
     if (state.currentStep < TOTAL_STEPS) {
+      setIsTransitioning(true);
       setState((prev) => ({ ...prev, currentStep: prev.currentStep + 1 }));
+      setTimeout(() => setIsTransitioning(false), 500);
     } else if (state.currentStep === TOTAL_STEPS) {
       await fetchResults();
     }
   };
 
   const handleBack = () => {
-    if (state.currentStep > 1) {
+    if (state.currentStep > 1 && !isTransitioning && !isLoading) {
+      setIsTransitioning(true);
       setState((prev) => ({ ...prev, currentStep: prev.currentStep - 1 }));
+      setTimeout(() => setIsTransitioning(false), 500);
     }
   };
 
@@ -308,6 +313,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
                       {state.currentStep === 5 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Let's talk budget. What feels right for your family this summer? (Many camps offer early bird discounts and sibling rates!)</span>}
                       {state.currentStep === 6 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">What kind of schedule works for your family? Half-day? Full-day? Week-long intensives?</span>}
                       {state.currentStep === 7 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Last question! Does {state.responses.childName} have any dietary needs or accessibility requirements we should prioritize?</span>}
+                      {state.currentStep > 7 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Preparing your results...</span>}
                     </>
                   )}
                 </motion.div>
@@ -417,6 +423,12 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
                       }))
                     }
                   />
+                )}
+
+                {state.currentStep > 7 && (
+                  <div className="text-center text-airbnb-grey-400 font-bold">
+                    Loading...
+                  </div>
                 )}
               </motion.div>
             )}
