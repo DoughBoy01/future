@@ -10,5 +10,6 @@ export default defineConfig({
   ],
   optimizeDeps: {
     exclude: ['lucide-react'],
+    include: ['framer-motion', 'canvas-confetti'],
   },
 });
