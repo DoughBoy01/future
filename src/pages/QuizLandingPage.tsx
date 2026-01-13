@@ -33,22 +33,6 @@ export function QuizLandingPage() {
             <TrustBadge icon={Shield} text="Free & secure" />
             <TrustBadge icon={Star} text="Personalized" />
           </div>
-
-          {/* Social Proof */}
-          <div className="mt-8 flex items-center justify-center gap-3">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-500 border-2 border-white shadow-md"
-                  aria-hidden="true"
-                />
-              ))}
-            </div>
-            <p className="text-sm md:text-base text-airbnb-grey-700">
-              Join <strong className="text-airbnb-pink-600">3,200+ parents</strong> who found their perfect camp
-            </p>
-          </div>
         </div>
       </section>
 
