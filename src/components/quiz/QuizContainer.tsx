@@ -41,7 +41,7 @@ interface QuizContainerProps {
 const TOTAL_STEPS = 7;
 const STORAGE_KEY = 'camp_quiz_state';
 
-export function QuizContainer({ onComplete }: QuizContainerProps) {
+export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
   const [state, setState] = useState<QuizState>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -60,7 +60,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
     }
 
     return {
-      currentStep: 0,
+      currentStep: autoStart ? 1 : 0,
       responses: {},
       results: null,
       isComplete: false,
