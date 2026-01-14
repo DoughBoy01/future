@@ -16,8 +16,10 @@ export function AgeQuestion({ name = 'your child', value, onChange, onSelect }: 
   const handleAgeClick = (age: number) => {
     setSelectedAge(age);
     onChange(age);
-    // Call onSelect immediately - visual feedback from button animation is sufficient
-    onSelect?.();
+    // Defer navigation to next tick to ensure state update completes
+    setTimeout(() => {
+      onSelect?.();
+    }, 0);
   };
   return (
     <div className="space-y-10">

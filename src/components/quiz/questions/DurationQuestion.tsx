@@ -50,8 +50,10 @@ export function DurationQuestion({ name = 'your child', value, onChange, onSelec
   const handleSelect = (key: string) => {
     setSelectedDuration(key);
     onChange(key as 'half-day' | 'full-day' | 'week' | 'multi-week');
-    // Call onSelect immediately - visual feedback from button animation is sufficient
-    onSelect?.();
+    // Defer navigation to next tick to ensure state update completes
+    setTimeout(() => {
+      onSelect?.();
+    }, 0);
   };
 
   return (

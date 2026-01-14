@@ -103,6 +103,17 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
     }
   };
 
+  // Special handler for auto-advance questions (Age, Duration) that bypasses validation
+  const handleAutoAdvance = () => {
+    if (isTransitioning || isLoading) return;
+
+    if (state.currentStep < TOTAL_STEPS) {
+      setIsTransitioning(true);
+      setState((prev) => ({ ...prev, currentStep: prev.currentStep + 1 }));
+      setTimeout(() => setIsTransitioning(false), 500);
+    }
+  };
+
   const handleBack = () => {
     if (state.currentStep > 1 && !isTransitioning && !isLoading) {
       setIsTransitioning(true);
@@ -190,6 +201,18 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
     }
   };
 
+  const handleExit = () => {
+    // Clear localStorage and reset to welcome screen
+    localStorage.removeItem(STORAGE_KEY);
+    setState({
+      currentStep: 0,
+      responses: {},
+      results: null,
+      isComplete: false,
+      sessionId: generateSessionId(),
+    });
+  };
+
   const handleStartOver = () => {
     localStorage.removeItem(STORAGE_KEY);
     setState({
@@ -265,7 +288,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
         {/* Header Area */}
         <div className="flex items-center gap-4 py-4 flex-shrink-0">
           <button
-            onClick={() => setState(prev => ({ ...prev, currentStep: 0 }))}
+            onClick={handleExit}
             className="p-2 hover:bg-airbnb-grey-100 rounded-full transition-colors"
           >
             <X className="w-6 h-6 text-airbnb-grey-400" />
@@ -349,7 +372,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
                   <AgeQuestion
                     name={state.responses.childName}
                     value={state.responses.childAge}
-                    onSelect={handleNext}
+                    onSelect={handleAutoAdvance}
                     onChange={(age) =>
                       setState((prev) => ({
                         ...prev,
@@ -402,7 +425,7 @@ export function QuizContainer({ onComplete }: QuizContainerProps) {
                   <DurationQuestion
                     name={state.responses.childName}
                     value={state.responses.duration}
-                    onSelect={handleNext}
+                    onSelect={handleAutoAdvance}
                     onChange={(duration) =>
                       setState((prev) => ({
                         ...prev,
