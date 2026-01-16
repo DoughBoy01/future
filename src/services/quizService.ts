@@ -18,6 +18,10 @@ type QuizResponse = {
     dietary?: string[];
     accessibility?: string[];
   };
+  locationPreference?: {
+    type: 'local' | 'international';
+    county?: string;
+  };
 };
 
 export type CampWithScore = {
@@ -231,6 +235,68 @@ export function calculateCampScore(camp: Camp, responses: QuizResponse): {
           score += 7.5;
           reasons.push('Accessible facilities available');
         }
+      }
+    }
+  }
+
+  // LOCATION PREFERENCE MATCHING (30% weight - high priority)
+  if (responses.locationPreference && camp.location) {
+    const campLocation = camp.location.toLowerCase();
+    const { type, county } = responses.locationPreference;
+
+    // Check if camp is in Ireland (common Irish location patterns)
+    const isIrelandCamp = campLocation.includes('ireland') ||
+                          campLocation.includes('dublin') ||
+                          campLocation.includes('cork') ||
+                          campLocation.includes('galway') ||
+                          campLocation.includes('limerick') ||
+                          campLocation.includes('waterford') ||
+                          campLocation.includes('kildare') ||
+                          campLocation.includes('wicklow') ||
+                          campLocation.includes('meath') ||
+                          campLocation.includes('clare') ||
+                          campLocation.includes('kerry') ||
+                          campLocation.includes('donegal') ||
+                          campLocation.includes('mayo') ||
+                          campLocation.includes('sligo') ||
+                          campLocation.includes('louth') ||
+                          campLocation.includes('carlow') ||
+                          campLocation.includes('kilkenny') ||
+                          campLocation.includes('wexford') ||
+                          campLocation.includes('tipperary') ||
+                          campLocation.includes('offaly') ||
+                          campLocation.includes('laois') ||
+                          campLocation.includes('westmeath') ||
+                          campLocation.includes('longford') ||
+                          campLocation.includes('cavan') ||
+                          campLocation.includes('monaghan') ||
+                          campLocation.includes('roscommon') ||
+                          campLocation.includes('leitrim');
+
+    if (type === 'local') {
+      // User wants local camps in Ireland
+      if (isIrelandCamp) {
+        score += 30;
+
+        // Extra bonus if county matches
+        if (county && campLocation.includes(county.toLowerCase())) {
+          score += 10; // Additional bonus for exact county match
+          reasons.push(`Located in ${county}`);
+        } else {
+          reasons.push('Located in Ireland');
+        }
+      } else {
+        // Penalize international camps when user wants local
+        score -= 20;
+      }
+    } else if (type === 'international') {
+      // User wants international camps
+      if (!isIrelandCamp) {
+        score += 30;
+        reasons.push('International destination');
+      } else {
+        // Penalize local camps when user wants international
+        score -= 20;
       }
     }
   }
