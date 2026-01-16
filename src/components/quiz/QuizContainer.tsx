@@ -10,6 +10,7 @@ import { InterestsQuestion } from './questions/InterestsQuestion';
 import { BudgetQuestion } from './questions/BudgetQuestion';
 import { DurationQuestion } from './questions/DurationQuestion';
 import { SpecialNeedsQuestion } from './questions/SpecialNeedsQuestion';
+import { LocationPreferenceQuestion } from './questions/LocationPreferenceQuestion';
 import { QuizResults } from './QuizResults';
 import {
   getRecommendations,
@@ -27,6 +28,7 @@ interface QuizState {
     budgetRange?: { min: number; max: number };
     duration?: 'half-day' | 'full-day' | 'week' | 'multi-week';
     specialNeeds?: { dietary?: string[]; accessibility?: string[] };
+    locationPreference?: { type: 'local' | 'international'; county?: string };
   };
   results: CampWithScore[] | null;
   isComplete: boolean;
@@ -38,7 +40,7 @@ interface QuizContainerProps {
   onComplete?: (results: CampWithScore[]) => void;
 }
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 const STORAGE_KEY = 'camp_quiz_state';
 
 export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
@@ -131,6 +133,16 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
       case 5: return !!state.responses.budgetRange;
       case 6: return !!state.responses.duration;
       case 7: return true; // Special needs is optional
+      case 8: {
+        // Location preference validation
+        if (!state.responses.locationPreference) return false;
+        // If local is selected, county must be selected
+        if (state.responses.locationPreference.type === 'local') {
+          return !!state.responses.locationPreference.county;
+        }
+        // International is always valid once selected
+        return true;
+      }
       default: return false;
     }
   };
@@ -147,6 +159,7 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
         budgetRange: state.responses.budgetRange,
         duration: state.responses.duration,
         specialNeeds: state.responses.specialNeeds,
+        locationPreference: state.responses.locationPreference,
       });
 
       // Save to localStorage (responses already persisted via useEffect)
@@ -335,8 +348,9 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
                       {state.currentStep === 4 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">What gets {state.responses.childName} excited? Pick up to 3 interests - tap any card to see real examples of what kids do!</span>}
                       {state.currentStep === 5 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Let's talk budget. What feels right for your family this summer? (Many camps offer early bird discounts and sibling rates!)</span>}
                       {state.currentStep === 6 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">What kind of schedule works for your family? Half-day? Full-day? Week-long intensives?</span>}
-                      {state.currentStep === 7 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Last question! Does {state.responses.childName} have any dietary needs or accessibility requirements we should prioritize?</span>}
-                      {state.currentStep > 7 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Preparing your results...</span>}
+                      {state.currentStep === 7 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Does {state.responses.childName} have any dietary needs or accessibility requirements we should prioritize?</span>}
+                      {state.currentStep === 8 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Last question! Are you looking for local camps in Ireland or exploring international options?</span>}
+                      {state.currentStep > 8 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Preparing your results...</span>}
                     </>
                   )}
                 </motion.div>
@@ -448,7 +462,21 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
                   />
                 )}
 
-                {state.currentStep > 7 && (
+                {state.currentStep === 8 && (
+                  <LocationPreferenceQuestion
+                    name={state.responses.childName}
+                    value={state.responses.locationPreference}
+                    onSelect={handleAutoAdvance}
+                    onChange={(locationPreference) =>
+                      setState((prev) => ({
+                        ...prev,
+                        responses: { ...prev.responses, locationPreference },
+                      }))
+                    }
+                  />
+                )}
+
+                {state.currentStep > 8 && (
                   <div className="text-center text-airbnb-grey-400 font-bold">
                     Loading...
                   </div>
@@ -472,9 +500,9 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
       </div>
 
       {/* Navigation Footer - Only show if current step is not an auto-advance step OR it's the final results step */}
-      {/* Manual steps: Name (1), Parent Goals (3), Interests (4), Budget (5), Special Needs (7) */}
+      {/* Manual steps: Name (1), Parent Goals (3), Interests (4), Budget (5), Special Needs (7), Location (8) */}
       {/* Auto-advance steps: Age (2), Duration (6) */}
-      {[1, 3, 4, 5, 7].includes(state.currentStep) && (
+      {[1, 3, 4, 5, 7, 8].includes(state.currentStep) && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t-2 border-airbnb-grey-100 pb-safe">
           <div className="max-w-4xl mx-auto px-4 py-4 md:py-6 flex items-center justify-between gap-3 md:gap-6">
             <motion.button
