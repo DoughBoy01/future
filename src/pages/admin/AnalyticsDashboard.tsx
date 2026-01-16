@@ -68,23 +68,23 @@ export function AnalyticsDashboard() {
         activeCampsCount,
         completedCampsCount,
       ] = await Promise.all([
-        supabase.from('registrations').select('id', { count: 'exact', head: true }),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }),
         supabase
-          .from('registrations')
+          .from('bookings')
           .select('id', { count: 'exact', head: true })
           .gte('created_at', thisMonthStart.toISOString()),
         supabase
-          .from('registrations')
+          .from('bookings')
           .select('id', { count: 'exact', head: true })
           .gte('created_at', lastMonthStart.toISOString())
           .lte('created_at', lastMonthEnd.toISOString()),
-        supabase.from('registrations').select('amount_paid'),
+        supabase.from('bookings').select('amount_paid'),
         supabase
-          .from('registrations')
+          .from('bookings')
           .select('amount_paid')
           .gte('created_at', thisMonthStart.toISOString()),
         supabase
-          .from('registrations')
+          .from('bookings')
           .select('amount_paid')
           .gte('created_at', lastMonthStart.toISOString())
           .lte('created_at', lastMonthEnd.toISOString()),

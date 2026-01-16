@@ -17,6 +17,7 @@ interface CommissionRecord {
   payment_reference: string | null;
   paid_date: string | null;
   created_at: string;
+  customer_name: string;
   organisation: {
     name: string;
   };
@@ -72,7 +73,8 @@ export function CommissionsManagement() {
         .select(`
           *,
           organisation:organisations(name),
-          camp:camps(name)
+          camp:camps(name),
+          booking:bookings!registration_id(parent_id, parents(is_guest, guest_name, profile_id))
         `)
         .order('created_at', { ascending: false });
 
@@ -98,11 +100,40 @@ export function CommissionsManagement() {
 
       if (commissionsError) throw commissionsError;
 
-      const typedCommissions = (commissionsData || []).map(record => ({
-        ...record,
-        organisation: Array.isArray(record.organisation) ? record.organisation[0] : record.organisation,
-        camp: Array.isArray(record.camp) ? record.camp[0] : record.camp,
-      })) as CommissionRecord[];
+      // Process commission records and fetch customer names
+      const commissionsWithCustomers = await Promise.all(
+        (commissionsData || []).map(async (record: any) => {
+          let customerName = 'Unknown';
+
+          const booking = Array.isArray(record.booking) ? record.booking[0] : record.booking;
+          const parent = booking?.parents;
+
+          if (parent) {
+            if (parent.is_guest) {
+              customerName = parent.guest_name || 'Guest';
+            } else if (parent.profile_id) {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('first_name, last_name')
+                .eq('id', parent.profile_id)
+                .maybeSingle();
+
+              if (profileData) {
+                customerName = `${profileData.first_name} ${profileData.last_name}`;
+              }
+            }
+          }
+
+          return {
+            ...record,
+            customer_name: customerName,
+            organisation: Array.isArray(record.organisation) ? record.organisation[0] : record.organisation,
+            camp: Array.isArray(record.camp) ? record.camp[0] : record.camp,
+          };
+        })
+      );
+
+      const typedCommissions = commissionsWithCustomers as CommissionRecord[];
 
       setCommissions(typedCommissions);
 
@@ -157,11 +188,12 @@ export function CommissionsManagement() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Date', 'Organisation', 'Camp', 'Registration Amount', 'Commission Rate', 'Commission Amount', 'Status', 'Payment Reference'];
+    const headers = ['Date', 'Organisation', 'Camp', 'Customer', 'Registration Amount', 'Commission Rate', 'Commission Amount', 'Status', 'Payment Reference'];
     const rows = commissions.map(c => [
       new Date(c.created_at).toLocaleDateString(),
       c.organisation?.name || 'Unknown',
       c.camp?.name || 'Unknown',
+      c.customer_name,
       c.registration_amount.toFixed(2),
       `${(c.commission_rate * 100).toFixed(2)}%`,
       c.commission_amount.toFixed(2),
@@ -357,6 +389,9 @@ export function CommissionsManagement() {
                     Camp
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Customer
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Registration Amount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -384,6 +419,11 @@ export function CommissionsManagement() {
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
                         {commission.camp?.name || 'Unknown Camp'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {commission.customer_name}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

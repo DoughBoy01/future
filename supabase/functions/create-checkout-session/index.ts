@@ -54,75 +54,109 @@ serve(async (req: Request) => {
       throw new Error('Camp not found');
     }
 
-    // Check if organisation has connected Stripe account
     const org = camp.organisations;
-    if (!org || !org.stripe_account_id) {
-      throw new Error('Camp organizer has not connected their Stripe account');
-    }
-
-    if (org.stripe_account_status !== 'active' || !org.payout_enabled) {
-      throw new Error('Camp organizer Stripe account is not fully set up');
-    }
-
-    // Get effective commission rate using database function
-    // This will return camp-specific rate if set, otherwise organization default
-    const { data: effectiveRate, error: rateError } = await supabase
-      .rpc('get_effective_commission_rate', { camp_id: campId });
-
-    if (rateError) {
-      console.error('Error getting commission rate:', rateError);
-      throw new Error('Failed to get commission rate');
-    }
-
-    // Use the effective rate from database, fallback to 15% if null
-    const commissionRate = effectiveRate || 0.15;
     const totalAmount = Math.round(amount * 100); // Amount in cents
-    const applicationFeeAmount = Math.round(totalAmount * commissionRate);
-
-    console.log(`Commission rate for camp ${campId}: ${(commissionRate * 100).toFixed(2)}% (${camp.commission_rate !== null ? 'custom' : 'org default'})`);
-
     const baseUrl = req.headers.get('origin') || 'http://localhost:5173';
 
-    // Create checkout session with destination charge
-    // This automatically splits payment between platform and camp organizer
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: currency || 'usd',
-            product_data: {
-              name: campName,
-              description: `Camp registration`,
+    // Check if Stripe Connect is configured
+    const hasStripeConnect = org && org.stripe_account_id && org.stripe_account_status === 'active' && org.payout_enabled;
+
+    let session;
+    let commissionRate = 0;
+    let applicationFeeAmount = 0;
+
+    if (hasStripeConnect) {
+      // PRODUCTION MODE: Full Stripe Connect with payment splitting
+      console.log('Using Stripe Connect mode');
+
+      // Get effective commission rate using database function
+      const { data: effectiveRate, error: rateError } = await supabase
+        .rpc('get_effective_commission_rate', { camp_id: campId });
+
+      if (rateError) {
+        console.error('Error getting commission rate:', rateError);
+        throw new Error('Failed to get commission rate');
+      }
+
+      commissionRate = effectiveRate || 0.15;
+      applicationFeeAmount = Math.round(totalAmount * commissionRate);
+
+      console.log(`Commission rate for camp ${campId}: ${(commissionRate * 100).toFixed(2)}% (${camp.commission_rate !== null ? 'custom' : 'org default'})`);
+
+      // Create checkout session with destination charge (payment splitting)
+      session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: currency || 'usd',
+              product_data: {
+                name: campName,
+                description: `Camp registration`,
+              },
+              unit_amount: totalAmount,
             },
-            unit_amount: totalAmount,
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/camps/${campId}/register`,
-      metadata: {
-        registrationId,
-        campId,
-        childId,
-        organisationId: camp.organisation_id,
-        commissionRate: commissionRate.toString(),
-      },
-      // Stripe Connect: Destination charge configuration
-      payment_intent_data: {
-        application_fee_amount: applicationFeeAmount,
-        transfer_data: {
-          destination: org.stripe_account_id,
-        },
+        ],
+        mode: 'payment',
+        success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/camps/${campId}/register`,
         metadata: {
           registrationId,
           campId,
+          childId,
           organisationId: camp.organisation_id,
+          commissionRate: commissionRate.toString(),
         },
-      },
-    });
+        payment_intent_data: {
+          application_fee_amount: applicationFeeAmount,
+          transfer_data: {
+            destination: org.stripe_account_id,
+          },
+          metadata: {
+            registrationId,
+            campId,
+            organisationId: camp.organisation_id,
+          },
+        },
+      }, {
+        idempotencyKey: `checkout_${registrationId}_${Date.now().toString().slice(0, -4)}`,
+      });
+    } else {
+      // TEST MODE: Simple payment without Stripe Connect
+      console.log('Using test mode (no Stripe Connect)');
+
+      // Create simple checkout session (all money goes to platform account)
+      session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: currency || 'usd',
+              product_data: {
+                name: campName,
+                description: `Camp registration (Test Mode)`,
+              },
+              unit_amount: totalAmount,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/camps/${campId}/register`,
+        metadata: {
+          registrationId,
+          campId,
+          childId,
+          organisationId: camp.organisation_id || 'test',
+          testMode: 'true',
+        },
+      }, {
+        idempotencyKey: `checkout_${registrationId}_${Date.now().toString().slice(0, -4)}`,
+      });
+    }
 
     // Create payment record with commission details
     await supabase.from('payment_records').insert({

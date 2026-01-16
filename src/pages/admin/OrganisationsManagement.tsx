@@ -84,7 +84,7 @@ export function OrganisationsManagement() {
             .select('id, status', { count: 'exact' })
             .eq('school_id', orgId),
           supabase
-            .from('registrations')
+            .from('bookings')
             .select('amount_paid, camp_id')
             .eq('payment_status', 'paid'),
           supabase

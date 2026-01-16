@@ -15,7 +15,8 @@ export interface StripeCheckoutResponse {
 }
 
 export async function createStripeCheckoutSession(
-  params: CreateCheckoutSessionParams
+  params: CreateCheckoutSessionParams,
+  maxRetries = 3
 ): Promise<StripeCheckoutResponse> {
   const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
@@ -23,22 +24,43 @@ export async function createStripeCheckoutSession(
     throw new Error('Stripe is not configured. Please set up your Stripe API keys.');
   }
 
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(params),
-  });
+  let lastError: Error | null = null;
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to create checkout session');
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        // Retry on server errors (5xx), but not client errors (4xx)
+        if (response.status >= 500 && attempt < maxRetries) {
+          console.warn(`Checkout session creation failed (attempt ${attempt}/${maxRetries}), retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+          continue;
+        }
+        throw new Error(error.message || 'Failed to create checkout session');
+      }
+
+      return await response.json();
+    } catch (error) {
+      lastError = error as Error;
+      // Only retry on network errors, not application errors
+      if (attempt < maxRetries && !(error as Error).message?.includes('Failed to create')) {
+        console.warn(`Network error (attempt ${attempt}/${maxRetries}), retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        continue;
+      }
+    }
   }
 
-  const data = await response.json();
-  return data;
+  throw lastError || new Error('Failed to create checkout session after retries');
 }
 
 export async function verifyPaymentStatus(sessionId: string): Promise<boolean> {

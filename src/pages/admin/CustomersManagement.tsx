@@ -48,7 +48,7 @@ export function CustomersManagement() {
             .select('id', { count: 'exact', head: true })
             .eq('parent_id', parent.id),
           supabase
-            .from('registrations')
+            .from('bookings')
             .select('id', { count: 'exact', head: true })
             .eq('parent_id', parent.id),
           supabase.auth.admin.getUserById(parent.profile_id),

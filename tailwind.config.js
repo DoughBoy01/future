@@ -130,6 +130,51 @@ export default {
         'standard': '300ms',
         'slow': '500ms',
       },
+      // Animations for chat messages
+      keyframes: {
+        'slide-in-left': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateX(-20px) scale(0.95)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateX(0) scale(1)',
+          },
+        },
+        'slide-in-right': {
+          '0%': {
+            opacity: '0',
+            transform: 'translateX(20px) scale(0.95)',
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateX(0) scale(1)',
+          },
+        },
+        'typing-bounce': {
+          '0%, 80%, 100%': {
+            transform: 'translateY(0)',
+          },
+          '40%': {
+            transform: 'translateY(-10px)',
+          },
+        },
+        'pulse-glow': {
+          '0%, 100%': {
+            boxShadow: '0 0 20px rgba(254, 77, 57, 0.3)',
+          },
+          '50%': {
+            boxShadow: '0 0 40px rgba(254, 77, 57, 0.6)',
+          },
+        },
+      },
+      animation: {
+        'slide-in-left': 'slide-in-left 0.3s ease-out',
+        'slide-in-right': 'slide-in-right 0.3s ease-out',
+        'typing-bounce': 'typing-bounce 1.4s infinite ease-in-out',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

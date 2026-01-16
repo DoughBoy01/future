@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { DataTable, Column } from '../../components/dashboard/DataTable';
-import { Plus, Edit, Trash2, ExternalLink, Users, TrendingUp, CheckCircle, AlertCircle, Star, MessageSquare, Download, Upload, XCircle, FileEdit } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, CheckCircle, AlertCircle, MessageSquare, Download, XCircle, FileEdit, Filter } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { CampFormModal } from '../../components/camps/CampFormModal';
+import { CampBookingsModal } from '../../components/camps/CampBookingsModal';
+import { CampRowDetails } from '../../components/camps/CampRowDetails';
 import { ReviewManagementModal } from '../../components/reviews/ReviewManagementModal';
 import { importExportService } from '../../services/importExportService';
 import { useAuth } from '../../contexts/AuthContext';
-import { formatCurrency } from '../../utils/currency';
 import type { Database } from '../../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
@@ -62,7 +63,17 @@ export function CampsManagementContent() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedCampForReview, setSelectedCampForReview] = useState<{ id: string; name: string } | null>(null);
   const [editingReview, setEditingReview] = useState<any>(null);
+  const [isBookingsModalOpen, setIsBookingsModalOpen] = useState(false);
+  const [selectedCampForBookings, setSelectedCampForBookings] = useState<{ id: string; name: string; organisation_name?: string } | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Filter states
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterOrganisation, setFilterOrganisation] = useState<string>('all');
+  const [filterAvailability, setFilterAvailability] = useState<string>('all');
+  const [filterQuality, setFilterQuality] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterFeatured, setFilterFeatured] = useState<string>('all');
 
   useEffect(() => {
     loadOrganisations().then(() => loadCamps());
@@ -89,28 +100,58 @@ export function CampsManagementContent() {
   const handleExportCSV = async () => {
     setIsExporting(true);
     try {
-      // Build query based on user role (same filtering as loadCamps)
-      let query = supabase
-        .from('camps')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Check if filters are active
+      const hasFilters =
+        filterStatus !== 'all' ||
+        filterOrganisation !== 'all' ||
+        filterAvailability !== 'all' ||
+        filterQuality !== 'all' ||
+        filterCategory !== 'all' ||
+        filterFeatured !== 'all';
 
-      // Filter camps for camp organizers (only their organization's camps)
-      if (profile?.role === 'camp_organizer' && profile?.organisation_id) {
-        query = query.eq('organisation_id', profile.organisation_id);
+      // Use filtered camps if filters are active, otherwise fetch all
+      let dataToExport: any[];
+
+      if (hasFilters && camps.length > 0) {
+        // Apply filters to loaded camps
+        dataToExport = camps.filter((camp) => {
+          if (filterStatus !== 'all' && camp.status !== filterStatus) return false;
+          if (filterOrganisation !== 'all' && camp.organisation_id !== filterOrganisation) return false;
+          if (filterAvailability !== 'all' && camp.availability_status !== filterAvailability) return false;
+          if (filterQuality !== 'all' && camp.content_quality !== filterQuality) return false;
+          if (filterCategory !== 'all' && camp.category !== filterCategory) return false;
+          if (filterFeatured !== 'all') {
+            const isFeatured = camp.featured === true;
+            if (filterFeatured === 'featured' && !isFeatured) return false;
+            if (filterFeatured === 'not_featured' && isFeatured) return false;
+          }
+          return true;
+        });
+      } else {
+        // No filters - fetch all camps
+        let query = supabase
+          .from('camps')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        // Filter camps for camp organizers (only their organization's camps)
+        if (profile?.role === 'camp_organizer' && profile?.organisation_id) {
+          query = query.eq('organisation_id', profile.organisation_id);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+        dataToExport = data || [];
       }
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      if (!data || data.length === 0) {
+      if (!dataToExport || dataToExport.length === 0) {
         alert('No camps to export');
         return;
       }
 
-      const headers = Object.keys(data[0]).join(',');
-      const rows = data.map(camp => {
+      const headers = Object.keys(dataToExport[0]).join(',');
+      const rows = dataToExport.map(camp => {
         return Object.values(camp).map(value => {
           if (value === null || value === undefined) return '';
           if (typeof value === 'object') {
@@ -125,7 +166,9 @@ export function CampsManagementContent() {
       });
 
       const csv = '\uFEFF' + [headers, ...rows].join('\n');
-      const filename = `camps_export_${new Date().toISOString().split('T')[0]}.csv`;
+      const filename = hasFilters
+        ? `camps_filtered_export_${new Date().toISOString().split('T')[0]}.csv`
+        : `camps_export_${new Date().toISOString().split('T')[0]}.csv`;
 
       importExportService.downloadFile(csv, filename, 'text/csv');
     } catch (error) {
@@ -234,9 +277,8 @@ export function CampsManagementContent() {
       label: 'Dates',
       sortable: true,
       render: (camp) => (
-        <div className="text-sm">
-          <p className="text-gray-900">{new Date(camp.start_date).toLocaleDateString()}</p>
-          <p className="text-xs text-gray-500">to {new Date(camp.end_date).toLocaleDateString()}</p>
+        <div className="text-sm text-gray-900">
+          {new Date(camp.start_date).toLocaleDateString()} - {new Date(camp.end_date).toLocaleDateString()}
         </div>
       ),
     },
@@ -267,109 +309,6 @@ export function CampsManagementContent() {
               </span>
             )}
           </div>
-        </div>
-      ),
-    },
-    {
-      key: 'enrolled_count',
-      label: 'Enrolled',
-      sortable: true,
-      render: (camp) => (
-        <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-blue-500" />
-          <span className="font-medium text-gray-900">{camp.enrolled_count}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'content_completeness',
-      label: 'Content Quality',
-      sortable: true,
-      render: (camp) => {
-        const quality = camp.content_quality || 'incomplete';
-        const completeness = camp.content_completeness || 0;
-
-        const qualityConfig = {
-          excellent: { color: 'bg-green-500', textColor: 'text-green-700', bgColor: 'bg-green-50', label: 'Excellent', icon: CheckCircle },
-          good: { color: 'bg-blue-500', textColor: 'text-blue-700', bgColor: 'bg-blue-50', label: 'Good', icon: CheckCircle },
-          basic: { color: 'bg-yellow-500', textColor: 'text-yellow-700', bgColor: 'bg-yellow-50', label: 'Basic', icon: AlertCircle },
-          incomplete: { color: 'bg-red-500', textColor: 'text-red-700', bgColor: 'bg-red-50', label: 'Incomplete', icon: AlertCircle },
-        };
-
-        const config = qualityConfig[quality];
-        const Icon = config.icon;
-
-        return (
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div
-                  className={`h-1.5 rounded-full ${config.color}`}
-                  style={{ width: `${completeness}%` }}
-                />
-              </div>
-              <span className="text-xs font-medium text-gray-900 min-w-[35px]">
-                {completeness}%
-              </span>
-            </div>
-            <div className={`inline-flex items-center gap-1 px-2 py-0.5 ${config.bgColor} rounded text-xs font-medium ${config.textColor}`}>
-              <Icon className="w-3 h-3" />
-              {config.label}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
-      key: 'price',
-      label: 'Price',
-      sortable: true,
-      render: (camp) => (
-        <div>
-          <p className="font-medium text-gray-900">
-            {formatCurrency(camp.price, camp.currency)}
-          </p>
-          {(camp as any).commission_rate && (
-            <p className="text-xs text-green-600 font-medium">
-              {((camp as any).commission_rate * 100).toFixed(1)}% commission
-            </p>
-          )}
-          {(camp as any).payment_link && (
-            <a
-              href={(camp as any).payment_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              Payment <ExternalLink className="w-3 h-3" />
-            </a>
-          )}
-        </div>
-      ),
-    },
-    {
-      key: 'review_count',
-      label: 'Reviews',
-      sortable: true,
-      render: (camp) => (
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Star className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-medium text-gray-900">
-              {camp.review_count || 0}
-            </span>
-          </div>
-          {camp.review_count! > 0 && (
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-600">
-                {camp.average_rating!.toFixed(1)} avg
-              </span>
-            </div>
-          )}
-          {camp.review_count === 0 && (
-            <span className="text-xs text-gray-400">No reviews</span>
-          )}
         </div>
       ),
     },
@@ -466,6 +405,17 @@ export function CampsManagementContent() {
           <button
             onClick={(e) => {
               e.stopPropagation();
+              handleViewBookings(camp);
+            }}
+            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+            title="View bookings"
+            aria-label={`View bookings for ${camp.name}`}
+          >
+            <Users className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               handleDelete(camp);
             }}
             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -501,6 +451,15 @@ export function CampsManagementContent() {
     setSelectedCampForReview({ id: camp.id, name: camp.name });
     setEditingReview(null);
     setIsReviewModalOpen(true);
+  };
+
+  const handleViewBookings = (camp: Camp) => {
+    setSelectedCampForBookings({
+      id: camp.id,
+      name: camp.name,
+      organisation_name: organisations.get(camp.organisation_id)
+    });
+    setIsBookingsModalOpen(true);
   };
 
   const handleDelete = async (camp: Camp) => {
@@ -585,6 +544,35 @@ export function CampsManagementContent() {
     }
   };
 
+  // Clear all filters
+  const clearFilters = () => {
+    setFilterStatus('all');
+    setFilterOrganisation('all');
+    setFilterAvailability('all');
+    setFilterQuality('all');
+    setFilterCategory('all');
+    setFilterFeatured('all');
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    filterStatus !== 'all' ||
+    filterOrganisation !== 'all' ||
+    filterAvailability !== 'all' ||
+    filterQuality !== 'all' ||
+    filterCategory !== 'all' ||
+    filterFeatured !== 'all';
+
+  // Expanded row render function for camp details
+  const expandedRowRender = (camp: CampWithAvailability) => {
+    return (
+      <CampRowDetails
+        camp={camp}
+        organisation_name={camp.organisation_id ? organisations.get(camp.organisation_id) : undefined}
+      />
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -593,11 +581,38 @@ export function CampsManagementContent() {
     );
   }
 
+  // Apply filters to camps
+  const filteredCamps = camps.filter((camp) => {
+    // Status filter
+    if (filterStatus !== 'all' && camp.status !== filterStatus) return false;
+
+    // Organisation filter
+    if (filterOrganisation !== 'all' && camp.organisation_id !== filterOrganisation) return false;
+
+    // Availability filter
+    if (filterAvailability !== 'all' && camp.availability_status !== filterAvailability) return false;
+
+    // Content quality filter
+    if (filterQuality !== 'all' && camp.content_quality !== filterQuality) return false;
+
+    // Category filter
+    if (filterCategory !== 'all' && camp.category !== filterCategory) return false;
+
+    // Featured filter
+    if (filterFeatured !== 'all') {
+      const isFeatured = camp.featured === true;
+      if (filterFeatured === 'featured' && !isFeatured) return false;
+      if (filterFeatured === 'not_featured' && isFeatured) return false;
+    }
+
+    return true;
+  });
+
   const stats = {
-    total: camps.length,
-    published: camps.filter(c => c.status === 'published').length,
-    pending: camps.filter(c => c.status === 'pending_review').length,
-    draft: camps.filter(c => c.status === 'draft').length,
+    total: filteredCamps.length,
+    published: filteredCamps.filter(c => c.status === 'published').length,
+    pending: filteredCamps.filter(c => c.status === 'pending_review').length,
+    draft: filteredCamps.filter(c => c.status === 'draft').length,
   };
 
   return (
@@ -673,12 +688,157 @@ export function CampsManagementContent() {
           </div>
         </div>
 
+        {/* Filter Bar */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+            {/* Filter Label */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-gray-400" />
+              <span className="text-sm font-medium text-gray-700">Filters:</span>
+            </div>
+
+            {/* Filter Controls Grid */}
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {/* Status Filter */}
+              <div>
+                <label htmlFor="status-filter" className="sr-only">Filter by status</label>
+                <select
+                  id="status-filter"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="published">Published</option>
+                  <option value="pending_review">Pending Review</option>
+                  <option value="draft">Draft</option>
+                  <option value="approved">Approved</option>
+                  <option value="requires_changes">Requires Changes</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="full">Full</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+
+              {/* Organisation Filter */}
+              <div>
+                <label htmlFor="org-filter" className="sr-only">Filter by organisation</label>
+                <select
+                  id="org-filter"
+                  value={filterOrganisation}
+                  onChange={(e) => setFilterOrganisation(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value="all">All Organisations</option>
+                  {Array.from(organisations.entries())
+                    .sort(([, nameA], [, nameB]) => nameA.localeCompare(nameB))
+                    .map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Availability Filter */}
+              <div>
+                <label htmlFor="availability-filter" className="sr-only">Filter by availability</label>
+                <select
+                  id="availability-filter"
+                  value={filterAvailability}
+                  onChange={(e) => setFilterAvailability(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value="all">All Availability</option>
+                  <option value="available">Available (5+ spots)</option>
+                  <option value="limited">Limited (1-5 spots)</option>
+                  <option value="full">Full</option>
+                </select>
+              </div>
+
+              {/* Content Quality Filter */}
+              <div>
+                <label htmlFor="quality-filter" className="sr-only">Filter by content quality</label>
+                <select
+                  id="quality-filter"
+                  value={filterQuality}
+                  onChange={(e) => setFilterQuality(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value="all">All Quality Levels</option>
+                  <option value="excellent">Excellent (90-100%)</option>
+                  <option value="good">Good (70-89%)</option>
+                  <option value="basic">Basic (50-69%)</option>
+                  <option value="incomplete">Incomplete (&lt;50%)</option>
+                </select>
+              </div>
+
+              {/* Category Filter */}
+              <div>
+                <label htmlFor="category-filter" className="sr-only">Filter by category</label>
+                <select
+                  id="category-filter"
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="sports">Sports</option>
+                  <option value="arts">Arts</option>
+                  <option value="stem">STEM</option>
+                  <option value="language">Language</option>
+                  <option value="adventure">Adventure</option>
+                  <option value="general">General</option>
+                  <option value="academic">Academic</option>
+                  <option value="creative">Creative</option>
+                </select>
+              </div>
+
+              {/* Featured Filter */}
+              <div>
+                <label htmlFor="featured-filter" className="sr-only">Filter by featured status</label>
+                <select
+                  id="featured-filter"
+                  value={filterFeatured}
+                  onChange={(e) => setFilterFeatured(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                >
+                  <option value="all">All Camps</option>
+                  <option value="featured">Featured Only</option>
+                  <option value="not_featured">Not Featured</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+
+          {/* Active Filter Count */}
+          {hasActiveFilters && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                Showing <span className="font-semibold">{filteredCamps.length}</span> of{' '}
+                <span className="font-semibold">{camps.length}</span> camps
+              </p>
+            </div>
+          )}
+        </div>
+
         <DataTable
-          data={camps}
+          data={filteredCamps}
           columns={columns}
           searchable
           searchPlaceholder="Search camps..."
           emptyMessage="No camps found. Create your first camp to get started."
+          expandable={true}
+          expandedRowRender={expandedRowRender}
         />
       </div>
 
@@ -709,6 +869,17 @@ export function CampsManagementContent() {
           review={editingReview}
           campId={selectedCampForReview.id}
           campName={selectedCampForReview.name}
+        />
+      )}
+
+      {isBookingsModalOpen && selectedCampForBookings && (
+        <CampBookingsModal
+          isOpen={isBookingsModalOpen}
+          onClose={() => {
+            setIsBookingsModalOpen(false);
+            setSelectedCampForBookings(null);
+          }}
+          camp={selectedCampForBookings}
         />
       )}
     </>

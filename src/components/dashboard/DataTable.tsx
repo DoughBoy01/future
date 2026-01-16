@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronRight, Search } from 'lucide-react';
 
 export interface Column<T> {
   key: string;
@@ -15,6 +15,10 @@ interface DataTableProps<T> {
   searchable?: boolean;
   searchPlaceholder?: string;
   emptyMessage?: string;
+  expandable?: boolean;
+  expandedRowRender?: (item: T) => React.ReactNode;
+  defaultExpanded?: boolean;
+  onExpandChange?: (expandedIds: Set<string>) => void;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -24,11 +28,18 @@ export function DataTable<T extends { id: string }>({
   searchable = false,
   searchPlaceholder = 'Search...',
   emptyMessage = 'No data available',
+  expandable = false,
+  expandedRowRender,
+  defaultExpanded = false,
+  onExpandChange,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(
+    defaultExpanded ? new Set(data.map((item) => item.id)) : new Set()
+  );
   const itemsPerPage = 10;
 
   const handleSort = (key: string) => {
@@ -37,6 +48,24 @@ export function DataTable<T extends { id: string }>({
     } else {
       setSortKey(key);
       setSortDirection('asc');
+    }
+  };
+
+  const toggleExpanded = (id: string) => {
+    const newSet = new Set(expandedRows);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setExpandedRows(newSet);
+    onExpandChange?.(newSet);
+  };
+
+  const handleExpandKeyDown = (e: React.KeyboardEvent, id: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleExpanded(id);
     }
   };
 
@@ -95,6 +124,11 @@ export function DataTable<T extends { id: string }>({
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              {expandable && (
+                <th className="px-6 py-3 w-12">
+                  <span className="sr-only">Expand</span>
+                </th>
+              )}
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -127,28 +161,65 @@ export function DataTable<T extends { id: string }>({
             {paginatedData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length}
+                  colSpan={expandable ? columns.length + 1 : columns.length}
                   className="px-6 py-12 text-center text-gray-500"
                 >
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              paginatedData.map((item) => (
-                <tr
-                  key={item.id}
-                  onClick={() => onRowClick?.(item)}
-                  className={`${
-                    onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
-                  } transition-colors`}
-                >
-                  {columns.map((column) => (
-                    <td key={column.key} className="px-6 py-4 text-sm text-gray-900">
-                      {column.render ? column.render(item) : (item as any)[column.key]}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              paginatedData.map((item) => {
+                const isExpanded = expandedRows.has(item.id);
+                return (
+                  <>
+                    <tr
+                      key={item.id}
+                      className={`${
+                        onRowClick && !expandable ? 'cursor-pointer hover:bg-gray-50' : ''
+                      } transition-colors`}
+                    >
+                      {expandable && (
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpanded(item.id);
+                            }}
+                            onKeyDown={(e) => handleExpandKeyDown(e, item.id)}
+                            className="p-2 hover:bg-gray-100 rounded transition-colors"
+                            aria-expanded={isExpanded}
+                            aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="w-4 h-4 text-gray-600" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-gray-600" />
+                            )}
+                          </button>
+                        </td>
+                      )}
+                      {columns.map((column) => (
+                        <td
+                          key={column.key}
+                          className="px-6 py-4 text-sm text-gray-900"
+                          onClick={() => !expandable && onRowClick?.(item)}
+                        >
+                          {column.render ? column.render(item) : (item as any)[column.key]}
+                        </td>
+                      ))}
+                    </tr>
+                    {expandable && isExpanded && expandedRowRender && (
+                      <tr key={`${item.id}-expanded`} className="bg-gray-50">
+                        <td colSpan={columns.length + 1} className="px-6 py-4">
+                          <div className="animate-fadeIn">
+                            {expandedRowRender(item)}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })
             )}
           </tbody>
         </table>

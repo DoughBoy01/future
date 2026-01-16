@@ -77,11 +77,11 @@ export function DashboardOverview() {
         archivedCampsResult,
         campOrganizersResult,
       ] = await Promise.all([
-        supabase.from('registrations').select('id', { count: 'exact', head: true }),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }),
         supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'published'),
         supabase.from('parents').select('id', { count: 'exact', head: true }),
-        supabase.from('registrations').select('amount_paid'),
-        supabase.from('registrations').select('id', { count: 'exact', head: true }).neq('payment_status', 'paid'),
+        supabase.from('bookings').select('amount_paid'),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }).neq('payment_status', 'paid'),
         supabase.from('enquiries').select('id', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'draft'),
         supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
@@ -99,7 +99,7 @@ export function DashboardOverview() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const recentRegs = await supabase
-        .from('registrations')
+        .from('bookings')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', sevenDaysAgo.toISOString());
 
@@ -195,77 +195,164 @@ export function DashboardOverview() {
           </p>
         </div>
 
-        {/* Key Metrics - Top 4 Only */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Revenue */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Revenue</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  ${stats.totalRevenue.toLocaleString()}
-                </p>
-                <p className="mt-2 text-sm text-gray-500">
-                  From {stats.totalRegistrations} registration{stats.totalRegistrations !== 1 ? 's' : ''}
-                </p>
+        {/* Buyer Activity Section */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+            Buyer Activity
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Revenue */}
+            <div className="bg-white rounded-xl border border-blue-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="mt-2 text-3xl font-bold text-gray-900">
+                    ${stats.totalRevenue.toLocaleString()}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    From bookings
+                  </p>
+                </div>
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <DollarSign className="w-6 h-6 text-green-600" />
+                </div>
               </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <DollarSign className="w-6 h-6 text-green-600" />
+            </div>
+
+            {/* Registrations */}
+            <div className="bg-white rounded-xl border border-blue-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Bookings</p>
+                  <p className="mt-2 text-3xl font-bold text-gray-900">
+                    {stats.totalRegistrations}
+                  </p>
+                  <p className="mt-2 flex items-center text-sm text-green-600">
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                    {stats.recentRegistrations} this week
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <Calendar className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Customers */}
+            <div className="bg-white rounded-xl border border-blue-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Customers</p>
+                  <p className="mt-2 text-3xl font-bold text-gray-900">
+                    {stats.totalParents}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Parent accounts
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            {/* Pending Payments */}
+            <div className="bg-white rounded-xl border border-blue-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending Payments</p>
+                  <p className="mt-2 text-3xl font-bold text-amber-600">
+                    {stats.pendingPayments}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Awaiting payment
+                  </p>
+                </div>
+                <div className="p-3 bg-amber-50 rounded-lg">
+                  <AlertCircle className="w-6 h-6 text-amber-600" />
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Active Camps */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Camps</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  {stats.activeCamps}
-                </p>
-                <p className="mt-2 text-sm text-gray-500">
-                  Currently published
-                </p>
-              </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
-                <Tent className="w-6 h-6 text-purple-600" />
+        {/* Seller Activity Section */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <div className="w-1 h-6 bg-green-600 rounded-full"></div>
+            Seller Activity
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Published Camps */}
+            <div className="bg-white rounded-xl border border-green-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Published Camps</p>
+                  <p className="mt-2 text-3xl font-bold text-gray-900">
+                    {stats.activeCamps}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Live on platform
+                  </p>
+                </div>
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <Tent className="w-6 h-6 text-purple-600" />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Registrations */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Registrations</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  {stats.totalRegistrations}
-                </p>
-                <p className="mt-2 flex items-center text-sm text-green-600">
-                  <TrendingUp className="w-4 h-4 mr-1" />
-                  {stats.recentRegistrations} this week
-                </p>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Calendar className="w-6 h-6 text-blue-600" />
+            {/* Pending Review */}
+            <div className="bg-white rounded-xl border border-green-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Pending Review</p>
+                  <p className="mt-2 text-3xl font-bold text-amber-600">
+                    {stats.pendingReviewCamps}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Awaiting approval
+                  </p>
+                </div>
+                <div className="p-3 bg-amber-50 rounded-lg">
+                  <Clock className="w-6 h-6 text-amber-600" />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Customers */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Customers</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900">
-                  {stats.totalParents}
-                </p>
-                <p className="mt-2 text-sm text-gray-500">
-                  Total parents
-                </p>
+            {/* Approved Camps */}
+            <div className="bg-white rounded-xl border border-green-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Approved</p>
+                  <p className="mt-2 text-3xl font-bold text-green-600">
+                    {stats.approvedCamps}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Ready to publish
+                  </p>
+                </div>
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Users className="w-6 h-6 text-blue-600" />
+            </div>
+
+            {/* Camp Organizers */}
+            <div className="bg-white rounded-xl border border-green-200 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Organisations</p>
+                  <p className="mt-2 text-3xl font-bold text-gray-900">
+                    {stats.totalCampOrganizers}
+                  </p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Seller accounts
+                  </p>
+                </div>
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <Users className="w-6 h-6 text-purple-600" />
+                </div>
               </div>
             </div>
           </div>

@@ -63,11 +63,12 @@ SELECT
   cr.created_at,
   c.name as camp_name,
   o.name as organisation_name,
-  p.email as set_by_email
+  COALESCE(au.email, p.first_name || ' ' || p.last_name) as set_by_email
 FROM camp_commission_rates cr
 JOIN camps c ON cr.camp_id = c.id
 JOIN organisations o ON c.organisation_id = o.id
 LEFT JOIN profiles p ON cr.set_by = p.id
+LEFT JOIN auth.users au ON p.id = au.id
 ORDER BY cr.created_at DESC;
 
 COMMENT ON VIEW commission_rate_history IS 'Historical view of all commission rate changes';

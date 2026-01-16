@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
 import type { Database } from '../lib/database.types';
 
-type Registration = Database['public']['Tables']['registrations']['Insert'];
+type Booking = Database['public']['Tables']['bookings']['Insert'];
 type RegistrationForm = Database['public']['Tables']['registration_forms']['Insert'];
 
 export interface CreateRegistrationParams {
@@ -29,7 +29,7 @@ export interface CreateMultiChildRegistrationParams {
 }
 
 export async function createRegistration(params: CreateRegistrationParams) {
-  const registration: Registration = {
+  const booking: Booking = {
     camp_id: params.campId,
     child_id: params.childId,
     parent_id: params.parentId,
@@ -43,9 +43,9 @@ export async function createRegistration(params: CreateRegistrationParams) {
     photo_permission: false,
   };
 
-  const { data, error } = await supabase
-    .from('registrations')
-    .insert(registration)
+  const { data, error} = await supabase
+    .from('bookings')
+    .insert(booking)
     .select()
     .single();
 
@@ -55,7 +55,7 @@ export async function createRegistration(params: CreateRegistrationParams) {
 
 export async function createMultiChildRegistration(params: CreateMultiChildRegistrationParams) {
   const childIds: string[] = [];
-  const registrationIds: string[] = [];
+  const bookingIds: string[] = [];
   let parentId = params.parentId;
 
   if (!parentId && params.guestInfo) {
@@ -87,7 +87,7 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
     const { data: childData, error: childError } = await supabase
       .from('children')
       .insert({
-        parent_id: params.parentId,
+        parent_id: parentId,
         first_name: childEntry.firstName,
         last_name: childEntry.lastName,
         date_of_birth: temporaryDob.toISOString().split('T')[0],
@@ -98,10 +98,10 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
     if (childError) throw childError;
     childIds.push(childData.id);
 
-    const registration: Registration = {
+    const booking: Booking = {
       camp_id: params.campId,
       child_id: childData.id,
-      parent_id: params.parentId,
+      parent_id: parentId,
       status: 'pending',
       payment_status: 'unpaid',
       amount_paid: 0,
@@ -113,19 +113,19 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
       form_completed: false,
     };
 
-    const { data: regData, error: regError } = await supabase
-      .from('registrations')
-      .insert(registration)
+    const { data: bookingData, error: bookingError } = await supabase
+      .from('bookings')
+      .insert(booking)
       .select()
       .single();
 
-    if (regError) throw regError;
-    registrationIds.push(regData.id);
+    if (bookingError) throw bookingError;
+    bookingIds.push(bookingData.id);
   }
 
   return {
     childIds,
-    registrationIds,
+    bookingIds,
   };
 }
 

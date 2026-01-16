@@ -27,7 +27,7 @@ interface GuestInfo {
 export function CampRegistrationPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [camp, setCamp] = useState<Camp | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -48,6 +48,12 @@ export function CampRegistrationPage() {
   });
 
   useEffect(() => {
+    if (!id) {
+      setError('Invalid camp URL');
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       setIsGuest(true);
       setLoading(false);
@@ -66,6 +72,7 @@ export function CampRegistrationPage() {
   }, [numberOfPlaces]);
 
   async function loadCampData() {
+    if (!id) return;
     try {
       const { data: campData, error: campError } = await supabase
         .from('camps')
@@ -93,6 +100,7 @@ export function CampRegistrationPage() {
   }
 
   async function loadData() {
+    if (!id) return;
     try {
       const [campResult, parentResult] = await Promise.all([
         supabase
@@ -101,11 +109,7 @@ export function CampRegistrationPage() {
           .eq('id', id)
           .eq('status', 'published')
           .maybeSingle(),
-        supabase
-          .from('parents')
-          .select('id')
-          .eq('profile_id', profile!.id)
-          .maybeSingle(),
+        supabase.functions.invoke('get-or-create-parent'),
       ]);
 
       if (campResult.error) throw campResult.error;
@@ -119,17 +123,13 @@ export function CampRegistrationPage() {
       const enrolledCount = (campResult.data as any).enrolled_count || 0;
       setAvailablePlaces(campResult.data.capacity - enrolledCount);
 
+      if (parentResult.error) {
+        console.error('Error fetching/creating parent:', parentResult.error);
+        throw new Error('Failed to initialize registration profile');
+      }
+
       if (parentResult.data) {
         setParentId(parentResult.data.id);
-      } else {
-        const { data: newParent, error: parentError } = await supabase
-          .from('parents')
-          .insert({ profile_id: profile!.id })
-          .select()
-          .single();
-
-        if (parentError) throw parentError;
-        setParentId(newParent.id);
       }
     } catch (err) {
       console.error('Error loading data:', err);
@@ -250,15 +250,16 @@ export function CampRegistrationPage() {
         childId: result.childIds[0],
         amount: finalAmount,
         currency: camp.currency,
-        registrationId: result.registrationIds[0],
+        registrationId: result.bookingIds[0],
       });
 
       await Promise.all(
-        result.registrationIds.map(regId =>
+        result.bookingIds.map(bookingId =>
           supabase
-            .from('registrations')
+            .from('bookings')
+            // @ts-ignore
             .update({ stripe_checkout_session_id: checkoutSession.sessionId })
-            .eq('id', regId)
+            .eq('id', bookingId)
         )
       );
 
@@ -549,13 +550,12 @@ export function CampRegistrationPage() {
                                 value={entry.age}
                                 onChange={(e) => updateChildEntry(index, 'age', e.target.value)}
                                 placeholder="Age"
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 transition-standard ${
-                                  entry.age && isAgeAppropriate(entry.age) === false
-                                    ? 'border-orange-500 bg-orange-50 focus:ring-orange-500'
-                                    : entry.age && isAgeAppropriate(entry.age) === true
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 transition-standard ${entry.age && isAgeAppropriate(entry.age) === false
+                                  ? 'border-orange-500 bg-orange-50 focus:ring-orange-500'
+                                  : entry.age && isAgeAppropriate(entry.age) === true
                                     ? 'border-green-500 bg-green-50 focus:ring-green-500'
                                     : 'border-airbnb-grey-300 focus:ring-airbnb-pink-500 focus:border-transparent'
-                                }`}
+                                  }`}
                               />
                               {entry.age && isAgeAppropriate(entry.age) === false && camp && (
                                 <div className="mt-1 flex items-start gap-1 text-xs text-orange-700">

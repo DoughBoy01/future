@@ -1967,6 +1967,132 @@ export type Database = {
           },
         ]
       }
+      quiz_responses: {
+        Row: {
+          child_age: number
+          completed_at: string | null
+          created_at: string | null
+          device_type: string | null
+          duration_preference: string | null
+          email: string | null
+          id: string
+          interests: Json
+          budget_min: number | null
+          budget_max: number | null
+          parent_id: string | null
+          session_id: string
+          special_needs: Json | null
+          started_at: string | null
+          time_to_complete_seconds: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          child_age: number
+          completed_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          duration_preference?: string | null
+          email?: string | null
+          id?: string
+          interests: Json
+          budget_min?: number | null
+          budget_max?: number | null
+          parent_id?: string | null
+          session_id: string
+          special_needs?: Json | null
+          started_at?: string | null
+          time_to_complete_seconds?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          child_age?: number
+          completed_at?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          duration_preference?: string | null
+          email?: string | null
+          id?: string
+          interests?: Json
+          budget_min?: number | null
+          budget_max?: number | null
+          parent_id?: string | null
+          session_id?: string
+          special_needs?: Json | null
+          started_at?: string | null
+          time_to_complete_seconds?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_responses_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_results: {
+        Row: {
+          camp_id: string
+          clicked: boolean | null
+          clicked_at: string | null
+          created_at: string | null
+          id: string
+          match_label: string
+          match_reasons: Json | null
+          match_score: number
+          quiz_response_id: string
+          ranking: number
+        }
+        Insert: {
+          camp_id: string
+          clicked?: boolean | null
+          clicked_at?: string | null
+          created_at?: string | null
+          id?: string
+          match_label: string
+          match_reasons?: Json | null
+          match_score: number
+          quiz_response_id: string
+          ranking: number
+        }
+        Update: {
+          camp_id?: string
+          clicked?: boolean | null
+          clicked_at?: string | null
+          created_at?: string | null
+          id?: string
+          match_label?: string
+          match_reasons?: Json | null
+          match_score?: number
+          quiz_response_id?: string
+          ranking?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_results_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_results_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "camp_availability"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_results_quiz_response_id_fkey"
+            columns: ["quiz_response_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       registrations: {
         Row: {
           activity_restrictions: string | null

@@ -30,7 +30,18 @@ serve(async (req: Request) => {
     });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // Try SERVICE_ROLE_KEY first (custom secret), fallback to SUPABASE_SERVICE_ROLE_KEY (built-in)
+    const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Debug logging for environment variables
+    console.log('Environment check:');
+    console.log('- SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
+    console.log('- SERVICE_ROLE_KEY:', Deno.env.get('SERVICE_ROLE_KEY') ? `Set (length: ${Deno.env.get('SERVICE_ROLE_KEY')?.length})` : 'Missing');
+    console.log('- SUPABASE_SERVICE_ROLE_KEY (fallback):', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ? `Set (length: ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.length})` : 'Missing');
+    console.log('- Using key with length:', supabaseServiceKey ? supabaseServiceKey.length : 'Missing');
+    console.log('- STRIPE_SECRET_KEY:', stripeSecretKey ? 'Set' : 'Missing');
+    console.log('- STRIPE_WEBHOOK_SECRET:', webhookSecret ? 'Set' : 'Missing');
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const signature = req.headers.get('stripe-signature');
@@ -52,7 +63,15 @@ serve(async (req: Request) => {
         );
       }
     } else {
-      event = JSON.parse(body);
+      // SECURITY: Reject unverified events - webhook secret is required
+      console.error('Webhook secret not configured - rejecting unverified event');
+      return new Response(
+        JSON.stringify({ error: 'Webhook signature verification required' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     console.log('Webhook event type:', event.type);
@@ -73,7 +92,8 @@ serve(async (req: Request) => {
         const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
 
         // Update payment record
-        await supabase
+        console.log('Updating payment record for session:', session.id);
+        const { error: paymentUpdateError } = await supabase
           .from('payment_records')
           .update({
             stripe_payment_intent_id: paymentIntent,
@@ -87,15 +107,44 @@ serve(async (req: Request) => {
           })
           .eq('stripe_checkout_session_id', session.id);
 
+        if (paymentUpdateError) {
+          console.error('Payment record update error:', paymentUpdateError);
+          console.error('Error details:', JSON.stringify(paymentUpdateError, null, 2));
+        } else {
+          console.log('Payment record updated successfully');
+        }
+
         // Update bookings (formerly registrations)
-        const { data: bookings } = await supabase
+        console.log('Fetching bookings for session:', session.id);
+        const { data: bookings, error: bookingsError } = await supabase
           .from('bookings')
           .select('id, amount_due, camp_id')
           .eq('stripe_checkout_session_id', session.id);
 
+        if (bookingsError) {
+          console.error('Bookings query error:', bookingsError);
+          console.error('Error details:', JSON.stringify(bookingsError, null, 2));
+          return new Response(
+            JSON.stringify({
+              code: 401,
+              message: 'Missing authorization header',
+              details: bookingsError
+            }),
+            {
+              status: 401,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
+
+        console.log('Found bookings:', bookings?.length || 0);
+
         if (bookings && bookings.length > 0) {
           for (const booking of bookings) {
-            await supabase
+            console.log('Updating booking:', booking.id);
+
+            // Stripe payment succeeded - set to paid and confirmed in one update
+            const { error: bookingUpdateError } = await supabase
               .from('bookings')
               .update({
                 payment_status: 'paid',
@@ -104,6 +153,26 @@ serve(async (req: Request) => {
                 confirmation_date: new Date().toISOString(),
               })
               .eq('id', booking.id);
+
+            if (bookingUpdateError) {
+              console.error('Booking update error:', bookingUpdateError);
+              console.error('Error details:', JSON.stringify(bookingUpdateError, null, 2));
+
+              // Return error to help debug the database issue
+              return new Response(
+                JSON.stringify({
+                  error: 'Failed to update booking',
+                  details: bookingUpdateError,
+                  booking_id: booking.id
+                }),
+                {
+                  status: 500,
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                }
+              );
+            } else {
+              console.log('Booking updated successfully:', booking.id);
+            }
 
             // Create commission record for this booking
             const { data: camp } = await supabase
@@ -239,31 +308,51 @@ serve(async (req: Request) => {
       case 'charge.refunded': {
         const charge = event.data.object as Stripe.Charge;
         const paymentIntent = charge.payment_intent as string;
+        const isFullRefund = charge.amount_refunded === charge.amount;
 
         const { data: paymentRecord } = await supabase
           .from('payment_records')
-          .select('registration_id')
+          .select('registration_id, amount')
           .eq('stripe_payment_intent_id', paymentIntent)
           .single();
 
         if (paymentRecord) {
+          // Update payment record with refund details
           await supabase
             .from('payment_records')
             .update({
-              status: 'refunded',
-              metadata: { refund_amount: charge.amount_refunded / 100 },
+              status: isFullRefund ? 'refunded' : 'partially_refunded',
+              metadata: {
+                refund_amount: charge.amount_refunded / 100,
+                original_amount: charge.amount / 100,
+                is_full_refund: isFullRefund
+              },
             })
             .eq('stripe_payment_intent_id', paymentIntent);
 
-          await supabase
-            .from('registrations')
-            .update({
-              payment_status: 'refunded',
-              status: 'cancelled',
-            })
-            .eq('id', paymentRecord.registration_id);
+          // Only cancel booking if fully refunded
+          if (isFullRefund) {
+            await supabase
+              .from('registrations')
+              .update({
+                payment_status: 'refunded',
+                status: 'cancelled',
+              })
+              .eq('id', paymentRecord.registration_id);
 
-          console.log('Charge refunded for registration:', paymentRecord.registration_id);
+            console.log('Full refund processed, booking cancelled:', paymentRecord.registration_id);
+          } else {
+            // Partial refund - update amount but keep booking active
+            await supabase
+              .from('registrations')
+              .update({
+                payment_status: 'partially_refunded',
+                amount_paid: (paymentRecord.amount || 0) - (charge.amount_refunded / 100),
+              })
+              .eq('id', paymentRecord.registration_id);
+
+            console.log('Partial refund processed:', charge.amount_refunded / 100, 'for registration:', paymentRecord.registration_id);
+          }
         }
         break;
       }

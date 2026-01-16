@@ -8,6 +8,7 @@ interface Enquiry {
   id: string;
   camp_id: string;
   camp_name: string;
+  organisation_name: string;
   parent_name: string;
   parent_email: string;
   parent_phone: string | null;
@@ -38,7 +39,7 @@ export function EnquiriesManagement() {
         .from('enquiries')
         .select(`
           *,
-          camps!inner(name)
+          camps(name, organisations(name))
         `)
         .order('created_at', { ascending: false });
 
@@ -48,6 +49,7 @@ export function EnquiriesManagement() {
         id: enq.id,
         camp_id: enq.camp_id,
         camp_name: enq.camps.name,
+        organisation_name: enq.camps.organisations?.name || 'Unknown',
         parent_name: enq.parent_name,
         parent_email: enq.parent_email,
         parent_phone: enq.parent_phone,
@@ -148,6 +150,14 @@ export function EnquiriesManagement() {
       sortable: true,
       render: (enq) => (
         <p className="font-medium text-gray-900">{enq.camp_name}</p>
+      ),
+    },
+    {
+      key: 'organisation_name',
+      label: 'Seller',
+      sortable: true,
+      render: (enq) => (
+        <p className="font-medium text-gray-900">{enq.organisation_name}</p>
       ),
     },
     {
