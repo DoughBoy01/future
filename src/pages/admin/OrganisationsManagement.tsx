@@ -27,6 +27,29 @@ interface Organisation {
   response_time_hours?: number;
   total_camps_hosted?: number;
   established_year?: number | null;
+  signup_method?: string | null;
+  signup_completed_at?: string | null;
+  promotional_offer_id?: string | null;
+  offer_enrolled_at?: string | null;
+  offer_bookings_count?: number;
+  offer_expires_at?: string | null;
+  stripe_account_id?: string | null;
+  stripe_account_status?: string | null;
+  onboarding_status?: string | null;
+  onboarding_completed_at?: string | null;
+}
+
+interface Camp {
+  id: string;
+  name: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+  capacity: number;
+  price: number;
+  category: string;
+  age_min: number;
+  age_max: number;
 }
 
 interface OrganisationStats {
@@ -36,6 +59,7 @@ interface OrganisationStats {
   total_revenue: number;
   total_commission: number;
   pending_commission: number;
+  camps: Camp[];
 }
 
 export function OrganisationsManagement() {
@@ -48,6 +72,12 @@ export function OrganisationsManagement() {
   const [showDetails, setShowDetails] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingOrg, setEditingOrg] = useState<Organisation | undefined>(undefined);
+
+  // New filters
+  const [signupMethodFilter, setSignupMethodFilter] = useState<string>('all');
+  const [promoOfferFilter, setPromoOfferFilter] = useState<string>('all');
+  const [stripeStatusFilter, setStripeStatusFilter] = useState<string>('all');
+  const [onboardingStatusFilter, setOnboardingStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     loadOrganisations();
@@ -81,8 +111,9 @@ export function OrganisationsManagement() {
         const [campsResult, regsResult, commissionResult] = await Promise.all([
           supabase
             .from('camps')
-            .select('id, status', { count: 'exact' })
-            .eq('school_id', orgId),
+            .select('id, name, status, start_date, end_date, capacity, price, category, age_min, age_max', { count: 'exact' })
+            .eq('organisation_id', orgId)
+            .order('start_date', { ascending: false }),
           supabase
             .from('bookings')
             .select('amount_paid, camp_id')
@@ -107,6 +138,7 @@ export function OrganisationsManagement() {
           total_revenue: totalRevenue,
           total_commission: totalCommission,
           pending_commission: pendingCommission,
+          camps: campsResult.data || [],
         };
       }
 
@@ -116,10 +148,32 @@ export function OrganisationsManagement() {
     }
   }
 
-  const filteredOrganisations = organisations.filter(org =>
-    org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOrganisations = organisations.filter(org => {
+    // Text search
+    const matchesSearch = org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      org.contact_email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Signup method filter
+    const matchesSignupMethod = signupMethodFilter === 'all' ||
+      (signupMethodFilter === 'self_service' && org.signup_method === 'self_service') ||
+      (signupMethodFilter === 'invite' && org.signup_method === 'invite');
+
+    // Promotional offer filter
+    const matchesPromoOffer = promoOfferFilter === 'all' ||
+      (promoOfferFilter === 'active' && org.promotional_offer_id) ||
+      (promoOfferFilter === 'none' && !org.promotional_offer_id);
+
+    // Stripe status filter
+    const matchesStripeStatus = stripeStatusFilter === 'all' ||
+      (stripeStatusFilter === 'connected' && org.stripe_account_id) ||
+      (stripeStatusFilter === 'not_connected' && !org.stripe_account_id);
+
+    // Onboarding status filter
+    const matchesOnboardingStatus = onboardingStatusFilter === 'all' ||
+      org.onboarding_status === onboardingStatusFilter;
+
+    return matchesSearch && matchesSignupMethod && matchesPromoOffer && matchesStripeStatus && matchesOnboardingStatus;
+  });
 
   const handleViewDetails = (org: Organisation) => {
     setSelectedOrg(org);
@@ -176,7 +230,7 @@ export function OrganisationsManagement() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
           <input
             type="text"
             placeholder="Search organisations..."
@@ -184,6 +238,63 @@ export function OrganisationsManagement() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+
+          {/* Filters */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Signup Method</label>
+              <select
+                value={signupMethodFilter}
+                onChange={(e) => setSignupMethodFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="all">All Methods</option>
+                <option value="self_service">Self-Service</option>
+                <option value="invite">Invite</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Promotional Offer</label>
+              <select
+                value={promoOfferFilter}
+                onChange={(e) => setPromoOfferFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="all">All</option>
+                <option value="active">Has Active Offer</option>
+                <option value="none">No Offer</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Stripe Status</label>
+              <select
+                value={stripeStatusFilter}
+                onChange={(e) => setStripeStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="all">All</option>
+                <option value="connected">Connected</option>
+                <option value="not_connected">Not Connected</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Onboarding Status</label>
+              <select
+                value={onboardingStatusFilter}
+                onChange={(e) => setOnboardingStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                <option value="all">All</option>
+                <option value="pending_application">Pending Application</option>
+                <option value="active">Active</option>
+                <option value="pending_verification">Pending Verification</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6">
@@ -195,6 +306,7 @@ export function OrganisationsManagement() {
               total_revenue: 0,
               total_commission: 0,
               pending_commission: 0,
+              camps: [],
             };
 
             return (
@@ -227,6 +339,21 @@ export function OrganisationsManagement() {
                         >
                           {org.active ? 'Active' : 'Inactive'}
                         </span>
+                        {org.signup_method === 'self_service' && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
+                            Self-Service
+                          </span>
+                        )}
+                        {org.promotional_offer_id && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
+                            Promo Offer
+                          </span>
+                        )}
+                        {org.stripe_account_id && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                            Stripe ✓
+                          </span>
+                        )}
                         {org.established_year && (
                           <span className="text-xs text-gray-500">
                             Est. {org.established_year}
@@ -337,6 +464,61 @@ export function OrganisationsManagement() {
                           </p>
                         </div>
                       </div>
+
+                      {/* Camps List */}
+                      {orgStats.camps.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                            Camps ({orgStats.camps.length})
+                          </h4>
+                          <div className="space-y-2">
+                            {orgStats.camps.map((camp) => (
+                              <div
+                                key={camp.id}
+                                className="flex items-start justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h5 className="text-sm font-medium text-gray-900 truncate">
+                                      {camp.name}
+                                    </h5>
+                                    <span
+                                      className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                        camp.status === 'published'
+                                          ? 'bg-green-100 text-green-700'
+                                          : camp.status === 'draft'
+                                          ? 'bg-gray-100 text-gray-600'
+                                          : camp.status === 'full'
+                                          ? 'bg-amber-100 text-amber-700'
+                                          : 'bg-red-100 text-red-700'
+                                      }`}
+                                    >
+                                      {camp.status}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-4 text-xs text-gray-600">
+                                    <span className="inline-flex items-center gap-1">
+                                      <Calendar className="w-3 h-3" />
+                                      {new Date(camp.start_date).toLocaleDateString()} - {new Date(camp.end_date).toLocaleDateString()}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1">
+                                      <Users className="w-3 h-3" />
+                                      Ages {camp.age_min}-{camp.age_max}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1">
+                                      <DollarSign className="w-3 h-3" />
+                                      ${camp.price}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 bg-white rounded text-xs font-medium">
+                                      {camp.category}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

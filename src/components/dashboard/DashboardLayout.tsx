@@ -62,7 +62,7 @@ const navGroups: NavGroup[] = [
       },
       {
         name: 'Organisations',
-        path: '/admin/dashboard/schools',
+        path: '/admin/dashboard/organisations',
         icon: <Building2 className="w-5 h-5" />,
         roles: ['super_admin', 'school_admin'],
       },
