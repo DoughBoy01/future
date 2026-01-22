@@ -33,17 +33,14 @@ export function HomePage() {
 
     const loadData = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
-
         const [campsResponse, categoriesResponse] = await Promise.all([
           supabase
             .from('camps')
             .select('*')
             .eq('status', 'published')
             .eq('featured', true)
-            .gte('start_date', today)
             .order('start_date', { ascending: true })
-            .limit(10),
+            .limit(5),
           supabase
             .from('camp_categories')
             .select('*')
@@ -62,9 +59,8 @@ export function HomePage() {
               .from('camps')
               .select('*')
               .eq('status', 'published')
-              .gte('start_date', today)
               .order('start_date', { ascending: true })
-              .limit(10);
+              .limit(5);
 
             if (allCamps && isMounted) setFeaturedCamps(allCamps);
           }
@@ -174,6 +170,13 @@ export function HomePage() {
 
   const camps = featuredCamps.length > 0
     ? featuredCamps
+      .filter(camp => {
+        // Filter out camps that have already started
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const campStartDate = camp.start_date ? new Date(camp.start_date) : null;
+        return !campStartDate || campStartDate >= today;
+      })
       .map(camp => {
         const enrolledCount = (camp as any).enrolled_count || 0;
         const spotsRemaining = camp.capacity - enrolledCount;
