@@ -40,24 +40,6 @@ import { ConversationalCampFinderPage } from './pages/ConversationalCampFinderPa
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 import { DevContentEditor } from './components/dev/DevContentEditor';
 
-// Camp Owner Pages
-import CampOwnerLanding from './pages/CampOwnerLanding';
-
-// Onboarding Pages
-import Welcome from './pages/onboarding/Welcome';
-import OrganizationSetup from './pages/onboarding/OrganizationSetup';
-import FirstCampWizard from './pages/onboarding/FirstCampWizard';
-
-// Organizer Dashboard Pages
-import OrganizerDashboardOverview from './pages/organizer/OrganizerDashboardOverview';
-import OrganizationProfile from './pages/organizer/OrganizationProfile';
-import StripePaymentSettings from './pages/organizer/StripePaymentSettings';
-import PersonalProfile from './pages/organizer/PersonalProfile';
-
-// Admin - Onboarding Pages
-import PromotionalOffersManagement from './pages/admin/PromotionalOffersManagement';
-import OnboardingAnalytics from './pages/admin/OnboardingAnalytics';
-
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
@@ -84,11 +66,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function App() {
   const location = useLocation();
 
-  // Check if current route is a dashboard route (admin, organizer, or onboarding)
-  const isDashboardRoute = location.pathname.startsWith('/admin') ||
-    location.pathname.startsWith('/organizer-dashboard') ||
-    location.pathname.startsWith('/organizer/') ||
-    location.pathname.startsWith('/onboarding');
+  // Check if current route is a dashboard route (admin only)
+  const isDashboardRoute = location.pathname.startsWith('/admin');
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -101,7 +80,6 @@ function App() {
           <Route path="/camps/:id" element={<CampDetailPage />} />
           <Route path="/partners" element={<PartnersPage />} />
           <Route path="/for-parents" element={<ForParentsPage />} />
-          <Route path="/for-camp-owners" element={<CampOwnerLanding />} />
           <Route path="/find-your-camp" element={<QuizLandingPage />} />
           <Route path="/quiz" element={<Navigate to="/find-your-camp" replace />} />
           <Route path="/filter-demo" element={<FilterDemoPage />} />
@@ -132,96 +110,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* ============================================ */}
-          {/* CAMP ORGANIZER ONBOARDING ROUTES */}
-          {/* ============================================ */}
-          {/* TEMPORARY TEST - Bypass auth to test route */}
-          <Route
-            path="/onboarding/welcome-test"
-            element={<Welcome />}
-          />
-          <Route
-            path="/onboarding/welcome"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
-                  <Welcome />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/onboarding/organization"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
-                  <OrganizationSetup />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/onboarding/first-camp"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
-                  <FirstCampWizard />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ============================================ */}
-          {/* CAMP ORGANIZER DASHBOARD ROUTES */}
-          {/* Separate dashboard for camp organisers */}
-          {/* ============================================ */}
-          <Route
-            path="/organizer-dashboard"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
-                  <OrganizerDashboardOverview />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/organizer/profile"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
-                  <PersonalProfile />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/organizer/organization/profile"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
-                  <OrganizationProfile />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/organizer/settings/payments"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
-                  <StripePaymentSettings />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Additional organizer routes (to be implemented) */}
-          {/* <Route path="/organizer-dashboard/bookings" element={...} /> */}
-          {/* <Route path="/organizer-dashboard/registrations" element={...} /> */}
-          {/* <Route path="/organizer-dashboard/enquiries" element={...} /> */}
-          {/* <Route path="/organizer-dashboard/commissions" element={...} /> */}
 
           {/* ============================================ */}
           {/* ADMIN DASHBOARD ROUTES */}
@@ -423,26 +311,6 @@ function App() {
               <ProtectedRoute>
                 <RoleBasedRoute allowedRoles={['super_admin']}>
                   <SystemDiagnostics />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/promotional-offers"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
-                  <PromotionalOffersManagement />
-                </RoleBasedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/onboarding-analytics"
-            element={
-              <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
-                  <OnboardingAnalytics />
                 </RoleBasedRoute>
               </ProtectedRoute>
             }
