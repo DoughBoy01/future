@@ -19,8 +19,13 @@ type QuizResponse = {
     accessibility?: string[];
   };
   locationPreference?: {
-    type: 'local' | 'international';
-    county?: string;
+    type: 'nearby' | 'anywhere';
+    location?: {
+      country: string;
+      countryCode: string;
+      region?: string;
+      city?: string;
+    };
   };
 };
 
@@ -239,65 +244,40 @@ export function calculateCampScore(camp: Camp, responses: QuizResponse): {
     }
   }
 
-  // LOCATION PREFERENCE MATCHING (30% weight - high priority)
-  if (responses.locationPreference && camp.location) {
-    const campLocation = camp.location.toLowerCase();
-    const { type, county } = responses.locationPreference;
+  // LOCATION PREFERENCE MATCHING (Critical when 'nearby' selected)
+  if (responses.locationPreference) {
+    const { type, location } = responses.locationPreference;
+    const campLocation = camp.location?.toLowerCase() || '';
 
-    // Check if camp is in Ireland (common Irish location patterns)
-    const isIrelandCamp = campLocation.includes('ireland') ||
-                          campLocation.includes('dublin') ||
-                          campLocation.includes('cork') ||
-                          campLocation.includes('galway') ||
-                          campLocation.includes('limerick') ||
-                          campLocation.includes('waterford') ||
-                          campLocation.includes('kildare') ||
-                          campLocation.includes('wicklow') ||
-                          campLocation.includes('meath') ||
-                          campLocation.includes('clare') ||
-                          campLocation.includes('kerry') ||
-                          campLocation.includes('donegal') ||
-                          campLocation.includes('mayo') ||
-                          campLocation.includes('sligo') ||
-                          campLocation.includes('louth') ||
-                          campLocation.includes('carlow') ||
-                          campLocation.includes('kilkenny') ||
-                          campLocation.includes('wexford') ||
-                          campLocation.includes('tipperary') ||
-                          campLocation.includes('offaly') ||
-                          campLocation.includes('laois') ||
-                          campLocation.includes('westmeath') ||
-                          campLocation.includes('longford') ||
-                          campLocation.includes('cavan') ||
-                          campLocation.includes('monaghan') ||
-                          campLocation.includes('roscommon') ||
-                          campLocation.includes('leitrim');
+    if (type === 'nearby' && location) {
+      // User explicitly wants camps near their location - this is HIGH priority
+      const { country, countryCode, region, city } = location;
 
-    if (type === 'local') {
-      // User wants local camps in Ireland
-      if (isIrelandCamp) {
-        score += 30;
+      // Check for location matches (city > region > country)
+      const cityMatch = city && campLocation.includes(city.toLowerCase());
+      const regionMatch = region && campLocation.includes(region.toLowerCase());
+      const countryMatch = country && (
+        campLocation.includes(country.toLowerCase()) ||
+        campLocation.includes(countryCode.toLowerCase())
+      );
 
-        // Extra bonus if county matches
-        if (county && campLocation.includes(county.toLowerCase())) {
-          score += 10; // Additional bonus for exact county match
-          reasons.push(`Located in ${county}`);
-        } else {
-          reasons.push('Located in Ireland');
-        }
+      if (cityMatch) {
+        score += 60; // Very strong bonus for city match
+        reasons.push(`Located in ${city}`);
+      } else if (regionMatch) {
+        score += 50; // Strong bonus for region match
+        reasons.push(`Located in ${region}`);
+      } else if (countryMatch) {
+        score += 40; // Good bonus for same country
+        reasons.push(`Located in ${country}`);
       } else {
-        // Penalize international camps when user wants local
-        score -= 20;
+        // Heavy penalty for camps not in user's country when "nearby" is selected
+        // This effectively pushes non-local camps to the bottom
+        score -= 50;
       }
-    } else if (type === 'international') {
-      // User wants international camps
-      if (!isIrelandCamp) {
-        score += 30;
-        reasons.push('International destination');
-      } else {
-        // Penalize local camps when user wants international
-        score -= 20;
-      }
+    } else if (type === 'anywhere') {
+      // User is open to any location - no location filtering needed
+      score += 5;
     }
   }
 

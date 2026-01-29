@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { LoginForm } from '../components/auth/LoginForm';
 import { SignupForm } from '../components/auth/SignupForm';
 import { ResetPasswordForm } from '../components/auth/ResetPasswordForm';
+import { getDashboardRoute } from '../utils/navigation';
 
 type AuthMode = 'login' | 'signup' | 'reset';
 
@@ -22,13 +23,21 @@ export function AuthPage() {
 
   useEffect(() => {
     if (user && profile) {
-      // Redirect based on user role
-      if (profile.role === 'camp_organizer') {
-        navigate('/organizer-dashboard');
-      } else if (profile.role === 'super_admin' || profile.role === 'school_admin') {
-        navigate('/admin/overview');
-      } else {
-        navigate('/dashboard');
+      // Check if camp organizer needs to complete onboarding
+      if (profile.role === 'camp_organizer' && !profile.onboarding_completed && profile.onboarding_step) {
+        // Redirect to appropriate onboarding step
+        const stepRoutes = {
+          'welcome': '/onboarding/welcome',
+          'organization': '/onboarding/organization',
+          'first_camp': '/onboarding/first-camp',
+          'completed': '/organizer-dashboard'
+        };
+        const route = stepRoutes[profile.onboarding_step as keyof typeof stepRoutes] || '/organizer-dashboard';
+        navigate(route);
+      }
+      // Redirect based on user role using utility function
+      else {
+        navigate(getDashboardRoute(profile.role));
       }
     }
   }, [user, profile, navigate]);

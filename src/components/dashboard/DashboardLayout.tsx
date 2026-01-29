@@ -121,6 +121,12 @@ const navGroups: NavGroup[] = [
         roles: ['super_admin'],
       },
       {
+        name: 'Promotional Offers',
+        path: '/admin/promotional-offers',
+        icon: <Store className="w-5 h-5" />,
+        roles: ['super_admin'],
+      },
+      {
         name: 'Payouts',
         path: '/admin/dashboard/payouts',
         icon: <Wallet className="w-5 h-5" />,
@@ -135,6 +141,12 @@ const navGroups: NavGroup[] = [
         name: 'User Roles',
         path: '/admin/user-roles',
         icon: <Shield className="w-5 h-5" />,
+        roles: ['super_admin'],
+      },
+      {
+        name: 'System Settings',
+        path: '/admin/settings',
+        icon: <Settings className="w-5 h-5" />,
         roles: ['super_admin'],
       },
     ],

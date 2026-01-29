@@ -8,6 +8,117 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
+/**
+ * Sends booking confirmation email to parent
+ * Non-blocking - doesn't prevent webhook processing if email fails
+ */
+async function sendBookingConfirmationEmail(
+  bookings: any[],
+  totalAmount: number,
+  supabase: any
+) {
+  try {
+    // Get parent data
+    const { data: parentData, error: parentError } = await supabase
+      .from('parents')
+      .select('*')
+      .eq('id', bookings[0].parent_id)
+      .single();
+
+    if (parentError || !parentData) {
+      console.error('Failed to fetch parent data for email:', parentError?.message);
+      return;
+    }
+
+    // Get camp data
+    const { data: campData, error: campError } = await supabase
+      .from('camps')
+      .select('name, start_date, end_date, location')
+      .eq('id', bookings[0].camp_id)
+      .single();
+
+    if (campError || !campData) {
+      console.error('Failed to fetch camp data for email:', campError?.message);
+      return;
+    }
+
+    // Get children details
+    const childIds = bookings.map((b: any) => b.child_id);
+    const { data: children, error: childrenError } = await supabase
+      .from('children')
+      .select('first_name, last_name')
+      .in('id', childIds);
+
+    if (childrenError || !children || children.length === 0) {
+      console.error('Failed to fetch children data for email:', childrenError?.message);
+      return;
+    }
+
+    // Determine recipient email and name
+    let recipientEmail: string;
+    let recipientName: string;
+
+    if (parentData.is_guest) {
+      recipientEmail = parentData.guest_email;
+      recipientName = parentData.guest_name;
+    } else {
+      // For authenticated users, fetch email from auth
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+        parentData.profile_id
+      );
+
+      if (userError || !userData?.user?.email) {
+        console.error('Failed to fetch user email:', userError?.message);
+        return;
+      }
+
+      recipientEmail = userData.user.email;
+      recipientName = `${parentData.first_name || ''} ${parentData.last_name || ''}`.trim() || 'Parent';
+    }
+
+    if (!recipientEmail) {
+      console.error('No recipient email found for parent:', parentData.id);
+      return;
+    }
+
+    // Get app URL for child details link
+    const appUrl = Deno.env.get('APP_URL') || 'http://localhost:5173';
+
+    // Send email via send-email Edge Function
+    console.log(`📧 Sending booking confirmation email to ${recipientEmail}`);
+    await supabase.functions.invoke('send-email', {
+      body: {
+        template: 'booking-confirmation',
+        to: { email: recipientEmail, name: recipientName },
+        data: {
+          parentName: recipientName,
+          campName: campData.name,
+          campStartDate: campData.start_date,
+          campEndDate: campData.end_date,
+          campLocation: campData.location,
+          children: children.map((c: any) => ({
+            firstName: c.first_name,
+            lastName: c.last_name,
+          })),
+          totalAmount: totalAmount / 100, // Stripe amount in cents
+          bookingId: bookings[0].id,
+          childDetailsUrl: `${appUrl}/registration/${bookings[0].id}/child-details`,
+        },
+        context: {
+          type: 'booking',
+          id: bookings[0].id,
+          profile_id: parentData.profile_id,
+        },
+      },
+    });
+
+    console.log('✅ Booking confirmation email sent');
+  } catch (error: any) {
+    console.error('❌ Error sending booking confirmation email:', error.message);
+    // Non-blocking - don't fail webhook processing if email fails
+  }
+}
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -82,27 +193,50 @@ serve(async (req: Request) => {
         const registrationId = session.metadata?.registrationId;
         const campId = session.metadata?.campId;
         const organisationId = session.metadata?.organisationId;
+        const chargeType = session.metadata?.chargeType;
 
         if (!registrationId) {
           console.error('Missing registrationId in session metadata');
           break;
         }
 
-        const paymentIntent = session.payment_intent as string;
+        const paymentIntentId = session.payment_intent as string;
         const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
 
-        // Update payment record
+        // For direct charges, fetch the PaymentIntent to get application_fee_id
+        let applicationFeeId = null;
+        let applicationFeeAmount = null;
+
+        if (chargeType === 'direct' && paymentIntentId) {
+          try {
+            const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+            applicationFeeId = paymentIntent.application_fee as string | null;
+
+            // If application fee exists, get the amount
+            if (applicationFeeId) {
+              const applicationFee = await stripe.applicationFees.retrieve(applicationFeeId);
+              applicationFeeAmount = applicationFee.amount / 100; // Convert to dollars
+              console.log(`Application fee captured: ${applicationFeeId} ($${applicationFeeAmount})`);
+            }
+          } catch (err) {
+            console.error('Error retrieving application fee:', err);
+          }
+        }
+
+        // Update payment record with application fee details
         console.log('Updating payment record for session:', session.id);
         const { error: paymentUpdateError } = await supabase
           .from('payment_records')
           .update({
-            stripe_payment_intent_id: paymentIntent,
+            stripe_payment_intent_id: paymentIntentId,
+            application_fee_id: applicationFeeId,
             status: 'succeeded',
             payment_method: session.payment_method_types?.[0] || 'card',
             paid_at: new Date().toISOString(),
             metadata: {
               customer_email: session.customer_email,
               customer_details: session.customer_details,
+              application_fee_captured: applicationFeeId ? true : false,
             },
           })
           .eq('stripe_checkout_session_id', session.id);
@@ -192,14 +326,25 @@ serve(async (req: Request) => {
                 commission_rate: commissionRate,
                 registration_amount: booking.amount_due,
                 commission_amount: commissionAmount,
-                payment_status: 'pending',
+                stripe_application_fee_id: applicationFeeId,
+                actual_fee_collected: applicationFeeAmount || commissionAmount,
+                payment_status: chargeType === 'direct' ? 'collected' : 'pending',
                 created_at: new Date().toISOString(),
               });
 
-              console.log(`Commission record created: ${commissionAmount} (${commissionRate * 100}%)`);
+              console.log(`Commission record created: ${commissionAmount} (${commissionRate * 100}%) - Application fee: ${applicationFeeId || 'N/A'}`);
             }
           }
           console.log(`Payment successful for ${bookings.length} booking(s)`);
+
+          // Send booking confirmation email (non-blocking)
+          if (bookings && bookings.length > 0) {
+            sendBookingConfirmationEmail(
+              bookings,
+              amountTotal,
+              supabase
+            ).catch(err => console.error('Email send error:', err));
+          }
         }
 
         break;
@@ -309,10 +454,19 @@ serve(async (req: Request) => {
         const charge = event.data.object as Stripe.Charge;
         const paymentIntent = charge.payment_intent as string;
         const isFullRefund = charge.amount_refunded === charge.amount;
+        const refundAmount = charge.amount_refunded / 100;
+
+        // Calculate application fee refund amount
+        let refundApplicationFeeAmount = 0;
+        if (charge.application_fee_amount) {
+          // Proportional refund of application fee
+          const refundPercentage = charge.amount_refunded / charge.amount;
+          refundApplicationFeeAmount = (charge.application_fee_amount / 100) * refundPercentage;
+        }
 
         const { data: paymentRecord } = await supabase
           .from('payment_records')
-          .select('registration_id, amount')
+          .select('registration_id, booking_id, amount, application_fee_id, charge_type')
           .eq('stripe_payment_intent_id', paymentIntent)
           .single();
 
@@ -322,36 +476,67 @@ serve(async (req: Request) => {
             .from('payment_records')
             .update({
               status: isFullRefund ? 'refunded' : 'partially_refunded',
+              refund_amount: refundAmount,
+              refund_application_fee_amount: refundApplicationFeeAmount,
               metadata: {
-                refund_amount: charge.amount_refunded / 100,
+                refund_amount: refundAmount,
+                refund_application_fee_amount: refundApplicationFeeAmount,
                 original_amount: charge.amount / 100,
                 is_full_refund: isFullRefund
               },
             })
             .eq('stripe_payment_intent_id', paymentIntent);
 
-          // Only cancel booking if fully refunded
-          if (isFullRefund) {
-            await supabase
-              .from('registrations')
-              .update({
-                payment_status: 'refunded',
-                status: 'cancelled',
-              })
-              .eq('id', paymentRecord.registration_id);
+          // Use booking_id (preferred) or fall back to registration_id
+          const bookingId = paymentRecord.booking_id || paymentRecord.registration_id;
 
-            console.log('Full refund processed, booking cancelled:', paymentRecord.registration_id);
-          } else {
-            // Partial refund - update amount but keep booking active
-            await supabase
-              .from('registrations')
-              .update({
-                payment_status: 'partially_refunded',
-                amount_paid: (paymentRecord.amount || 0) - (charge.amount_refunded / 100),
-              })
-              .eq('id', paymentRecord.registration_id);
+          if (bookingId) {
+            // Only cancel booking if fully refunded
+            if (isFullRefund) {
+              await supabase
+                .from('bookings')
+                .update({
+                  payment_status: 'refunded',
+                  status: 'cancelled',
+                })
+                .eq('id', bookingId);
 
-            console.log('Partial refund processed:', charge.amount_refunded / 100, 'for registration:', paymentRecord.registration_id);
+              console.log('Full refund processed, booking cancelled:', bookingId);
+            } else {
+              // Partial refund - update amount but keep booking active
+              await supabase
+                .from('bookings')
+                .update({
+                  payment_status: 'partially_refunded',
+                  amount_paid: (paymentRecord.amount || 0) - refundAmount,
+                })
+                .eq('id', bookingId);
+
+              console.log('Partial refund processed:', refundAmount, 'for booking:', bookingId);
+            }
+
+            // Update commission record if application fee was refunded
+            if (refundApplicationFeeAmount > 0) {
+              const { data: commissionRecord } = await supabase
+                .from('commission_records')
+                .select('id, actual_fee_collected')
+                .eq('booking_id', bookingId)
+                .single();
+
+              if (commissionRecord) {
+                const newFeeCollected = (commissionRecord.actual_fee_collected || 0) - refundApplicationFeeAmount;
+
+                await supabase
+                  .from('commission_records')
+                  .update({
+                    actual_fee_collected: newFeeCollected,
+                    payment_status: isFullRefund ? 'refunded' : 'partially_refunded',
+                  })
+                  .eq('id', commissionRecord.id);
+
+                console.log(`Commission adjusted: -$${refundApplicationFeeAmount} (new total: $${newFeeCollected})`);
+              }
+            }
           }
         }
         break;

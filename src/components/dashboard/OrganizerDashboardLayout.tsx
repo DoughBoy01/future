@@ -11,7 +11,10 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  Users
+  Users,
+  Settings,
+  User,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -38,35 +41,61 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    name: 'Camp Management',
+    name: 'Account',
     items: [
       {
-        name: 'Bookings',
-        path: '/organizer-dashboard/bookings',
-        icon: <Users className="w-5 h-5" />,
+        name: 'My Profile',
+        path: '/organizer/profile',
+        icon: <User className="w-5 h-5" />,
       },
       {
-        name: 'Registrations',
-        path: '/organizer-dashboard/registrations',
-        icon: <Calendar className="w-5 h-5" />,
-      },
-      {
-        name: 'Enquiries',
-        path: '/organizer-dashboard/enquiries',
-        icon: <MessageSquare className="w-5 h-5" />,
+        name: 'Organization Profile',
+        path: '/organizer/organization/profile',
+        icon: <Building2 className="w-5 h-5" />,
       },
     ],
   },
   {
-    name: 'Financial',
+    name: 'Settings',
     items: [
       {
-        name: 'Commissions',
-        path: '/organizer-dashboard/commissions',
-        icon: <DollarSign className="w-5 h-5" />,
+        name: 'Payment Settings',
+        path: '/organizer/settings/payments',
+        icon: <Settings className="w-5 h-5" />,
       },
     ],
   },
+  // TODO: Restore when implementing Bookings, Registrations, Enquiries, Commissions pages
+  // {
+  //   name: 'Camp Management',
+  //   items: [
+  //     {
+  //       name: 'Bookings',
+  //       path: '/organizer-dashboard/bookings',
+  //       icon: <Users className="w-5 h-5" />,
+  //     },
+  //     {
+  //       name: 'Registrations',
+  //       path: '/organizer-dashboard/registrations',
+  //       icon: <Calendar className="w-5 h-5" />,
+  //     },
+  //     {
+  //       name: 'Enquiries',
+  //       path: '/organizer-dashboard/enquiries',
+  //       icon: <MessageSquare className="w-5 h-5" />,
+  //     },
+  //   ],
+  // },
+  // {
+  //   name: 'Financial',
+  //   items: [
+  //     {
+  //       name: 'Commissions',
+  //       path: '/organizer-dashboard/commissions',
+  //       icon: <DollarSign className="w-5 h-5" />,
+  //     },
+  //   ],
+  // },
 ];
 
 export function OrganizerDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -267,7 +296,9 @@ export function OrganizerDashboardLayout({ children }: { children: React.ReactNo
 
           {/* Page Content */}
           <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8">
-            {children}
+            <div className="max-w-content mx-auto">
+              {children}
+            </div>
           </main>
 
           {/* Footer */}

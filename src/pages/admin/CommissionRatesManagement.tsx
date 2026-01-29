@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Percent, Building2, Tent, TrendingUp, Search, Edit, History } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Percent, Building2, Tent, TrendingUp, Search, Edit, History, Settings } from 'lucide-react';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { CommissionRateManager } from '../../components/admin/CommissionRateManager';
 import {
@@ -7,6 +8,8 @@ import {
   getAllCommissionHistory,
   type CommissionRateHistory,
 } from '../../services/commissionRateService';
+import { getSystemDefault } from '../../services/systemSettingsService';
+import { formatRatePercentage } from '../../utils/commissionRateFormatting';
 import { supabase } from '../../lib/supabase';
 
 interface Organization {
@@ -38,6 +41,7 @@ export function CommissionRatesManagement() {
   const [selectedCamp, setSelectedCamp] = useState<Camp | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<'organizations' | 'camps' | 'history'>('organizations');
+  const [systemDefault, setSystemDefault] = useState<number>(0.15);
 
   useEffect(() => {
     loadData();
@@ -47,15 +51,17 @@ export function CommissionRatesManagement() {
     try {
       setLoading(true);
 
-      const [orgsData, campsData, historyData] = await Promise.all([
+      const [orgsData, campsData, historyData, systemDefaultRate] = await Promise.all([
         getAllOrganizationsWithRates(),
         loadCamps(),
         getAllCommissionHistory(100),
+        getSystemDefault(),
       ]);
 
       setOrganizations(orgsData);
       setCamps(campsData);
       setHistory(historyData);
+      setSystemDefault(systemDefaultRate);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -115,6 +121,32 @@ export function CommissionRatesManagement() {
   return (
     <DashboardLayout title="Commission Rate Management">
       <div className="space-y-6">
+        {/* System Default Section */}
+        <div className="bg-gradient-to-r from-pink-50 to-pink-100 border-2 border-pink-200 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                System Default Commission Rate
+              </h3>
+              <p className="text-sm text-gray-600">
+                This is the default rate applied to all new organizations
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-4xl font-bold text-pink-600">
+                {formatRatePercentage(systemDefault, 1)}
+              </div>
+              <Link
+                to="/admin/settings"
+                className="text-sm text-pink-600 hover:text-pink-700 underline mt-1 inline-block"
+              >
+                Change System Default →
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* Header Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-sm">

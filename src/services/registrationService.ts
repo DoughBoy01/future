@@ -59,6 +59,9 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
   let parentId = params.parentId;
 
   if (!parentId && params.guestInfo) {
+    // Generate unique guest session ID
+    const guestSessionId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+
     const { data: parentData, error: parentError } = await supabase
       .from('parents')
       .insert({
@@ -66,6 +69,7 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
         guest_name: params.guestInfo.name,
         guest_email: params.guestInfo.email,
         guest_phone: params.guestInfo.phone || null,
+        guest_session_id: guestSessionId,
       })
       .select()
       .single();

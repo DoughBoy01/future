@@ -21,6 +21,22 @@ export interface CommissionRateHistory {
   set_by_email: string;
 }
 
+export interface OrganisationCommissionRateHistory {
+  id: string;
+  organisation_id: string;
+  commission_rate: number;
+  effective_date: string;
+  end_date: string | null;
+  set_by: string;
+  notes: string;
+  created_at: string;
+  set_by_profile?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+}
+
 /**
  * Get the effective commission rate for a camp
  * Returns camp-specific rate if set, otherwise organization default
@@ -40,16 +56,34 @@ export async function getEffectiveCommissionRate(campId: string): Promise<number
 
 /**
  * Update organization's default commission rate
+ * Records change in organisation_commission_rates history table
  */
 export async function updateOrganizationDefaultRate(
   organisationId: string,
   rate: number,
-  notes?: string
+  userId: string,
+  notes: string
 ): Promise<void> {
   if (rate < 0 || rate > 1) {
     throw new Error('Commission rate must be between 0 and 1 (0% to 100%)');
   }
 
+  if (!notes || notes.trim().length === 0) {
+    throw new Error('Notes explaining the rate change are required');
+  }
+
+  // Get current rate for history
+  const { data: org } = await supabase
+    .from('organisations')
+    .select('default_commission_rate')
+    .eq('id', organisationId)
+    .single();
+
+  if (!org) {
+    throw new Error('Organisation not found');
+  }
+
+  // Update organization
   const { error } = await supabase
     .from('organisations')
     .update({
@@ -63,11 +97,29 @@ export async function updateOrganizationDefaultRate(
     throw error;
   }
 
+  // Record in history if rate changed
+  if (rate !== org.default_commission_rate) {
+    const { error: historyError } = await supabase
+      .from('organisation_commission_rates')
+      .insert({
+        organisation_id: organisationId,
+        commission_rate: rate,
+        effective_date: new Date().toISOString(),
+        set_by: userId,
+        notes: notes.trim(),
+      });
+
+    if (historyError) {
+      console.warn('Failed to record org commission history:', historyError);
+      // Don't throw - the rate was updated successfully
+    }
+  }
+
   // Log the change
   console.log(
     `Organization ${organisationId} default commission rate updated to ${(rate * 100).toFixed(
       2
-    )}%${notes ? `: ${notes}` : ''}`
+    )}% by user ${userId}: ${notes}`
   );
 }
 
@@ -249,4 +301,58 @@ export async function bulkUpdateCampCommissionRates(
  */
 export async function resetCampToDefaultRate(campId: string, userId: string): Promise<void> {
   await updateCampCommissionRate(campId, null, userId, 'Reset to organization default');
+}
+
+/**
+ * Get commission rate history for an organisation
+ * @param orgId - Organisation ID
+ * @returns Array of commission rate history records with admin attribution
+ */
+export async function getOrganizationCommissionHistory(
+  orgId: string
+): Promise<OrganisationCommissionRateHistory[]> {
+  const { data, error } = await supabase
+    .from('organisation_commission_rates')
+    .select(
+      `
+      *,
+      set_by_profile:profiles!organisation_commission_rates_set_by_fkey(email, first_name, last_name)
+    `
+    )
+    .eq('organisation_id', orgId)
+    .order('effective_date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching organization commission history:', error);
+    throw error;
+  }
+
+  return (data || []) as OrganisationCommissionRateHistory[];
+}
+
+/**
+ * Get all organisation commission history (admin view)
+ * @param limit - Maximum number of records to return
+ * @returns Array of commission rate history records
+ */
+export async function getAllOrganizationCommissionHistory(
+  limit: number = 100
+): Promise<OrganisationCommissionRateHistory[]> {
+  const { data, error } = await supabase
+    .from('organisation_commission_rates')
+    .select(
+      `
+      *,
+      set_by_profile:profiles!organisation_commission_rates_set_by_fkey(email, first_name, last_name)
+    `
+    )
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching all organization commission history:', error);
+    throw error;
+  }
+
+  return (data || []) as OrganisationCommissionRateHistory[];
 }

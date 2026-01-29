@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Upload, X, Image as ImageIcon, Video, Plus, Loader, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Video, Plus, Loader, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { validateVideoUrl, getVideoThumbnail } from '../../utils/videoValidation';
 
@@ -43,6 +43,7 @@ export function MediaUploadManager({
   const [videoTitleInput, setVideoTitleInput] = useState('');
   const [videoDescInput, setVideoDescInput] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [expandedVideoIndex, setExpandedVideoIndex] = useState<number | null>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -208,6 +209,12 @@ export function MediaUploadManager({
     onVideosChange(newVideos);
   };
 
+  const updateVideoDescription = (index: number, description: string) => {
+    const newVideos = [...videos];
+    newVideos[index] = { ...newVideos[index], description };
+    onVideosChange(newVideos);
+  };
+
   return (
     <div className="space-y-6">
       {error && (
@@ -248,7 +255,7 @@ export function MediaUploadManager({
           ))}
 
           {images.length < maxImages && (
-            <label className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+            <label className="h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-pink-500 hover:bg-pink-50 transition-colors">
               <input
                 type="file"
                 multiple
@@ -258,7 +265,7 @@ export function MediaUploadManager({
                 className="hidden"
               />
               {uploadingImages ? (
-                <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+                <Loader className="w-8 h-8 text-pink-600 animate-spin" />
               ) : (
                 <>
                   <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
@@ -281,35 +288,86 @@ export function MediaUploadManager({
 
         <div className="space-y-4 mb-4">
           {videos.map((video, index) => (
-            <div key={index} className="flex items-start gap-3 p-4 border border-gray-300 rounded-lg">
-              <Video className="w-5 h-5 text-gray-600 flex-shrink-0 mt-1" />
-              <div className="flex-1 min-w-0">
-                <input
-                  type="text"
-                  value={video.title || ''}
-                  onChange={(e) => updateVideoTitle(index, e.target.value)}
-                  placeholder="Video title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-sm"
-                />
-                <p className="text-xs text-gray-600 truncate">{video.url}</p>
-                <span className="inline-block mt-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                  {video.type}
-                </span>
+            <div key={index} className="border border-gray-300 rounded-lg overflow-hidden">
+              {/* Collapsed Header */}
+              <div className="flex items-center gap-3 p-4">
+                <button
+                  type="button"
+                  onClick={() => setExpandedVideoIndex(expandedVideoIndex === index ? null : index)}
+                  className="text-gray-600 hover:text-gray-800 transition-colors"
+                  aria-expanded={expandedVideoIndex === index}
+                >
+                  <ChevronDown
+                    className={`w-5 h-5 transition-transform ${expandedVideoIndex === index ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                <Video className="w-5 h-5 text-gray-600 flex-shrink-0" />
+
+                <div className="flex-1 min-w-0">
+                  <input
+                    type="text"
+                    value={video.title || ''}
+                    onChange={(e) => updateVideoTitle(index, e.target.value)}
+                    placeholder="Video title..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => removeVideo(index)}
+                  className="text-red-600 hover:text-red-700 p-1 transition-colors"
+                  title="Remove video"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => removeVideo(index)}
-                className="text-red-600 hover:text-red-700 p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              {/* Expanded Details */}
+              {expandedVideoIndex === index && (
+                <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-200 space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Video URL
+                    </label>
+                    <p className="text-xs text-gray-600 break-all p-2 bg-white rounded border border-gray-200">
+                      {video.url}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      value={video.description || ''}
+                      onChange={(e) => updateVideoDescription(index, e.target.value)}
+                      placeholder="Add a description for this video..."
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded font-medium">
+                      {video.type}
+                    </span>
+                    {video.thumbnail && (
+                      <span className="text-xs text-gray-500">
+                        • Thumbnail available
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
 
         {videos.length < maxVideos && (
           <div className="flex gap-2">
-            <label className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+            <label className="flex-1 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-pink-500 hover:bg-pink-50 transition-colors">
               <input
                 type="file"
                 accept="video/*"
@@ -318,7 +376,7 @@ export function MediaUploadManager({
                 className="hidden"
               />
               {uploadingVideo ? (
-                <Loader className="w-5 h-5 text-blue-600 animate-spin mr-2" />
+                <Loader className="w-5 h-5 text-pink-600 animate-spin mr-2" />
               ) : (
                 <Upload className="w-5 h-5 text-gray-600 mr-2" />
               )}
@@ -328,7 +386,7 @@ export function MediaUploadManager({
             <button
               type="button"
               onClick={() => setShowVideoUrlInput(!showVideoUrlInput)}
-              className="px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-blue-500 hover:bg-blue-50 transition-colors"
+              className="px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center hover:border-pink-500 hover:bg-pink-50 transition-colors"
             >
               <Plus className="w-5 h-5 text-gray-600" />
             </button>

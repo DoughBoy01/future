@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ExternalLink, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { ExternalLink, CheckCircle2, AlertCircle, Loader2, Zap, Shield } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -11,6 +11,12 @@ interface StripeAccountStatus {
   detailsSubmitted: boolean;
   requiresAction: boolean;
   actionUrl: string | null;
+  onboardingMode?: string;
+  onboardingStep?: string;
+  tempChargesEnabled?: boolean;
+  pendingBalance?: number;
+  restrictionsActive?: boolean;
+  restrictionReason?: string | null;
 }
 
 export function StripeConnectOnboarding() {
@@ -19,12 +25,17 @@ export function StripeConnectOnboarding() {
   const [creating, setCreating] = useState(false);
   const [accountStatus, setAccountStatus] = useState<StripeAccountStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [onboardingMode, setOnboardingMode] = useState<'full' | 'deferred'>('deferred');
 
   useEffect(() => {
     if (profile?.organisation_id) {
       fetchAccountStatus();
+    } else if (profile !== undefined) {
+      // Profile loaded but user has no organization ID
+      setLoading(false);
+      setAccountStatus(null);
     }
-  }, [profile?.organisation_id]);
+  }, [profile?.organisation_id, profile]);
 
   const fetchAccountStatus = async () => {
     try {
@@ -59,6 +70,12 @@ export function StripeConnectOnboarding() {
           detailsSubmitted: statusData.detailsSubmitted || false,
           requiresAction: statusData.requiresAction || false,
           actionUrl: statusData.actionUrl || null,
+          onboardingMode: statusData.onboardingMode,
+          onboardingStep: statusData.onboardingStep,
+          tempChargesEnabled: statusData.tempChargesEnabled,
+          pendingBalance: statusData.pendingBalance,
+          restrictionsActive: statusData.restrictionsActive,
+          restrictionReason: statusData.restrictionReason,
         });
       } else {
         setAccountStatus(null);
@@ -81,18 +98,48 @@ export function StripeConnectOnboarding() {
           organisationId: profile?.organisation_id,
           refreshUrl: window.location.href,
           returnUrl: window.location.href,
+          mode: onboardingMode,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Try to extract the actual error message from the response body
+        console.error('Edge Function error:', error);
+        console.error('Error details:', { data, error });
+
+        // The error context contains the Response object with the error details
+        if (error.context && error.context instanceof Response) {
+          try {
+            const errorBody = await error.context.json();
+            console.error('Error body:', errorBody);
+            if (errorBody.error) {
+              throw new Error(errorBody.error);
+            }
+          } catch (parseError) {
+            console.error('Failed to parse error body:', parseError);
+          }
+        }
+
+        throw error;
+      }
+
+      if (data?.error) {
+        // Server returned an error in the data
+        console.error('Server error:', data.error);
+        throw new Error(data.error);
+      }
 
       if (data.accountLinkUrl) {
         // Redirect to Stripe onboarding
         window.location.href = data.accountLinkUrl;
+      } else {
+        throw new Error('No account link URL returned from server');
       }
     } catch (err: any) {
       console.error('Error creating Connect account:', err);
-      setError(err.message || 'Failed to create Stripe account');
+      // Display the actual error message if available
+      const errorMessage = err.message || 'Failed to create Stripe account';
+      setError(errorMessage);
     } finally {
       setCreating(false);
     }
@@ -141,6 +188,21 @@ export function StripeConnectOnboarding() {
     }
   };
 
+  // Check if user has no organization
+  if (!profile?.organisation_id && !loading) {
+    return (
+      <div className="bg-white rounded-xl p-6 shadow-sm">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-800">
+            <p className="font-medium mb-1">No Organization Found</p>
+            <p>You need to set up your organization before connecting a Stripe account. Please complete your organization setup first.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -172,26 +234,68 @@ export function StripeConnectOnboarding() {
           </div>
         )}
 
-        <div className="bg-airbnb-grey-50 rounded-lg p-4 mb-6">
-          <h4 className="font-medium text-airbnb-grey-900 mb-2">What you'll need:</h4>
-          <ul className="space-y-2 text-sm text-airbnb-grey-600">
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-airbnb-pink-600 flex-shrink-0 mt-0.5" />
-              Business information (name, address, tax ID)
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-airbnb-pink-600 flex-shrink-0 mt-0.5" />
-              Bank account details for payouts
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-airbnb-pink-600 flex-shrink-0 mt-0.5" />
-              Identity verification documents
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-airbnb-pink-600 flex-shrink-0 mt-0.5" />
-              5-10 minutes to complete the process
-            </li>
-          </ul>
+        <div className="mb-6 bg-airbnb-grey-50 rounded-lg p-6 border-2 border-airbnb-grey-200">
+          <h3 className="text-lg font-semibold text-airbnb-grey-900 mb-4">
+            Choose Your Onboarding Path
+          </h3>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            {/* Quick Start Option */}
+            <button
+              type="button"
+              onClick={() => setOnboardingMode('deferred')}
+              className={`p-6 rounded-xl border-2 transition-all text-left ${
+                onboardingMode === 'deferred'
+                  ? 'border-airbnb-pink-600 bg-pink-50 shadow-lg'
+                  : 'border-airbnb-grey-300 hover:border-airbnb-pink-300 bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <Zap className="w-6 h-6 text-airbnb-pink-600" />
+                <h4 className="font-bold text-lg">Quick Start</h4>
+                <span className="ml-auto px-2 py-1 bg-airbnb-pink-600 text-white text-xs rounded-full">
+                  5 mins
+                </span>
+              </div>
+              <p className="text-sm text-airbnb-grey-700 mb-3">
+                Start accepting bookings immediately with minimal setup
+              </p>
+              <ul className="text-xs text-airbnb-grey-600 space-y-1">
+                <li>✓ Publish camps now</li>
+                <li>✓ Accept bookings today</li>
+                <li>✓ Complete verification anytime</li>
+                <li className="text-amber-600">⚠ Funds held until verified</li>
+              </ul>
+            </button>
+
+            {/* Full Setup Option */}
+            <button
+              type="button"
+              onClick={() => setOnboardingMode('full')}
+              className={`p-6 rounded-xl border-2 transition-all text-left ${
+                onboardingMode === 'full'
+                  ? 'border-blue-600 bg-blue-50 shadow-lg'
+                  : 'border-airbnb-grey-300 hover:border-blue-300 bg-white'
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <Shield className="w-6 h-6 text-blue-600" />
+                <h4 className="font-bold text-lg">Full Setup</h4>
+                <span className="ml-auto px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+                  20 mins
+                </span>
+              </div>
+              <p className="text-sm text-airbnb-grey-700 mb-3">
+                Complete all verification upfront for immediate payouts
+              </p>
+              <ul className="text-xs text-airbnb-grey-600 space-y-1">
+                <li>✓ No deadlines or restrictions</li>
+                <li>✓ Receive payouts immediately</li>
+                <li>✓ Full account access</li>
+                <li>✓ No pending balance</li>
+              </ul>
+            </button>
+          </div>
         </div>
 
         <button
@@ -228,6 +332,78 @@ export function StripeConnectOnboarding() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-red-800">{error}</div>
+        </div>
+      )}
+
+      {/* Deferred Onboarding Info Banner */}
+      {accountStatus.onboardingMode === 'deferred' && !accountStatus.payoutEnabled && (
+        <div className="mb-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <Zap className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-blue-900 mb-2">
+                Complete Verification to Receive Payouts
+              </h3>
+              <p className="text-blue-800 mb-4">
+                You started with Quick Start - you can accept bookings now. {accountStatus.pendingBalance && accountStatus.pendingBalance > 0 ? (
+                  <>Your pending balance of <strong>${accountStatus.pendingBalance.toFixed(2)}</strong> will be released once you complete verification.</>
+                ) : (
+                  <>Complete verification to withdraw your earnings.</>
+                )}
+              </p>
+              <button
+                onClick={continueOnboarding}
+                disabled={creating}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-airbnb-grey-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                {creating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    Complete Verification
+                    <ExternalLink className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Restrictions Warning */}
+      {accountStatus.restrictionsActive && accountStatus.restrictionReason && (
+        <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-red-900 mb-2">
+                Account Restricted
+              </h3>
+              <p className="text-red-800 mb-4">
+                {accountStatus.restrictionReason}. You cannot accept new bookings until you complete verification.
+              </p>
+              <button
+                onClick={continueOnboarding}
+                disabled={creating}
+                className="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-airbnb-grey-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                {creating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    Resolve Restrictions
+                    <ExternalLink className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

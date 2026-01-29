@@ -106,41 +106,41 @@ export function ParentDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-6 sm:py-8 md:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-2">Welcome back, {profile?.first_name}!</h1>
-          <p className="text-xl text-blue-100">Manage your children's camp registrations and activities</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Welcome back, {profile?.first_name}!</h1>
+          <p className="text-base sm:text-lg md:text-xl text-blue-100">Manage your children's camp registrations and activities</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {incompleteRegistrations.length > 0 && (
-          <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-lg p-6 mb-8">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-white/20 rounded-lg flex-shrink-0">
-                <AlertCircle className="w-8 h-8" />
+          <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="p-2.5 sm:p-3 bg-white/20 rounded-lg flex-shrink-0">
+                <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8" />
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-bold mb-2">Action Required!</h3>
-                <p className="text-orange-100 mb-4">
+                <h3 className="text-xl sm:text-2xl font-bold mb-2">Action Required!</h3>
+                <p className="text-sm sm:text-base text-orange-100 mb-4">
                   You have {incompleteRegistrations.length} registration{incompleteRegistrations.length > 1 ? 's' : ''} pending completion.
                   Please complete the child information form to finalize your registration.
                 </p>
                 <div className="space-y-3">
                   {incompleteRegistrations.map((reg) => (
-                    <div key={reg.id} className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-                      <div className="flex items-center justify-between">
+                    <div key={reg.id} className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
-                          <p className="font-semibold text-lg">{reg.camps.name}</p>
-                          <p className="text-orange-100 text-sm">
+                          <p className="font-semibold text-base sm:text-lg">{reg.camps.name}</p>
+                          <p className="text-orange-100 text-xs sm:text-sm">
                             {reg.children.first_name} {reg.children.last_name} • Starts {formatDate(reg.camps.start_date)}
                           </p>
                         </div>
                         <Link
                           to={`/registration/${reg.id}/child-details`}
-                          className="flex items-center gap-2 px-6 py-3 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold"
+                          className="flex items-center justify-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-white text-orange-600 rounded-lg hover:bg-orange-50 transition-colors font-semibold text-sm sm:text-base w-full sm:w-auto"
                         >
-                          <FileText className="w-5 h-5" />
+                          <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                           Complete Form
                         </Link>
                       </div>
@@ -152,7 +152,7 @@ export function ParentDashboard() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-900">Registered Children</h3>
@@ -185,14 +185,14 @@ export function ParentDashboard() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">My Children</h2>
+            <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">My Children</h2>
                 <Link
                   to="/children/add"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center"
+                  className="bg-blue-600 text-white px-4 py-2.5 sm:py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center sm:justify-start"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Add Child
@@ -202,31 +202,31 @@ export function ParentDashboard() {
               {children.length === 0 ? (
                 <div className="text-center py-8">
                   <User className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600 mb-4">No children registered yet</p>
+                  <p className="text-sm sm:text-base text-gray-600 mb-4">No children registered yet</p>
                   <Link
                     to="/children/add"
-                    className="text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-blue-600 hover:text-blue-700 font-medium text-sm sm:text-base"
                   >
                     Add your first child
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {children.map((child) => (
-                    <div key={child.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">
+                    <div key={child.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-base sm:text-lg text-gray-900">
                             {child.first_name} {child.last_name}
                           </h3>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
                             Age: {new Date().getFullYear() - new Date(child.date_of_birth).getFullYear()}
                             {child.grade && ` • Grade: ${child.grade}`}
                           </p>
                         </div>
                         <Link
                           to={`/children/${child.id}`}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium flex-shrink-0 px-2 py-1.5 sm:px-0 sm:py-0"
                         >
                           Edit
                         </Link>

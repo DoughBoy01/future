@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, ChevronRight, Search } from 'lucide-react';
 
 export interface Column<T> {
@@ -103,9 +103,9 @@ export function DataTable<T extends { id: string }>({
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       {searchable && (
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-3 sm:p-4 border-b border-gray-200">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <input
               type="text"
               placeholder={searchPlaceholder}
@@ -114,7 +114,7 @@ export function DataTable<T extends { id: string }>({
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-9 sm:pl-10 pr-4 py-3 sm:py-2.5 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -171,9 +171,8 @@ export function DataTable<T extends { id: string }>({
               paginatedData.map((item) => {
                 const isExpanded = expandedRows.has(item.id);
                 return (
-                  <>
+                  <React.Fragment key={item.id}>
                     <tr
-                      key={item.id}
                       className={`${
                         onRowClick && !expandable ? 'cursor-pointer hover:bg-gray-50' : ''
                       } transition-colors`}
@@ -209,7 +208,7 @@ export function DataTable<T extends { id: string }>({
                       ))}
                     </tr>
                     {expandable && isExpanded && expandedRowRender && (
-                      <tr key={`${item.id}-expanded`} className="bg-gray-50">
+                      <tr className="bg-gray-50">
                         <td colSpan={columns.length + 1} className="px-6 py-4">
                           <div className="animate-fadeIn">
                             {expandedRowRender(item)}
@@ -217,7 +216,7 @@ export function DataTable<T extends { id: string }>({
                         </td>
                       </tr>
                     )}
-                  </>
+                  </React.Fragment>
                 );
               })
             )}
@@ -226,23 +225,23 @@ export function DataTable<T extends { id: string }>({
       </div>
 
       {totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <p className="text-sm text-gray-700">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs sm:text-sm text-gray-700">
             Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedData.length)} of{' '}
             {sortedData.length} results
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>

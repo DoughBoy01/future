@@ -1,5 +1,5 @@
 import { Heart, Star, TrendingUp, AlertCircle, Sparkles, Users, Award, Share2, CheckCircle, Calendar } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/currency';
 import { formatPrice, getConvertedPrice, detectUserCurrency } from '../../lib/currency';
@@ -27,9 +27,10 @@ interface CampCardProps {
   startDate?: string;
   endDate?: string;
   description?: string;
+  onTrackClick?: () => void;
 }
 
-export function CampCard({
+export const CampCard = memo(function CampCard({
   id,
   badge,
   image,
@@ -49,6 +50,7 @@ export function CampCard({
   startDate,
   endDate,
   description,
+  onTrackClick,
 }: CampCardProps) {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -204,6 +206,9 @@ export function CampCard({
     if (target.closest('button') || target.closest('[data-no-swipe="true"]')) {
       return;
     }
+
+    // Track analytics
+    onTrackClick?.();
 
     // Navigate to camp detail page
     if (id) {
@@ -483,6 +488,7 @@ export function CampCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                onTrackClick?.();
                 if (id) {
                   navigate(`/camps/${id}/register`);
                 }
@@ -526,4 +532,4 @@ export function CampCard({
       {cardContent}
     </div>
   );
-}
+});

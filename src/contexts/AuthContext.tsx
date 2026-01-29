@@ -5,10 +5,45 @@ import type { Database } from '../lib/database.types';
 import { authLogger } from '../utils/logger';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type Organization = Database['public']['Tables']['organisations']['Row'];
+
+/**
+ * Sends welcome email to new users
+ * Non-blocking - doesn't prevent signup if email fails
+ */
+async function sendWelcomeEmail(
+  userId: string,
+  email: string,
+  firstName: string,
+  role: 'parent' | 'camp_organizer'
+) {
+  const dashboardUrl = role === 'parent'
+    ? `${window.location.origin}/dashboard`
+    : `${window.location.origin}/organizer-dashboard`;
+
+  const template = role === 'parent'
+    ? 'signup-welcome-parent'
+    : 'signup-welcome-organizer';
+
+  try {
+    await supabase.functions.invoke('send-email', {
+      body: {
+        template,
+        to: { email, name: firstName },
+        data: { firstName, email, dashboardUrl },
+        context: { type: 'signup', id: userId, profile_id: userId },
+      },
+    });
+  } catch (err) {
+    console.error('Failed to send welcome email:', err);
+    // Non-blocking - don't prevent signup if email fails
+  }
+}
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  organization: Organization | null;
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: AuthError | null }>;
@@ -16,6 +51,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
+  refreshProfile: (userId?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +59,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await loadProfile(session.user.id);
           } else {
             setProfile(null);
+            setOrganization(null);
             setLoading(false);
           }
         } catch (err) {
@@ -86,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!data) {
         authLogger.warn('No profile found for user:', userId);
         setProfile(null);
+        setOrganization(null);
       } else {
         authLogger.info('Profile loaded successfully:', {
           id: data.id,
@@ -93,10 +132,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           name: `${data.first_name} ${data.last_name}`,
         });
         setProfile(data);
+
+        // Load organization if profile has one
+        if (data.organisation_id) {
+          const { data: orgData, error: orgError } = await supabase
+            .from('organisations')
+            .select('*')
+            .eq('id', data.organisation_id)
+            .maybeSingle();
+
+          if (orgError) {
+            authLogger.error('Error loading organization:', orgError);
+            setOrganization(null);
+          } else if (orgData) {
+            authLogger.info('Organization loaded:', orgData.name);
+            setOrganization(orgData);
+          }
+        } else {
+          setOrganization(null);
+        }
       }
     } catch (error) {
       authLogger.error('Failed to load profile:', error);
       setProfile(null);
+      setOrganization(null);
     } finally {
       setLoading(false);
     }
@@ -125,6 +184,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authLogger.error('Error creating profile:', profileError);
       }
 
+      // Send welcome email (non-blocking)
+      if (!profileError) {
+        sendWelcomeEmail(
+          authData.user.id,
+          email,
+          firstName,
+          'parent'
+        ).catch(err => console.error('Failed to send welcome email:', err));
+      }
+
       return { error: null };
     } catch (error) {
       return { error: error as AuthError };
@@ -148,6 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw error;
       }
       setProfile(null);
+      setOrganization(null);
       setUser(null);
       setSession(null);
       authLogger.info('User signed out successfully');
@@ -181,9 +251,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function refreshProfile(userId?: string) {
+    const targetUserId = userId || user?.id;
+    if (!targetUserId) {
+      authLogger.warn('Cannot refresh profile: no user ID provided or logged in');
+      return;
+    }
+    authLogger.debug('Refreshing profile for user:', targetUserId);
+    await loadProfile(targetUserId);
+  }
+
   const value = {
     user,
     profile,
+    organization,
     session,
     loading,
     signUp,
@@ -191,6 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     resetPassword,
     updateProfile,
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

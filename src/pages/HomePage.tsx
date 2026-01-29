@@ -1,13 +1,15 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { ChevronLeft, ChevronRight, ArrowRight, Pause, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { CampCard } from '../components/home/CampCard';
+import { CampCardSkeleton } from '../components/home/CampCardSkeleton';
 import { CategoryCard } from '../components/home/CategoryCard';
 import { FutureImpact } from '../components/home/FutureImpact';
 import { QuizHomeModule } from '../components/quiz/QuizHomeModule';
 import { PromotionalPopup } from '../components/marketing/PromotionalPopup';
 import { NewsletterSignup } from '../components/marketing/NewsletterSignup';
+import { trackFeaturedCarouselView, trackFeaturedCampClick } from '../utils/analytics';
 import type { Database } from '../lib/database.types';
 
 type Camp = Database['public']['Tables']['camps']['Row'];
@@ -21,11 +23,20 @@ export function HomePage() {
   const [featuredCamps, setFeaturedCamps] = useState<Camp[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [cardsPerView, setCardsPerView] = useState(1);
   const [cardWidth, setCardWidth] = useState(280);
   const [isNavigating, setIsNavigating] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+
+  // Autoplay state
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(() => {
+    const saved = localStorage.getItem('featuredCarouselAutoplay');
+    return saved !== null ? saved === 'true' : !prefersReducedMotion;
+  });
+  const [isHovered, setIsHovered] = useState(false);
 
 
   useEffect(() => {
@@ -39,8 +50,7 @@ export function HomePage() {
             .select('*')
             .eq('status', 'published')
             .eq('featured', true)
-            .order('start_date', { ascending: true })
-            .limit(5),
+            .order('start_date', { ascending: true }),
           supabase
             .from('camp_categories')
             .select('*')
@@ -52,25 +62,27 @@ export function HomePage() {
         if (categoriesResponse.error) throw categoriesResponse.error;
 
         if (isMounted) {
-          if (campsResponse.data && campsResponse.data.length > 0) {
+          if (campsResponse.data) {
             setFeaturedCamps(campsResponse.data);
-          } else {
-            const { data: allCamps } = await supabase
-              .from('camps')
-              .select('*')
-              .eq('status', 'published')
-              .order('start_date', { ascending: true })
-              .limit(5);
 
-            if (allCamps && isMounted) setFeaturedCamps(allCamps);
+            // Track featured carousel view with camp IDs
+            if (campsResponse.data.length > 0) {
+              const campIds = campsResponse.data.map(camp => camp.id);
+              trackFeaturedCarouselView(campIds);
+            }
           }
 
           if (categoriesResponse.data) {
             setCategories(categoriesResponse.data);
           }
+
+          setError(null);
         }
-      } catch (error) {
-        console.error('Error loading data:', error);
+      } catch (err) {
+        console.error('Error loading data:', err);
+        if (isMounted) {
+          setError(err instanceof Error ? err : new Error('Failed to load data'));
+        }
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -84,92 +96,9 @@ export function HomePage() {
   }, []);
 
 
-
-  const staticCamps = [
-    {
-      id: undefined,
-      badge: 'Limited' as const,
-      image: 'https://images.pexels.com/photos/848618/pexels-photo-848618.jpeg?auto=compress&cs=tinysrgb&w=800',
-      location: 'Lake Tahoe, California',
-      rating: 4.8,
-      reviewCount: 12,
-      title: 'Adventure Quest Camp',
-      category: 'Adventure',
-      ageRange: 'Ages 8-14',
-      ageMin: 8,
-      ageMax: 14,
-      price: 850,
-      originalPrice: 950,
-      spotsRemaining: 3,
-    },
-    {
-      id: undefined,
-      badge: 'Popular' as const,
-      image: 'https://images.pexels.com/photos/1080696/pexels-photo-1080696.jpeg?auto=compress&cs=tinysrgb&w=800',
-      location: 'My House',
-      rating: 4.7,
-      reviewCount: 8,
-      title: 'Steve\'s Camping Day',
-      category: 'Specialty',
-      ageRange: 'Ages 21+',
-      ageMin: 21,
-      ageMax: 99,
-      price: 100,
-      originalPrice: 200,
-      spotsRemaining: 8,
-    },
-    {
-      id: undefined,
-      badge: 'Limited' as const,
-      image: 'https://images.pexels.com/photos/1194713/pexels-photo-1194713.jpeg?auto=compress&cs=tinysrgb&w=800',
-      location: 'Portland, OR',
-      rating: 4.5,
-      reviewCount: 6,
-      title: 'Creative Arts Studio',
-      category: 'Arts',
-      ageRange: 'Ages 6-16',
-      ageMin: 6,
-      ageMax: 16,
-      price: 680,
-      originalPrice: 800,
-      spotsRemaining: 2,
-    },
-    {
-      id: undefined,
-      badge: 'New' as const,
-      image: 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800',
-      location: 'Singapore',
-      rating: 0,
-      reviewCount: 0,
-      title: 'TechnoKids Coding Camp',
-      category: 'Arts',
-      ageRange: 'Ages 9-17',
-      ageMin: 9,
-      ageMax: 17,
-      price: 1200,
-      originalPrice: 1400,
-      spotsRemaining: 15,
-    },
-    {
-      id: undefined,
-      badge: 'Popular' as const,
-      image: 'https://images.pexels.com/photos/920382/pexels-photo-920382.jpeg?auto=compress&cs=tinysrgb&w=800',
-      location: 'Denver, CO',
-      rating: 4.9,
-      reviewCount: 28,
-      title: 'Mountain Explorer Camp',
-      category: 'Outdoor',
-      ageRange: 'Ages 10-15',
-      ageMin: 10,
-      ageMax: 15,
-      price: 920,
-      originalPrice: 1100,
-      spotsRemaining: 12,
-    },
-  ];
-
-  const camps = featuredCamps.length > 0
-    ? featuredCamps
+  // Transform featured camps data for display (memoized for performance)
+  const camps = useMemo(() => {
+    return featuredCamps
       .filter(camp => {
         // Filter out camps that have already started
         const today = new Date();
@@ -206,8 +135,8 @@ export function HomePage() {
           endDate: camp.end_date,
           description: camp.description || undefined,
         };
-      })
-    : staticCamps;
+      });
+  }, [featuredCamps]);
 
   const updateCarouselDimensions = useCallback(() => {
     const width = window.innerWidth;
@@ -351,6 +280,46 @@ export function HomePage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevSlide, handleNextSlide]);
 
+  // Autoplay carousel functionality
+  useEffect(() => {
+    if (!isAutoplayEnabled || camps.length <= 1 || isHovered || isNavigating) return;
+
+    const interval = setInterval(() => {
+      handleNextSlide();
+    }, 5000); // Advance every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isAutoplayEnabled, camps.length, isHovered, isNavigating, handleNextSlide]);
+
+  // Preload adjacent slide images for smooth transitions
+  useEffect(() => {
+    if (camps.length === 0) return;
+
+    const nextIndex = (activeSlide + 1) % totalSlides;
+    const prevIndex = (activeSlide - 1 + totalSlides) % totalSlides;
+
+    [nextIndex, prevIndex].forEach(slideIndex => {
+      const startIdx = slideIndex * cardsPerView;
+      const endIdx = Math.min(startIdx + cardsPerView, camps.length);
+
+      for (let i = startIdx; i < endIdx; i++) {
+        if (camps[i]?.image) {
+          const img = new Image();
+          img.src = camps[i].image;
+        }
+      }
+    });
+  }, [activeSlide, camps, cardsPerView, totalSlides]);
+
+  // Toggle autoplay and persist preference
+  const toggleAutoplay = () => {
+    setIsAutoplayEnabled(prev => {
+      const newValue = !prev;
+      localStorage.setItem('featuredCarouselAutoplay', String(newValue));
+      return newValue;
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen">
@@ -395,11 +364,12 @@ export function HomePage() {
 
           <div className="absolute bottom-0 left-0 right-0 px-2 sm:px-4 pb-6 sm:pb-8 transform translate-y-1/2">
             <div className="max-w-7xl mx-auto">
-              <div className="flex justify-center items-center h-72 sm:h-80 bg-white rounded-xl sm:rounded-2xl shadow-lg">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading amazing camps...</p>
-                </div>
+              <div className="flex gap-3 sm:gap-4 overflow-hidden px-1 sm:px-0">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[calc(100vw-2rem)] max-w-[280px] sm:w-[320px] md:w-[340px]">
+                    <CampCardSkeleton />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -421,64 +391,31 @@ export function HomePage() {
     );
   }
 
-  if (camps.length === 0) {
-    return (
-      <div className="min-h-screen">
-        <section className="relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[650px] overflow-hidden">
-          <div
-            className="absolute inset-0 z-0"
-            style={{
-              background: '#1e2d3a',
-            }}
-          >
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ filter: 'brightness(0.6)' }}
-            >
-              <source src="/hero_background.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/50" />
-          </div>
+  // Show carousel controls only if there are multiple slides
+  const showCarouselControls = camps.length > 1;
 
-          <div className="relative h-full ios-hero-container text-center px-4 pt-22 sm:pt-26 md:pt-28 lg:pt-32 pb-80 sm:pb-60 md:pb-64 z-10" style={{ minHeight: '100%' }}>
-            <h1 className="hero-text-layer text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-5 md:mb-6 max-w-5xl leading-[1.15] sm:leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <span className="block mb-2 sm:mb-2 tracking-tight">Unlock Top University Admissions</span>
-              <span className="block bg-gradient-to-r from-white via-airbnb-pink-200 to-white bg-clip-text text-transparent animate-gradient-flow text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight">With Proven Camp Experiences</span>
-            </h1>
-            <p className="hero-text-layer text-base sm:text-lg md:text-xl lg:text-2xl text-white/95 max-w-2xl px-2 leading-relaxed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] animate-fade-in-up font-medium mb-4 sm:mb-5" style={{ animationDelay: '0.3s' }}>
-              Accelerate their success with amazing educational experiences
-            </p>
-            <div className="hero-text-layer animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <Link
-                to="/camps"
-                className="inline-flex items-center gap-2 bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-6 py-3 rounded-lg text-base font-medium transition-airbnb shadow-md hover:shadow-lg"
-              >
-                Explore Camps
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
+  // Smart pagination dots with ellipsis for 10+ slides
+  const getVisibleDots = () => {
+    if (totalSlides <= 7) {
+      return Array.from({ length: totalSlides }, (_, i) => i);
+    }
 
-        <section className="py-20 sm:py-28 md:py-32 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 px-4">
-                No Camps Available Yet
-              </h2>
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8 sm:mb-12 px-4">
-                Check back soon for exciting camp experiences for your child.
-              </p>
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
+    const dots: (number | null)[] = [];
+    const current = activeSlide;
+
+    if (current <= 3) {
+      // Show first 5, ellipsis, last
+      dots.push(0, 1, 2, 3, 4, null, totalSlides - 1);
+    } else if (current >= totalSlides - 4) {
+      // Show first, ellipsis, last 5
+      dots.push(0, null, totalSlides - 5, totalSlides - 4, totalSlides - 3, totalSlides - 2, totalSlides - 1);
+    } else {
+      // Show first, ellipsis, current ±1, ellipsis, last
+      dots.push(0, null, current - 1, current, current + 1, null, totalSlides - 1);
+    }
+
+    return dots;
+  };
 
   return (
     <div className="min-h-screen">
@@ -533,89 +470,169 @@ export function HomePage() {
 
           {/* Camp Cards Carousel - Overlapping hero */}
           <div className="relative max-w-7xl mx-auto px-3 sm:px-4 -mt-40 sm:-mt-44 md:-mt-48" style={{ zIndex: 10 }}>
-            <div className="max-w-7xl mx-auto relative" role="region" aria-label="Featured camps carousel">
-              {camps.length > cardsPerView && (
+            {/* Error State */}
+            {error && (
+              <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-2xl mx-auto">
+                <p className="text-airbnb-grey-600 mb-4">
+                  Couldn't load featured camps. Please try again.
+                </p>
                 <button
-                  onClick={handlePrevSlide}
-                  disabled={isNavigating}
-                  aria-label="Previous slide"
-                  className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-20"
+                  onClick={() => window.location.reload()}
+                  className="bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-6 py-3 rounded-lg font-medium transition-airbnb shadow-md hover:shadow-lg"
                 >
-                  <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
+                  Retry
                 </button>
-              )}
-
-              <div
-                ref={scrollContainerRef}
-                className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-1 sm:px-0"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                role="list"
-              >
-                {camps.map((camp, index) => (
-                  <div
-                    key={camp.id || index}
-                    className="flex-shrink-0 w-[calc(100vw-2rem)] max-w-[280px] sm:w-[320px] md:w-[340px]"
-                    role="listitem"
-                  >
-                    <CampCard {...camp} />
-                  </div>
-                ))}
               </div>
+            )}
 
-              {camps.length > cardsPerView && (
-                <button
-                  onClick={handleNextSlide}
-                  disabled={isNavigating}
-                  aria-label="Next slide"
-                  className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-20"
+            {/* Empty State */}
+            {!error && camps.length === 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-8 sm:p-12 text-center max-w-2xl mx-auto">
+                <h3 className="text-2xl font-semibold text-airbnb-grey-900 mb-3">
+                  No Featured Camps Yet
+                </h3>
+                <p className="text-airbnb-grey-600 mb-6">
+                  Check back soon for handpicked camp experiences
+                </p>
+                <Link to="/camps">
+                  <button className="bg-airbnb-pink-600 hover:bg-airbnb-pink-700 text-white px-6 py-3 rounded-lg font-medium transition-airbnb shadow-md hover:shadow-lg">
+                    Browse All Camps
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            {/* Carousel */}
+            {!error && camps.length > 0 && (
+              <div
+                className="max-w-7xl mx-auto relative"
+                role="region"
+                aria-label="Featured camps carousel"
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+              >
+                {/* Autoplay control button */}
+                {showCarouselControls && (
+                  <button
+                    onClick={toggleAutoplay}
+                    aria-label={isAutoplayEnabled ? "Pause automatic carousel" : "Resume automatic carousel"}
+                    className="absolute top-3 right-3 z-30 bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-md hover:bg-white transition-colors"
+                  >
+                    {isAutoplayEnabled ? (
+                      <Pause className="w-4 h-4 text-airbnb-grey-700" />
+                    ) : (
+                      <Play className="w-4 h-4 text-airbnb-grey-700" />
+                    )}
+                  </button>
+                )}
+
+                {/* Previous button */}
+                {showCarouselControls && (
+                  <button
+                    onClick={handlePrevSlide}
+                    disabled={isNavigating}
+                    aria-label="Previous slide"
+                    className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-20"
+                  >
+                    <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
+                  </button>
+                )}
+
+                <div
+                  ref={scrollContainerRef}
+                  className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-1 sm:px-0"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  role="list"
                 >
-                  <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
-                </button>
-              )}
-            </div>
+                  {camps.map((camp, index) => (
+                    <div
+                      key={camp.id || index}
+                      className="flex-shrink-0 w-[calc(100vw-2rem)] max-w-[280px] sm:w-[320px] md:w-[340px]"
+                      role="listitem"
+                    >
+                      <CampCard
+                        {...camp}
+                        onTrackClick={() => trackFeaturedCampClick(camp.id || '', index, camps.length)}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Next button */}
+                {showCarouselControls && (
+                  <button
+                    onClick={handleNextSlide}
+                    disabled={isNavigating}
+                    aria-label="Next slide"
+                    className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white rounded-full p-2 lg:p-3 shadow-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-20"
+                  >
+                    <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
+                  </button>
+                )}
+
+                {/* Accessibility: Screen reader announcements */}
+                <div
+                  aria-live="polite"
+                  aria-atomic="true"
+                  className="sr-only"
+                >
+                  {`Showing slide ${activeSlide + 1} of ${totalSlides}`}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Mobile Pagination Dots */}
-          {camps.length > cardsPerView && totalSlides > 1 && (
+          {/* Mobile Pagination Dots with smart ellipsis */}
+          {!error && showCarouselControls && totalSlides > 1 && (
             <div
-              className="flex md:hidden justify-center mt-4 space-x-2"
+              className="flex md:hidden justify-center items-center mt-4 space-x-2"
               role="tablist"
               aria-label="Carousel pagination"
             >
-              {Array.from({ length: totalSlides }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveSlide(index)}
-                  role="tab"
-                  aria-selected={index === activeSlide}
-                  aria-label={`Go to slide ${index + 1}`}
-                  className={`w-2.5 h-2.5 rounded-full transition-all ${index === activeSlide ? 'bg-blue-600 w-8' : 'bg-gray-400'
+              {getVisibleDots().map((dotIndex, i) => (
+                dotIndex === null ? (
+                  <span key={`ellipsis-${i}`} className="text-airbnb-grey-400 px-1">...</span>
+                ) : (
+                  <button
+                    key={dotIndex}
+                    onClick={() => setActiveSlide(dotIndex)}
+                    role="tab"
+                    aria-selected={dotIndex === activeSlide}
+                    aria-label={`Go to slide ${dotIndex + 1}`}
+                    className={`rounded-full transition-all ${
+                      dotIndex === activeSlide ? 'bg-blue-600 w-8 h-2.5' : 'bg-gray-400 w-2.5 h-2.5'
                     }`}
-                />
+                  />
+                )
               ))}
             </div>
           )}
 
-          {/* Desktop Pagination Dots */}
-          {camps.length > cardsPerView && totalSlides > 1 && (
+          {/* Desktop Pagination Dots with smart ellipsis */}
+          {!error && showCarouselControls && totalSlides > 1 && (
             <div
-              className="hidden md:flex justify-center mt-6 space-x-2"
+              className="hidden md:flex justify-center items-center mt-6 space-x-2"
               role="tablist"
               aria-label="Carousel pagination"
             >
-              {Array.from({ length: totalSlides }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveSlide(index)}
-                  role="tab"
-                  aria-selected={index === activeSlide}
-                  aria-label={`Go to slide ${index + 1}`}
-                  className={`w-2 h-2 rounded-full transition-all ${index === activeSlide ? 'bg-white w-8' : 'bg-white/50'
+              {getVisibleDots().map((dotIndex, i) => (
+                dotIndex === null ? (
+                  <span key={`ellipsis-${i}`} className="text-white/50 px-1">...</span>
+                ) : (
+                  <button
+                    key={dotIndex}
+                    onClick={() => setActiveSlide(dotIndex)}
+                    role="tab"
+                    aria-selected={dotIndex === activeSlide}
+                    aria-label={`Go to slide ${dotIndex + 1}`}
+                    className={`rounded-full transition-all ${
+                      dotIndex === activeSlide ? 'bg-white w-8 h-2' : 'bg-white/50 w-2 h-2'
                     }`}
-                />
+                  />
+                )
               ))}
             </div>
           )}

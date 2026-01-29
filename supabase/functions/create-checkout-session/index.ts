@@ -58,8 +58,37 @@ serve(async (req: Request) => {
     const totalAmount = Math.round(amount * 100); // Amount in cents
     const baseUrl = req.headers.get('origin') || 'http://localhost:5173';
 
-    // Check if Stripe Connect is configured
-    const hasStripeConnect = org && org.stripe_account_id && org.stripe_account_status === 'active' && org.payout_enabled;
+    // Validate organization exists
+    if (!org) {
+      console.error('Organization not found for camp:', campId);
+      throw new Error('Camp organization not found');
+    }
+
+    // Check if organization can accept payments
+    const hasFullStripe = org && org.stripe_account_id && org.stripe_account_status === 'active' && org.payout_enabled;
+    const hasDeferredStripe = org && org.stripe_account_id && (org as any).temp_charges_enabled && !(org as any).restrictions_active;
+    const hasStripeConnect = hasFullStripe || hasDeferredStripe;
+
+    // Log mode being used
+    if (hasStripeConnect) {
+      console.log(`✓ Payment capability verified for organization ${org.id}`);
+      console.log(`  - Account: ${org.stripe_account_id}`);
+      console.log(`  - Status: ${org.stripe_account_status}`);
+      console.log(`  - Payouts: ${org.payout_enabled ? 'Enabled' : 'Disabled'}`);
+
+      if (hasDeferredStripe && !hasFullStripe) {
+        console.warn(`⚠ Using deferred mode - funds will be held in pending balance`);
+        console.warn(`  - Deadline: ${(org as any).onboarding_deadline || 'N/A'}`);
+        console.warn(`  - Pending balance: $${(org as any).pending_balance_amount || 0}`);
+      }
+    } else {
+      console.warn(`⚠ No Stripe Connect - using test mode for organization ${org?.id || 'unknown'}`);
+      console.warn(`  - stripe_account_id: ${org?.stripe_account_id || 'NULL'}`);
+      console.warn(`  - stripe_account_status: ${org?.stripe_account_status || 'NULL'}`);
+      console.warn(`  - payout_enabled: ${org?.payout_enabled || 'NULL'}`);
+      console.warn(`  - temp_charges_enabled: ${(org as any).temp_charges_enabled || 'NULL'}`);
+      console.warn(`  - restrictions_active: ${(org as any).restrictions_active || 'NULL'}`);
+    }
 
     let session;
     let commissionRate = 0;
@@ -83,7 +112,7 @@ serve(async (req: Request) => {
 
       console.log(`Commission rate for camp ${campId}: ${(commissionRate * 100).toFixed(2)}% (${camp.commission_rate !== null ? 'custom' : 'org default'})`);
 
-      // Create checkout session with destination charge (payment splitting)
+      // Create checkout session with DIRECT CHARGE (charge connected account directly)
       session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         line_items: [
@@ -108,19 +137,20 @@ serve(async (req: Request) => {
           childId,
           organisationId: camp.organisation_id,
           commissionRate: commissionRate.toString(),
+          chargeType: 'direct',
         },
         payment_intent_data: {
           application_fee_amount: applicationFeeAmount,
-          transfer_data: {
-            destination: org.stripe_account_id,
-          },
+          on_behalf_of: org.stripe_account_id, // DIRECT CHARGE: Charge connected account
           metadata: {
             registrationId,
             campId,
             organisationId: camp.organisation_id,
+            commissionRate: commissionRate.toString(),
           },
         },
       }, {
+        stripeAccount: org.stripe_account_id, // Create session in connected account context
         idempotencyKey: `checkout_${registrationId}_${Date.now().toString().slice(0, -4)}`,
       });
     } else {
@@ -165,10 +195,14 @@ serve(async (req: Request) => {
       amount: amount,
       currency: currency || 'USD',
       status: 'pending',
+      charge_type: hasStripeConnect ? 'direct' : 'platform_only',
+      connected_account_id: hasStripeConnect ? org.stripe_account_id : null,
+      application_fee_amount: hasStripeConnect ? applicationFeeAmount / 100 : null,
       metadata: {
         application_fee_amount: applicationFeeAmount / 100,
         commission_rate: commissionRate,
-        destination_account: org.stripe_account_id,
+        connected_account: org?.stripe_account_id || null,
+        test_mode: !hasStripeConnect,
       },
     });
 

@@ -91,9 +91,9 @@ export function CommissionRateManager({
       }
 
       if (isOrgLevel && organisationId) {
-        await updateOrganizationDefaultRate(organisationId, rateValue, notes);
+        await updateOrganizationDefaultRate(organisationId, rateValue, user.id, notes || 'Updated by admin');
       } else if (isCampLevel && campId) {
-        await updateCampCommissionRate(campId, rateValue, user.id, notes);
+        await updateCampCommissionRate(campId, rateValue, user.id, notes || 'Updated by admin');
       }
 
       setSuccess(true);
@@ -222,15 +222,21 @@ export function CommissionRateManager({
           {/* Notes */}
           <div>
             <label className="block text-sm font-medium text-airbnb-grey-700 mb-2">
-              Notes (Optional)
+              Notes {isOrgLevel ? <span className="text-red-500">*</span> : '(Optional)'}
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
+              required={isOrgLevel}
               className="w-full px-4 py-3 border border-airbnb-grey-300 rounded-lg focus:ring-2 focus:ring-airbnb-pink-500 focus:border-transparent resize-none"
               placeholder="Reason for rate change..."
             />
+            {isOrgLevel && (
+              <p className="text-xs text-airbnb-grey-500 mt-1">
+                Required: Explain why you are changing the organization's default commission rate
+              </p>
+            )}
           </div>
 
           {/* Action Buttons */}

@@ -28,7 +28,7 @@ interface QuizState {
     budgetRange?: { min: number; max: number };
     duration?: 'half-day' | 'full-day' | 'week' | 'multi-week';
     specialNeeds?: { dietary?: string[]; accessibility?: string[] };
-    locationPreference?: { type: 'local' | 'international'; county?: string };
+    locationPreference?: { type: 'nearby' | 'anywhere'; location?: { country: string; countryCode: string; region?: string; city?: string } };
   };
   results: CampWithScore[] | null;
   isComplete: boolean;
@@ -135,12 +135,12 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
       case 7: return true; // Special needs is optional
       case 8: {
         // Location preference validation
-        if (!state.responses.locationPreference) return false;
-        // If local is selected, county must be selected
-        if (state.responses.locationPreference.type === 'local') {
-          return !!state.responses.locationPreference.county;
+        if (!state.responses.locationPreference?.type) return false;
+        // If "nearby" is selected, location data must be present
+        if (state.responses.locationPreference.type === 'nearby') {
+          return !!state.responses.locationPreference.location;
         }
-        // International is always valid once selected
+        // "anywhere" is always valid
         return true;
       }
       default: return false;
@@ -349,7 +349,7 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
                       {state.currentStep === 5 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Let's talk budget. What feels right for your family this summer? (Many camps offer early bird discounts and sibling rates!)</span>}
                       {state.currentStep === 6 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">What kind of schedule works for your family? Half-day? Full-day? Week-long intensives?</span>}
                       {state.currentStep === 7 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Does {state.responses.childName} have any dietary needs or accessibility requirements we should prioritize?</span>}
-                      {state.currentStep === 8 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Last question! Are you looking for local camps in Ireland or exploring international options?</span>}
+                      {state.currentStep === 8 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Last question! Would you prefer camps close to home, or are you open to anywhere?</span>}
                       {state.currentStep > 8 && <span className="text-base md:text-lg font-bold text-airbnb-grey-700 leading-relaxed">Preparing your results...</span>}
                     </>
                   )}
@@ -464,7 +464,6 @@ export function QuizContainer({ autoStart, onComplete }: QuizContainerProps) {
 
                 {state.currentStep === 8 && (
                   <LocationPreferenceQuestion
-                    name={state.responses.childName}
                     value={state.responses.locationPreference}
                     onSelect={handleAutoAdvance}
                     onChange={(locationPreference) =>

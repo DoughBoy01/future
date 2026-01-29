@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2, AlertCircle } from 'lucide-react';
+import { X, Loader2, AlertCircle, Info } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { getEffectiveCommissionRate, getOrganizationWithRate } from '../../services/commissionRateService';
 import { MediaUploadManager } from './MediaUploadManager';
 import type { Database } from '../../lib/database.types';
 
@@ -19,13 +20,22 @@ interface CampFormModalProps {
 }
 
 export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: CampFormModalProps) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [organisations, setOrganisations] = useState<Organisation[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'pricing' | 'media' | 'content' | 'policies'>('basic');
+  const [effectiveCommissionRate, setEffectiveCommissionRate] = useState<number | null>(null);
+  const [loadingCommissionRate, setLoadingCommissionRate] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    categories?: string;
+    currency?: string;
+    price?: string;
+    dates?: string;
+    capacity?: string;
+  }>({});
 
   type CategoryType = 'sports' | 'arts' | 'stem' | 'language' | 'adventure' | 'general' | 'academic' | 'creative';
   type StatusType = 'draft' | 'published' | 'pending_review' | 'requires_changes' | 'approved' | 'unpublished' | 'archived' | 'rejected' | 'full' | 'cancelled' | 'completed';
@@ -57,7 +67,6 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
     status: 'draft' as StatusType,
     featured: false,
     enquiries_enabled: true,
-    commission_rate: null as number | null,
     highlights: [] as string[],
     amenities: [] as Array<{category: string; items: string[]}>,
     faqs: [] as Array<{question: string; answer: string}>,
@@ -139,7 +148,6 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
         status: camp.status,
         featured: camp.featured,
         enquiries_enabled: (camp as any).enquiries_enabled ?? true,
-        commission_rate: (camp as any).commission_rate ? (camp as any).commission_rate * 100 : null,
         highlights: Array.isArray((camp as any).highlights) ? (camp as any).highlights : [],
         amenities: Array.isArray((camp as any).amenities) ? (camp as any).amenities : [],
         faqs: Array.isArray((camp as any).faqs) ? (camp as any).faqs : [],
@@ -175,6 +183,34 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
     }
   }, [camp, schoolId, organisations, profile]);
 
+  // Fetch effective commission rate
+  useEffect(() => {
+    const fetchCommissionRate = async () => {
+      setLoadingCommissionRate(true);
+      try {
+        if (camp?.id) {
+          // For existing camp, get the effective rate
+          const rate = await getEffectiveCommissionRate(camp.id);
+          setEffectiveCommissionRate(rate);
+        } else if (formData.organisation_id) {
+          // For new camp, get organization's default rate
+          const org = await getOrganizationWithRate(formData.organisation_id);
+          setEffectiveCommissionRate(org.default_commission_rate || 0.15);
+        } else {
+          // No organization selected yet
+          setEffectiveCommissionRate(null);
+        }
+      } catch (error) {
+        console.error('Error fetching commission rate:', error);
+        setEffectiveCommissionRate(0.15); // Fallback to default
+      } finally {
+        setLoadingCommissionRate(false);
+      }
+    };
+
+    fetchCommissionRate();
+  }, [camp?.id, formData.organisation_id]);
+
   async function loadOrganisations() {
     try {
       const { data, error } = await supabase
@@ -205,9 +241,49 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
     }));
   };
 
+  const validateForm = (): boolean => {
+    const errors: typeof fieldErrors = {};
+
+    // Category validation
+    if (selectedCategoryIds.length === 0) {
+      errors.categories = 'Please select at least one category';
+    }
+
+    // Currency validation
+    if (!formData.currency || formData.currency.trim() === '') {
+      errors.currency = 'Currency is required';
+    }
+
+    // Price validation
+    if (formData.price <= 0) {
+      errors.price = 'Price must be greater than 0';
+    }
+
+    // Date validation
+    if (formData.start_date && formData.end_date) {
+      if (new Date(formData.end_date) < new Date(formData.start_date)) {
+        errors.dates = 'End date must be after start date';
+      }
+    }
+
+    // Capacity validation
+    if (formData.capacity < 1) {
+      errors.capacity = 'Capacity must be at least 1';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Run validation
+    if (!validateForm()) {
+      setError('Please correct the errors in the form before submitting');
+      return;
+    }
 
     if (!formData.organisation_id) {
       setError('Please select an organisation for this camp');
@@ -219,16 +295,49 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
       return;
     }
 
+    // Auto-resubmit: If editing a camp that requires changes, set to 'published'
+    const isEditingRequiresChanges = camp?.status === 'requires_changes';
+    const finalStatus = (isEditingRequiresChanges && formData.status === 'requires_changes')
+      ? 'published'
+      : formData.status;
+
+    // Validate Stripe connection if trying to publish
+    if (formData.status === 'published' || finalStatus === 'published') {
+      const { data: org, error: orgError } = await supabase
+        .from('organisations')
+        .select('stripe_account_id, payout_enabled, temp_charges_enabled, restrictions_active')
+        .eq('id', formData.organisation_id)
+        .single();
+
+      if (orgError) {
+        console.error('Error checking Stripe status:', orgError);
+        setError('Failed to verify payment settings. Please try again.');
+        return;
+      }
+
+      // Must have Stripe account
+      if (!org?.stripe_account_id) {
+        setError('Stripe connection required to publish camps. Please connect your Stripe account in Payment Settings to go live and start accepting bookings.');
+        return;
+      }
+
+      // Check for restrictions from Stripe
+      if (org.restrictions_active) {
+        setError('Cannot publish: Stripe account is restricted. Please complete your onboarding in Payment Settings to resolve restrictions and enable publishing.');
+        return;
+      }
+
+      // Allow if full onboarding complete OR deferred mode with temp charges
+      if (!org.payout_enabled && !org.temp_charges_enabled) {
+        setError('Stripe connection required to publish camps. Please complete onboarding in Payment Settings or choose Quick Start to publish immediately.');
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
       const galleryUrls = mediaData.images.map(img => img.url);
-
-      // Auto-resubmit: If editing a camp that requires changes, set to 'published'
-      const isEditingRequiresChanges = camp?.status === 'requires_changes';
-      const finalStatus = (isEditingRequiresChanges && formData.status === 'requires_changes')
-        ? 'published'
-        : formData.status;
 
       const campData: CampInsert = {
         organisation_id: formData.organisation_id,
@@ -261,7 +370,6 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
         status: finalStatus,
         featured: formData.featured,
         enquiries_enabled: formData.enquiries_enabled,
-        commission_rate: formData.commission_rate ? formData.commission_rate / 100 : null,
         highlights: formData.highlights.length > 0 ? formData.highlights : null,
         amenities: formData.amenities.length > 0 ? formData.amenities : null,
         faqs: formData.faqs.length > 0 ? formData.faqs : null,
@@ -290,9 +398,15 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
           .delete()
           .eq('camp_id', camp.id);
       } else {
+        // Creating a new camp - include created_by field
+        const newCampData = {
+          ...campData,
+          created_by: user!.id
+        };
+
         const { data, error } = await supabase
           .from('camps')
-          .insert([campData])
+          .insert([newCampData])
           .select()
           .single();
 
@@ -325,7 +439,12 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
       console.error('Error saving camp:', error);
       let errorMessage = 'Failed to save camp. ';
 
-      if (error?.message?.includes('permission')) {
+      // Database trigger errors for Stripe validation
+      if (error?.message?.includes('Stripe account not connected')) {
+        errorMessage = 'Cannot publish camp: Stripe account not connected. Please visit Payment Settings to connect your Stripe account before publishing camps.';
+      } else if (error?.message?.includes('Stripe payouts not enabled')) {
+        errorMessage = 'Cannot publish camp: Stripe payouts not enabled. Please complete your Stripe account setup in Payment Settings.';
+      } else if (error?.message?.includes('permission')) {
         errorMessage += 'You do not have permission to perform this action. ';
       } else if (error?.message?.includes('violates')) {
         errorMessage += 'Invalid data provided. ';
@@ -378,7 +497,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
+                      ? 'border-pink-600 text-pink-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
@@ -416,7 +535,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       required
                       value={formData.organisation_id}
                       onChange={(e) => setFormData(prev => ({ ...prev, organisation_id: e.target.value }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     >
                       <option value="">Select an organisation...</option>
                       {organisations.map((org) => (
@@ -437,7 +556,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     required
                     value={formData.name}
                     onChange={(e) => handleNameChange(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Summer Adventure Camp"
                   />
                 </div>
@@ -451,7 +570,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     required
                     value={formData.slug}
                     onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="summer-adventure-camp"
                   />
                 </div>
@@ -464,7 +583,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Describe the camp experience..."
                   />
                 </div>
@@ -486,10 +605,14 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                                 ? prev.filter(id => id !== category.id)
                                 : [...prev, category.id]
                             );
+                            // Clear error when user makes selection
+                            if (fieldErrors.categories) {
+                              setFieldErrors(prev => ({ ...prev, categories: undefined }));
+                            }
                           }}
                           className={`p-3 rounded-lg border-2 text-left transition-all ${
                             isSelected
-                              ? 'border-blue-500 bg-blue-50'
+                              ? 'border-pink-500 bg-pink-50'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
@@ -498,9 +621,9 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => {}}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                             />
-                            <span className={`text-sm font-medium ${isSelected ? 'text-blue-900' : 'text-gray-700'}`}>
+                            <span className={`text-sm font-medium ${isSelected ? 'text-pink-900' : 'text-gray-700'}`}>
                               {category.name}
                             </span>
                           </div>
@@ -511,10 +634,11 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       );
                     })}
                   </div>
-                  {selectedCategoryIds.length === 0 && (
-                    <p className="text-sm text-red-600 mt-2">
-                      Please select at least one category
-                    </p>
+                  {fieldErrors.categories && (
+                    <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-red-700">{fieldErrors.categories}</p>
+                    </div>
                   )}
                 </div>
 
@@ -527,7 +651,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     required
                     value={formData.location}
                     onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="School Campus"
                   />
                   <p className="mt-1 text-xs text-gray-500">
@@ -543,7 +667,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     type="text"
                     value={formData.camp_address}
                     onChange={(e) => setFormData(prev => ({ ...prev, camp_address: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="123 Main Street, Building A, Tokyo 100-0001"
                   />
                   <p className="mt-1 text-xs text-gray-500">
@@ -561,7 +685,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       required
                       value={formData.start_date}
                       onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -574,10 +698,17 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       required
                       value={formData.end_date}
                       onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
                 </div>
+
+                {fieldErrors.dates && (
+                  <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {fieldErrors.dates}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -590,8 +721,11 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       min="3"
                       max="18"
                       value={formData.age_min}
-                      onChange={(e) => setFormData(prev => ({ ...prev, age_min: parseInt(e.target.value) }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setFormData(prev => ({ ...prev, age_min: isNaN(val) ? prev.age_min : val }));
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -605,8 +739,11 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       min="3"
                       max="18"
                       value={formData.age_max}
-                      onChange={(e) => setFormData(prev => ({ ...prev, age_max: parseInt(e.target.value) }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        setFormData(prev => ({ ...prev, age_max: isNaN(val) ? prev.age_max : val }));
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -620,9 +757,18 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     required
                     min="1"
                     value={formData.capacity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      setFormData(prev => ({ ...prev, capacity: isNaN(val) ? prev.capacity : val }));
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   />
+                  {fieldErrors.capacity && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {fieldErrors.capacity}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -637,7 +783,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     value={formData.what_to_bring}
                     onChange={(e) => setFormData(prev => ({ ...prev, what_to_bring: e.target.value }))}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="List items children should bring..."
                   />
                 </div>
@@ -650,7 +796,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     value={formData.requirements}
                     onChange={(e) => setFormData(prev => ({ ...prev, requirements: e.target.value }))}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Any prerequisites or requirements..."
                   />
                 </div>
@@ -661,7 +807,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       type="checkbox"
                       checked={formData.featured}
                       onChange={(e) => setFormData(prev => ({ ...prev, featured: e.target.checked }))}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                     />
                     <span className="text-sm font-medium text-gray-700">Featured Camp</span>
                   </label>
@@ -671,7 +817,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       type="checkbox"
                       checked={formData.enquiries_enabled}
                       onChange={(e) => setFormData(prev => ({ ...prev, enquiries_enabled: e.target.checked }))}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                     />
                     <span className="text-sm font-medium text-gray-700">Enable Enquiries</span>
                   </label>
@@ -692,9 +838,18 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       min="0"
                       step="0.01"
                       value={formData.price}
-                      onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setFormData(prev => ({ ...prev, price: isNaN(val) ? prev.price : val }));
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
+                    {fieldErrors.price && (
+                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {fieldErrors.price}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -704,7 +859,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     <select
                       value={formData.currency}
                       onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     >
                       <option value="USD">USD - US Dollar</option>
                       <option value="EUR">EUR - Euro</option>
@@ -726,6 +881,12 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                         <option value="INR">INR - Indian Rupee</option>
                       </optgroup>
                     </select>
+                    {fieldErrors.currency && (
+                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {fieldErrors.currency}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -740,7 +901,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       step="0.01"
                       value={formData.early_bird_price || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, early_bird_price: e.target.value ? parseFloat(e.target.value) : null }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       placeholder="Optional"
                     />
                   </div>
@@ -753,33 +914,58 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       type="date"
                       value={formData.early_bird_deadline || ''}
                       onChange={(e) => setFormData(prev => ({ ...prev, early_bird_deadline: e.target.value || null }))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Commission Rate (%)
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    Commission Rate
+                    <div className="relative group">
+                      <Info className="w-4 h-4 text-gray-500 cursor-help" />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all w-64 text-left z-20 pointer-events-none">
+                        Commission rates are set by the platform. This rate determines the platform fee deducted from each booking.
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={formData.commission_rate || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, commission_rate: e.target.value ? parseFloat(e.target.value) : null }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., 15 for 15%"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Commission percentage earned on each sale (0-100%). Leave empty for no commission tracking.
-                  </p>
-                  {formData.commission_rate && formData.price > 0 && (
-                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        <strong>Commission Preview:</strong> {formData.commission_rate}% of {formData.currency} {formData.price.toFixed(2)} = {formData.currency} {(formData.price * formData.commission_rate / 100).toFixed(2)} per sale
-                      </p>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={effectiveCommissionRate !== null
+                        ? `${(effectiveCommissionRate * 100).toFixed(2)}%`
+                        : loadingCommissionRate ? 'Loading...' : 'Select organization first'}
+                      readOnly
+                      aria-readonly="true"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-not-allowed"
+                    />
+                  </div>
+
+                  {effectiveCommissionRate !== null && formData.price > 0 && (
+                    <div className="mt-3 p-4 bg-pink-50 border border-pink-200 rounded-lg">
+                      <p className="text-sm text-pink-900 font-medium mb-2">Commission Preview</p>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-pink-700">Booking Price:</p>
+                          <p className="font-semibold text-pink-900">
+                            {formData.currency} {formData.price.toFixed(2)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-pink-700">Platform Fee ({(effectiveCommissionRate * 100).toFixed(1)}%):</p>
+                          <p className="font-semibold text-pink-900">
+                            {formData.currency} {(formData.price * effectiveCommissionRate).toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="col-span-2 pt-2 border-t border-pink-200">
+                          <p className="text-pink-700">You Receive:</p>
+                          <p className="font-bold text-lg text-pink-900">
+                            {formData.currency} {(formData.price * (1 - effectiveCommissionRate)).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -792,7 +978,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     type="url"
                     value={formData.payment_link}
                     onChange={(e) => setFormData(prev => ({ ...prev, payment_link: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="https://payment.example.com/camp-123"
                   />
                   <p className="mt-1 text-xs text-gray-500">
@@ -816,7 +1002,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       highlights: e.target.value.split('\n').filter(h => h.trim())
                     }))}
                     rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Small group sizes (max 15 per instructor)&#10;Daily photo updates for parents&#10;Experienced, background-checked instructors"
                   />
                 </div>
@@ -836,7 +1022,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       }
                     }}
                     rows={8}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent font-mono text-sm"
                     placeholder='[{"category": "Facilities", "items": ["Swimming pool", "Air conditioning"]}, {"category": "Safety", "items": ["First aid certified staff"]}]'
                   />
                 </div>
@@ -856,7 +1042,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                       }
                     }}
                     rows={10}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent font-mono text-sm"
                     placeholder='[{"question": "What is the daily schedule?", "answer": "Camp runs from 9 AM to 4 PM..."}]'
                   />
                 </div>
@@ -873,7 +1059,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     value={formData.cancellation_policy}
                     onChange={(e) => setFormData(prev => ({ ...prev, cancellation_policy: e.target.value }))}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Describe your cancellation policy and deadlines..."
                   />
                 </div>
@@ -886,7 +1072,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     value={formData.refund_policy}
                     onChange={(e) => setFormData(prev => ({ ...prev, refund_policy: e.target.value }))}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Describe your refund process and terms..."
                   />
                 </div>
@@ -899,7 +1085,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     value={formData.safety_protocols}
                     onChange={(e) => setFormData(prev => ({ ...prev, safety_protocols: e.target.value }))}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Detail your safety measures and certifications..."
                   />
                 </div>
@@ -912,7 +1098,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     value={formData.insurance_info}
                     onChange={(e) => setFormData(prev => ({ ...prev, insurance_info: e.target.value }))}
                     rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="Describe insurance coverage provided..."
                   />
                 </div>
@@ -929,7 +1115,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     type="url"
                     value={formData.featured_image_url}
                     onChange={(e) => setFormData(prev => ({ ...prev, featured_image_url: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     placeholder="https://images.pexels.com/..."
                   />
                   {formData.featured_image_url && (
@@ -976,7 +1162,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
               <select
                 value={formData.status}
                 onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               >
                 <option value="draft">Draft</option>
                 {profile?.role === 'super_admin' && (
@@ -1013,7 +1199,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                 type="submit"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2 bg-[#FF385C] text-white rounded-lg hover:bg-[#E31C5F] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {camp ? 'Update Camp' : 'Create Camp'}
