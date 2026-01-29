@@ -41,9 +41,6 @@ import { ConversationalCampFinderPage } from './pages/ConversationalCampFinderPa
 import { RoleBasedRoute } from './components/rbac/RoleBasedRoute';
 import { DevContentEditor } from './components/dev/DevContentEditor';
 
-// Camp Owner Pages
-import CampOwnerLanding from './pages/CampOwnerLanding';
-
 // Onboarding Pages
 import Welcome from './pages/onboarding/Welcome';
 import OrganizationSetup from './pages/onboarding/OrganizationSetup';
@@ -105,6 +102,7 @@ function App() {
           <Route path="/filter-demo" element={<FilterDemoPage />} />
           <Route path="/talk-to-advisor" element={<TalkToAdvisorPage />} />
           <Route path="/for-schools" element={<ForSchoolsPage />} />
+          <Route path="/for-camp-owners" element={<Navigate to="/partners" replace />} />
           <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
           <Route
             path="/payment-success"

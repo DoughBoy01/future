@@ -1,28 +1,20 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUserView } from '../../contexts/UserViewContext';
-import { Globe, LogOut, User, Settings, Shield, CheckCircle, Sparkles, LayoutDashboard, Menu, X, ChevronDown } from 'lucide-react';
+import { LogOut, User, Settings, Shield, CheckCircle, Sparkles, LayoutDashboard, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next';
 import { UserViewToggle } from './UserViewToggle';
 import { getDashboardRoute } from '../../utils/navigation';
 
-const LANGUAGES = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文' },
-];
-
 export function Navbar() {
   const { user, profile, signOut } = useAuth();
   const { currentView, canSwitchView } = useUserView();
   const location = useLocation();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation('common');
+  const { t } = useTranslation('common');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [siteLogo, setSiteLogo] = useState<string | null>(null);
 
@@ -65,14 +57,6 @@ export function Navbar() {
     setMobileMenuOpen(false);
   };
 
-  const handleLanguageChange = (languageCode: string) => {
-    i18n.changeLanguage(languageCode);
-    localStorage.setItem('userLanguage', languageCode);
-    setLanguageMenuOpen(false);
-  };
-
-  const currentLanguage = LANGUAGES.find(lang => lang.code === i18n.language) || LANGUAGES[0];
-
   // Get the correct dashboard route based on user role
   const dashboardRoute = getDashboardRoute(profile?.role);
 
@@ -92,6 +76,10 @@ export function Navbar() {
                 src={siteLogo || "/logo.gif"}
                 alt="FutureEdge"
                 className="h-16 lg:h-20 w-auto object-contain p-3"
+                loading="eager"
+                onError={(e) => {
+                  e.currentTarget.src = "/logo.gif";
+                }}
               />
             </Link>
 
@@ -116,12 +104,6 @@ export function Navbar() {
                     className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
                   >
                     For Schools
-                  </Link>
-                  <Link
-                    to="/for-camp-owners"
-                    className="text-white/90 hover:text-white px-1 text-sm xl:text-base font-medium transition-standard whitespace-nowrap"
-                  >
-                    For Camp Owners
                   </Link>
                   <Link
                     to="/talk-to-advisor"
@@ -190,48 +172,6 @@ export function Navbar() {
           <div className="flex items-center space-x-2 lg:space-x-4">
             {/* User View Toggle */}
             {user && canSwitchView && <UserViewToggle />}
-
-            {/* Language Selector */}
-            <div className="relative hidden sm:block">
-              <button
-                onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
-                className="flex items-center space-x-2 text-white/90 hover:text-white px-2 lg:px-3 py-2 rounded-md text-sm font-medium transition-standard"
-                aria-label="Change language"
-                aria-expanded={languageMenuOpen}
-                aria-haspopup="true"
-              >
-                <Globe className="w-4 lg:w-5 h-4 lg:h-5" aria-hidden="true" />
-                <span className="hidden md:inline">{currentLanguage.nativeName}</span>
-                <ChevronDown className={`w-3 h-3 transition-transform ${languageMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {languageMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setLanguageMenuOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-20 border border-airbnb-grey-300">
-                    {LANGUAGES.map((language) => (
-                      <button
-                        key={language.code}
-                        onClick={() => handleLanguageChange(language.code)}
-                        className={`w-full text-left px-4 py-2.5 text-sm transition-fast flex items-center justify-between ${
-                          i18n.language === language.code
-                            ? 'bg-airbnb-pink-50 text-airbnb-pink-600 font-medium'
-                            : 'text-airbnb-grey-700 hover:bg-airbnb-grey-50'
-                        }`}
-                      >
-                        <span>{language.nativeName}</span>
-                        {i18n.language === language.code && (
-                          <CheckCircle className="w-4 h-4" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
 
             {!user ? (
               <>
@@ -344,14 +284,6 @@ export function Navbar() {
                 </Link>
 
                 <Link
-                  to="/for-camp-owners"
-                  onClick={closeMobileMenu}
-                  className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
-                >
-                  For Camp Owners
-                </Link>
-
-                <Link
                   to="/talk-to-advisor"
                   onClick={closeMobileMenu}
                   className="block px-4 py-2 text-base font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-md transition-fast"
@@ -420,28 +352,6 @@ export function Navbar() {
             )}
 
             <div className="pt-4 border-t border-white/20 mt-4">
-              {/* Mobile Language Selector */}
-              <div className="px-4 mb-4">
-                <label className="block text-xs font-medium text-white/70 mb-2">
-                  {t('common.language')}
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {LANGUAGES.map((language) => (
-                    <button
-                      key={language.code}
-                      onClick={() => handleLanguageChange(language.code)}
-                      className={`px-3 py-2 text-sm rounded-md transition-fast ${
-                        i18n.language === language.code
-                          ? 'bg-airbnb-pink-600 text-white'
-                          : 'bg-white/10 text-white/90 hover:bg-white/20'
-                      }`}
-                    >
-                      {language.nativeName}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {!user ? (
                 <>
                   <Link
