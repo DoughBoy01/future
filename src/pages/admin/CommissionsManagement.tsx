@@ -59,10 +59,17 @@ export function CommissionsManagement() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrg, setSelectedOrg] = useState<string>('all');
   const [organisations, setOrganisations] = useState<Array<{ id: string; name: string }>>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const PAGE_SIZE = 50;
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [statusFilter, selectedOrg, dateRange]);
 
   useEffect(() => {
     loadData();
-  }, [statusFilter, selectedOrg, dateRange]);
+  }, [statusFilter, selectedOrg, dateRange, currentPage]);
 
   async function loadData() {
     try {
@@ -75,8 +82,9 @@ export function CommissionsManagement() {
           organisation:organisations(name),
           camp:camps(name),
           booking:bookings!registration_id(parent_id, parents(is_guest, guest_name, profile_id))
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
       if (statusFilter !== 'all') {
         query = query.eq('payment_status', statusFilter);
@@ -96,60 +104,92 @@ export function CommissionsManagement() {
         query = query.lte('created_at', endDate.toISOString());
       }
 
-      const { data: commissionsData, error: commissionsError } = await query;
+      const { data: commissionsData, error: commissionsError, count } = await query;
 
       if (commissionsError) throw commissionsError;
 
-      // Process commission records and fetch customer names
-      const commissionsWithCustomers = await Promise.all(
-        (commissionsData || []).map(async (record: any) => {
-          let customerName = 'Unknown';
+      setTotalCount(count ?? 0);
 
+      interface RawCommissionRecord {
+        id: string;
+        organisation_id: string;
+        camp_id: string;
+        registration_id: string;
+        commission_rate: number;
+        registration_amount: number;
+        commission_amount: number;
+        payment_status: string;
+        payment_reference: string | null;
+        paid_date: string | null;
+        created_at: string;
+        organisation: { name: string } | { name: string }[] | null;
+        camp: { name: string } | { name: string }[] | null;
+        booking: {
+          parent_id: string;
+          parents: { is_guest: boolean; guest_name: string | null; profile_id: string | null } | null;
+        } | {
+          parent_id: string;
+          parents: { is_guest: boolean; guest_name: string | null; profile_id: string | null } | null;
+        }[] | null;
+      }
+
+      const records = (commissionsData || []) as RawCommissionRecord[];
+
+      const profileIds = records
+        .map(record => {
           const booking = Array.isArray(record.booking) ? record.booking[0] : record.booking;
-          const parent = booking?.parents;
-
-          if (parent) {
-            if (parent.is_guest) {
-              customerName = parent.guest_name || 'Guest';
-            } else if (parent.profile_id) {
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('first_name, last_name')
-                .eq('id', parent.profile_id)
-                .maybeSingle();
-
-              if (profileData) {
-                customerName = `${profileData.first_name} ${profileData.last_name}`;
-              }
-            }
-          }
-
-          return {
-            ...record,
-            customer_name: customerName,
-            organisation: Array.isArray(record.organisation) ? record.organisation[0] : record.organisation,
-            camp: Array.isArray(record.camp) ? record.camp[0] : record.camp,
-          };
+          return booking?.parents?.profile_id;
         })
-      );
+        .filter((id): id is string => !!id && id.length > 0);
 
-      const typedCommissions = commissionsWithCustomers as CommissionRecord[];
+      const profileMap = new Map<string, string>();
+      if (profileIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', profileIds);
 
-      setCommissions(typedCommissions);
+        (profilesData || []).forEach(p => {
+          profileMap.set(p.id, `${p.first_name} ${p.last_name}`);
+        });
+      }
 
-      const totalCommission = typedCommissions.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
-      const pendingCommission = typedCommissions
+      const commissionsWithCustomers: CommissionRecord[] = records.map(record => {
+        const booking = Array.isArray(record.booking) ? record.booking[0] : record.booking;
+        const parent = booking?.parents;
+        let customerName = 'Unknown';
+
+        if (parent) {
+          if (parent.is_guest) {
+            customerName = parent.guest_name || 'Guest';
+          } else if (parent.profile_id) {
+            customerName = profileMap.get(parent.profile_id) || 'Unknown';
+          }
+        }
+
+        return {
+          ...record,
+          customer_name: customerName,
+          organisation: (Array.isArray(record.organisation) ? record.organisation[0] : record.organisation) as { name: string },
+          camp: (Array.isArray(record.camp) ? record.camp[0] : record.camp) as { name: string },
+        };
+      });
+
+      setCommissions(commissionsWithCustomers);
+
+      const totalCommission = commissionsWithCustomers.reduce((sum, c) => sum + (c.commission_amount || 0), 0);
+      const pendingCommission = commissionsWithCustomers
         .filter(c => c.payment_status === 'pending')
         .reduce((sum, c) => sum + (c.commission_amount || 0), 0);
-      const processingCommission = typedCommissions
+      const processingCommission = commissionsWithCustomers
         .filter(c => c.payment_status === 'processing')
         .reduce((sum, c) => sum + (c.commission_amount || 0), 0);
-      const paidCommission = typedCommissions
+      const paidCommission = commissionsWithCustomers
         .filter(c => c.payment_status === 'paid')
         .reduce((sum, c) => sum + (c.commission_amount || 0), 0);
 
-      const avgRate = typedCommissions.length > 0
-        ? typedCommissions.reduce((sum, c) => sum + (c.commission_rate || 0), 0) / typedCommissions.length
+      const avgRate = commissionsWithCustomers.length > 0
+        ? commissionsWithCustomers.reduce((sum, c) => sum + (c.commission_rate || 0), 0) / commissionsWithCustomers.length
         : 0;
 
       setSummary({
@@ -157,7 +197,7 @@ export function CommissionsManagement() {
         pending_commission: pendingCommission,
         processing_commission: processingCommission,
         paid_commission: paidCommission,
-        total_records: typedCommissions.length,
+        total_records: count ?? 0,
         average_commission_rate: avgRate,
       });
 
@@ -471,6 +511,33 @@ export function CommissionsManagement() {
               <p className="text-sm text-gray-500 mt-1">
                 Try adjusting your filters or check back later
               </p>
+            </div>
+          )}
+
+          {totalCount > PAGE_SIZE && (
+            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Showing {currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, totalCount)} of {totalCount} records
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                  disabled={currentPage === 0}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {currentPage + 1} of {Math.ceil(totalCount / PAGE_SIZE)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={(currentPage + 1) * PAGE_SIZE >= totalCount}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>

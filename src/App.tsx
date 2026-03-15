@@ -127,11 +127,6 @@ function App() {
           {/* ============================================ */}
           {/* CAMP ORGANIZER ONBOARDING ROUTES */}
           {/* ============================================ */}
-          {/* TEMPORARY TEST - Bypass auth to test route */}
-          <Route
-            path="/onboarding/welcome-test"
-            element={<Welcome />}
-          />
           <Route
             path="/onboarding/welcome"
             element={

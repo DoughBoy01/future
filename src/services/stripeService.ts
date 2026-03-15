@@ -28,33 +28,30 @@ export async function createStripeCheckoutSession(
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify(params),
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: params,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        // Retry on server errors (5xx), but not client errors (4xx)
-        if (response.status >= 500 && attempt < maxRetries) {
-          console.warn(`Checkout session creation failed (attempt ${attempt}/${maxRetries}), retrying...`);
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt)); // Exponential backoff
+      if (error) {
+        const status = (error as { status?: number }).status ?? 0;
+        if (status >= 500 && attempt < maxRetries) {
+          const backoffMs = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
           continue;
         }
         throw new Error(error.message || 'Failed to create checkout session');
       }
 
-      return await response.json();
+      return data as StripeCheckoutResponse;
     } catch (error) {
       lastError = error as Error;
-      // Only retry on network errors, not application errors
-      if (attempt < maxRetries && !(error as Error).message?.includes('Failed to create')) {
-        console.warn(`Network error (attempt ${attempt}/${maxRetries}), retrying...`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      const isRetryable =
+        !(lastError.message?.includes('Failed to create')) &&
+        !(lastError.message?.includes('not configured'));
+
+      if (attempt < maxRetries && isRetryable) {
+        const backoffMs = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
         continue;
       }
     }
@@ -97,5 +94,9 @@ export async function getPaymentRecord(registrationId: string) {
 }
 
 export function redirectToStripeCheckout(checkoutUrl: string) {
+  const url = new URL(checkoutUrl);
+  if (url.protocol !== 'https:' && url.hostname !== 'localhost') {
+    throw new Error('Invalid checkout URL');
+  }
   window.location.href = checkoutUrl;
 }

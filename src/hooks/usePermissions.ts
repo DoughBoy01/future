@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { permissionService, type UserPermissions } from '../services/permissionService';
 
@@ -7,16 +7,7 @@ export function usePermissions() {
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user && profile) {
-      loadPermissions();
-    } else {
-      setPermissions(null);
-      setLoading(false);
-    }
-  }, [user, profile]);
-
-  async function loadPermissions() {
+  const loadPermissions = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -27,7 +18,29 @@ export function usePermissions() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (user && profile) {
+      permissionService.getUserPermissions(user.id)
+        .then(userPerms => {
+          if (mounted) setPermissions(userPerms);
+        })
+        .catch(error => {
+          console.error('Error loading permissions:', error);
+        })
+        .finally(() => {
+          if (mounted) setLoading(false);
+        });
+    } else {
+      setPermissions(null);
+      setLoading(false);
+    }
+
+    return () => { mounted = false; };
+  }, [user, profile]);
 
   const hasPermission = (permissionName: string): boolean => {
     if (!permissions) return false;

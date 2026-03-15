@@ -274,6 +274,10 @@ export async function recordCommissionRateChange(
   setBy: string,
   notes?: string
 ): Promise<void> {
+  if (isNaN(newRate) || newRate < 0 || newRate > 1) {
+    throw new Error('Commission rate must be a number between 0 and 1 (e.g. 0.15 for 15%)');
+  }
+
   const now = new Date().toISOString();
 
   const { data: existingRates } = await supabase

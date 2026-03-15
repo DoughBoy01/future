@@ -229,8 +229,9 @@ export function CampDetailPage() {
       setUserCurrency(newCurrency);
     };
 
-    const handleCurrencyChanged = (event: any) => {
-      setUserCurrency(event.detail.currency);
+    const handleCurrencyChanged = (event: Event) => {
+      const customEvent = event as CustomEvent<{ currency: string }>;
+      setUserCurrency(customEvent.detail.currency);
     };
 
     // Listen for storage events from other tabs
@@ -283,7 +284,7 @@ export function CampDetailPage() {
 
       setCamp(campData);
 
-      const enrolledCount = (campData as any).enrolled_count || 0;
+      const enrolledCount = (campData as unknown as { enrolled_count?: number }).enrolled_count || 0;
       setAvailablePlaces(campData.capacity - enrolledCount);
 
       const { data: orgData } = await supabase
