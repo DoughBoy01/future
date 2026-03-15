@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Search, Filter, X, DollarSign, MapPin } from 'lucide-react';
+import { Search, X, DollarSign } from 'lucide-react';
 import { getConvertedPrice, detectUserCurrency, getPopularCurrencies, CURRENCY_SYMBOLS, CURRENCY_NAMES } from '../lib/currency';
 import { CampCard } from '../components/home/CampCard';
 import type { Database } from '../lib/database.types';
@@ -153,38 +153,31 @@ export function CampsPage() {
     );
   }
 
+  const activeFilterCount = (ageFilter ? 1 : 0) + selectedCategories.length + selectedLocations.length + (searchTerm ? 1 : 0);
+
   return (
     <div className="min-h-screen bg-airbnb-grey-50">
-      {/* Filters Header with Description */}
+      {/* Filter Header */}
       <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          {/* Header Title with Currency Selector */}
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl sm:text-2xl font-bold text-white">
-              Explore the perfect experiences for your child
-            </h1>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
 
-            {/* Currency Selector - Subtle and non-intrusive */}
-            <div className="relative">
+          {/* Row 1: Title + Currency */}
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+              Find the perfect experience for your child
+            </h1>
+            <div className="relative flex-shrink-0">
               <button
                 onClick={() => setShowCurrencyMenu(!showCurrencyMenu)}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white text-sm font-medium backdrop-blur-sm"
                 title="Change currency"
               >
                 <DollarSign className="w-4 h-4" />
-                <span className="hidden sm:inline">{userCurrency}</span>
+                <span>{userCurrency}</span>
               </button>
-
-              {/* Currency Dropdown Menu */}
               {showCurrencyMenu && (
                 <>
-                  {/* Backdrop to close menu */}
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowCurrencyMenu(false)}
-                  />
-
-                  {/* Menu */}
+                  <div className="fixed inset-0 z-10" onClick={() => setShowCurrencyMenu(false)} />
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-20 overflow-hidden">
                     <div className="p-2 bg-airbnb-grey-50 border-b border-airbnb-grey-200">
                       <p className="text-xs font-medium text-airbnb-grey-600 px-2">Display prices in:</p>
@@ -215,20 +208,40 @@ export function CampsPage() {
             </div>
           </div>
 
-          {/* Age Filter Pills & Clear Button */}
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-white/90 whitespace-nowrap">Age:</span>
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+          {/* Row 2: Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search camps by name or description..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-white/20 hover:bg-white/25 focus:bg-white/30 text-white placeholder-white/60 rounded-xl text-sm outline-none transition-all border border-white/20 focus:border-white/50"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Row 3: Age filter */}
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Child's age</p>
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
               {[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((age) => {
                 const isSelected = ageFilter === age.toString();
                 return (
                   <button
                     key={age}
                     onClick={() => setAgeFilter(isSelected ? '' : age.toString())}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
+                    className={`w-9 h-9 rounded-full text-sm font-medium transition-all flex-shrink-0 flex items-center justify-center ${
                       isSelected
-                        ? 'bg-white text-airbnb-pink-600 shadow-sm'
-                        : 'bg-white/20 text-white hover:bg-white/30'
+                        ? 'bg-white text-airbnb-pink-600 shadow-md scale-110'
+                        : 'bg-white/20 text-white hover:bg-white/35 hover:scale-105'
                     }`}
                   >
                     {age}
@@ -236,61 +249,76 @@ export function CampsPage() {
                 );
               })}
             </div>
-            {(selectedCategories.length > 0 || selectedLocations.length > 0 || ageFilter) && (
-              <button
-                onClick={clearAllFilters}
-                className="ml-auto px-3 py-1.5 text-xs text-white hover:bg-white/20 rounded-lg font-medium transition-standard whitespace-nowrap flex-shrink-0"
-              >
-                Clear
-              </button>
-            )}
           </div>
 
-          {/* Category Pills Row - Horizontal Scroll */}
-          <div className="flex items-center gap-2 mb-2">
-            <Filter className="w-4 h-4 text-white/90 flex-shrink-0" />
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+          {/* Row 4: Category filter */}
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Category</p>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5">
               {categories.map((category) => {
                 const isSelected = selectedCategories.includes(category.slug);
                 return (
                   <button
                     key={category.id}
                     onClick={() => toggleCategory(category.slug)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                       isSelected
-                        ? 'bg-white text-airbnb-pink-600 shadow-sm'
-                        : 'bg-white/20 text-white hover:bg-white/30'
+                        ? 'bg-white text-airbnb-pink-600 shadow-md'
+                        : 'bg-white/20 text-white hover:bg-white/35'
                     }`}
                   >
-                    {category.name}
+                    {isSelected && <span className="mr-1">✓</span>}{category.name}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Location Pills Row - Horizontal Scroll */}
+          {/* Row 5: Location filter */}
           {uniqueLocations.length > 0 && (
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-white/90 flex-shrink-0" />
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Location</p>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5">
                 {uniqueLocations.map((location) => {
                   const isSelected = selectedLocations.includes(location);
                   return (
                     <button
                       key={location}
                       onClick={() => toggleLocation(location)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-airbnb whitespace-nowrap flex-shrink-0 ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                         isSelected
-                          ? 'bg-white text-airbnb-pink-600 shadow-sm'
-                          : 'bg-white/20 text-white hover:bg-white/30'
+                          ? 'bg-white text-airbnb-pink-600 shadow-md'
+                          : 'bg-white/20 text-white hover:bg-white/35'
                       }`}
                     >
-                      {location}
+                      {isSelected && <span className="mr-1">✓</span>}{location}
                     </button>
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Active filter summary + clear */}
+          {activeFilterCount > 0 && (
+            <div className="flex items-center justify-between pt-1 border-t border-white/20">
+              <p className="text-xs text-white/80">
+                {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
+                {ageFilter && <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full">Age {ageFilter}</span>}
+                {selectedCategories.map(s => (
+                  <span key={s} className="ml-1 bg-white/20 px-2 py-0.5 rounded-full">{categories.find(c => c.slug === s)?.name}</span>
+                ))}
+                {selectedLocations.map(l => (
+                  <span key={l} className="ml-1 bg-white/20 px-2 py-0.5 rounded-full">{l}</span>
+                ))}
+              </p>
+              <button
+                onClick={clearAllFilters}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-white/20 hover:bg-white/30 rounded-lg font-medium transition-all whitespace-nowrap"
+              >
+                <X className="w-3 h-3" />
+                Clear all
+              </button>
             </div>
           )}
         </div>
