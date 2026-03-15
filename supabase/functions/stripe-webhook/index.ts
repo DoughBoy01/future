@@ -12,10 +12,24 @@ const corsHeaders = {
  * Sends booking confirmation email to parent
  * Non-blocking - doesn't prevent webhook processing if email fails
  */
+interface BookingRow {
+  id: string;
+  parent_id: string;
+  child_id: string;
+  camp_id: string;
+  amount_due: number;
+}
+
+interface SupabaseClient {
+  from: (table: string) => unknown;
+  auth: { admin: { getUserById: (id: string) => Promise<{ data: { user: { email: string } | null } | null; error: Error | null }> } };
+  functions: { invoke: (name: string, options: { body: unknown }) => Promise<unknown> };
+}
+
 async function sendBookingConfirmationEmail(
-  bookings: any[],
+  bookings: BookingRow[],
   totalAmount: number,
-  supabase: any
+  supabase: SupabaseClient
 ) {
   try {
     // Get parent data
@@ -144,14 +158,6 @@ serve(async (req: Request) => {
     // Try SERVICE_ROLE_KEY first (custom secret), fallback to SUPABASE_SERVICE_ROLE_KEY (built-in)
     const supabaseServiceKey = Deno.env.get('SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // Debug logging for environment variables
-    console.log('Environment check:');
-    console.log('- SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-    console.log('- SERVICE_ROLE_KEY:', Deno.env.get('SERVICE_ROLE_KEY') ? `Set (length: ${Deno.env.get('SERVICE_ROLE_KEY')?.length})` : 'Missing');
-    console.log('- SUPABASE_SERVICE_ROLE_KEY (fallback):', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ? `Set (length: ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')?.length})` : 'Missing');
-    console.log('- Using key with length:', supabaseServiceKey ? supabaseServiceKey.length : 'Missing');
-    console.log('- STRIPE_SECRET_KEY:', stripeSecretKey ? 'Set' : 'Missing');
-    console.log('- STRIPE_WEBHOOK_SECRET:', webhookSecret ? 'Set' : 'Missing');
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

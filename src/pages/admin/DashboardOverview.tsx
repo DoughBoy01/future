@@ -61,64 +61,25 @@ export function DashboardOverview() {
 
   async function loadDashboardStats() {
     try {
-      const [
-        registrationsResult,
-        publishedCampsResult,
-        parentsResult,
-        revenueResult,
-        pendingPaymentsResult,
-        enquiriesResult,
-        draftCampsResult,
-        pendingReviewCampsResult,
-        requiresChangesCampsResult,
-        approvedCampsResult,
-        rejectedCampsResult,
-        unpublishedCampsResult,
-        archivedCampsResult,
-        campOrganizersResult,
-      ] = await Promise.all([
-        supabase.from('bookings').select('id', { count: 'exact', head: true }),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'published'),
-        supabase.from('parents').select('id', { count: 'exact', head: true }),
-        supabase.from('bookings').select('amount_paid'),
-        supabase.from('bookings').select('id', { count: 'exact', head: true }).neq('payment_status', 'paid'),
-        supabase.from('enquiries').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'draft'),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'requires_changes'),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'unpublished'),
-        supabase.from('camps').select('id', { count: 'exact', head: true }).eq('status', 'archived'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'camp_organizer'),
-      ]);
-
-      const totalRevenue = revenueResult.data?.reduce((sum, reg) => sum + (reg.amount_paid || 0), 0) || 0;
-
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const recentRegs = await supabase
-        .from('bookings')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', sevenDaysAgo.toISOString());
+      const { data, error } = await supabase.rpc('get_dashboard_stats');
+      if (error) throw error;
 
       setStats({
-        totalRegistrations: registrationsResult.count || 0,
-        totalRevenue,
-        activeCamps: publishedCampsResult.count || 0,
-        totalParents: parentsResult.count || 0,
-        pendingPayments: pendingPaymentsResult.count || 0,
-        recentRegistrations: recentRegs.count || 0,
-        pendingEnquiries: enquiriesResult.count || 0,
-        draftCamps: draftCampsResult.count || 0,
-        pendingReviewCamps: pendingReviewCampsResult.count || 0,
-        requiresChangesCamps: requiresChangesCampsResult.count || 0,
-        approvedCamps: approvedCampsResult.count || 0,
-        rejectedCamps: rejectedCampsResult.count || 0,
-        unpublishedCamps: unpublishedCampsResult.count || 0,
-        archivedCamps: archivedCampsResult.count || 0,
-        totalCampOrganizers: campOrganizersResult.count || 0,
+        totalRegistrations: data.totalRegistrations || 0,
+        totalRevenue: data.totalRevenue || 0,
+        activeCamps: data.activeCamps || 0,
+        totalParents: data.totalParents || 0,
+        pendingPayments: data.pendingPayments || 0,
+        recentRegistrations: data.recentRegistrations || 0,
+        pendingEnquiries: data.pendingEnquiries || 0,
+        draftCamps: data.draftCamps || 0,
+        pendingReviewCamps: data.pendingReviewCamps || 0,
+        requiresChangesCamps: data.requiresChangesCamps || 0,
+        approvedCamps: data.approvedCamps || 0,
+        rejectedCamps: data.rejectedCamps || 0,
+        unpublishedCamps: data.unpublishedCamps || 0,
+        archivedCamps: data.archivedCamps || 0,
+        totalCampOrganizers: data.totalCampOrganizers || 0,
       });
     } catch (error) {
       console.error('Error loading dashboard stats:', error);

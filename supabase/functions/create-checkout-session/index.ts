@@ -46,7 +46,7 @@ serve(async (req: Request) => {
     // Get camp details including organisation and commission rate
     const { data: camp, error: campError } = await supabase
       .from('camps')
-      .select('organisation_id, commission_rate, organisations(stripe_account_id, stripe_account_status, payout_enabled, default_commission_rate)')
+      .select('organisation_id, commission_rate, organisations(stripe_account_id, stripe_account_status, payout_enabled, default_commission_rate, temp_charges_enabled, restrictions_active, onboarding_deadline, pending_balance_amount)')
       .eq('id', campId)
       .single();
 
@@ -66,29 +66,9 @@ serve(async (req: Request) => {
 
     // Check if organization can accept payments
     const hasFullStripe = org && org.stripe_account_id && org.stripe_account_status === 'active' && org.payout_enabled;
-    const hasDeferredStripe = org && org.stripe_account_id && (org as any).temp_charges_enabled && !(org as any).restrictions_active;
+    const hasDeferredStripe = org && org.stripe_account_id && org.temp_charges_enabled && !org.restrictions_active;
     const hasStripeConnect = hasFullStripe || hasDeferredStripe;
 
-    // Log mode being used
-    if (hasStripeConnect) {
-      console.log(`✓ Payment capability verified for organization ${org.id}`);
-      console.log(`  - Account: ${org.stripe_account_id}`);
-      console.log(`  - Status: ${org.stripe_account_status}`);
-      console.log(`  - Payouts: ${org.payout_enabled ? 'Enabled' : 'Disabled'}`);
-
-      if (hasDeferredStripe && !hasFullStripe) {
-        console.warn(`⚠ Using deferred mode - funds will be held in pending balance`);
-        console.warn(`  - Deadline: ${(org as any).onboarding_deadline || 'N/A'}`);
-        console.warn(`  - Pending balance: $${(org as any).pending_balance_amount || 0}`);
-      }
-    } else {
-      console.warn(`⚠ No Stripe Connect - using test mode for organization ${org?.id || 'unknown'}`);
-      console.warn(`  - stripe_account_id: ${org?.stripe_account_id || 'NULL'}`);
-      console.warn(`  - stripe_account_status: ${org?.stripe_account_status || 'NULL'}`);
-      console.warn(`  - payout_enabled: ${org?.payout_enabled || 'NULL'}`);
-      console.warn(`  - temp_charges_enabled: ${(org as any).temp_charges_enabled || 'NULL'}`);
-      console.warn(`  - restrictions_active: ${(org as any).restrictions_active || 'NULL'}`);
-    }
 
     let session;
     let commissionRate = 0;
@@ -151,7 +131,7 @@ serve(async (req: Request) => {
         },
       }, {
         stripeAccount: org.stripe_account_id, // Create session in connected account context
-        idempotencyKey: `checkout_${registrationId}_${Date.now().toString().slice(0, -4)}`,
+        idempotencyKey: `checkout_${registrationId}`,
       });
     } else {
       // TEST MODE: Simple payment without Stripe Connect
@@ -184,7 +164,7 @@ serve(async (req: Request) => {
           testMode: 'true',
         },
       }, {
-        idempotencyKey: `checkout_${registrationId}_${Date.now().toString().slice(0, -4)}`,
+        idempotencyKey: `checkout_${registrationId}`,
       });
     }
 

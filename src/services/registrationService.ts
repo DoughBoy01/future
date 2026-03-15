@@ -16,7 +16,7 @@ export interface CreateRegistrationParams {
 export interface CreateMultiChildRegistrationParams {
   campId: string;
   parentId?: string;
-  children: Array<{ firstName: string; lastName: string }>;
+  children: Array<{ firstName: string; lastName: string; dateOfBirth?: string }>;
   unitPrice: number;
   totalAmount: number;
   discountCode?: string;
@@ -57,18 +57,18 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
   const childIds: string[] = [];
   const bookingIds: string[] = [];
   let parentId = params.parentId;
+  let createdGuestParentId: string | null = null;
 
   if (!parentId && params.guestInfo) {
-    // Generate unique guest session ID
-    const guestSessionId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    const guestSessionId = `guest_${crypto.randomUUID()}`;
 
     const { data: parentData, error: parentError } = await supabase
       .from('parents')
       .insert({
         is_guest: true,
-        guest_name: params.guestInfo.name,
-        guest_email: params.guestInfo.email,
-        guest_phone: params.guestInfo.phone || null,
+        guest_name: params.guestInfo.name.trim(),
+        guest_email: params.guestInfo.email.trim().toLowerCase(),
+        guest_phone: params.guestInfo.phone?.trim() || null,
         guest_session_id: guestSessionId,
       })
       .select()
@@ -76,6 +76,7 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
 
     if (parentError) throw parentError;
     parentId = parentData.id;
+    createdGuestParentId = parentData.id;
   }
 
   if (!parentId) {
@@ -84,47 +85,57 @@ export async function createMultiChildRegistration(params: CreateMultiChildRegis
 
   const perChildAmount = params.totalAmount / params.children.length;
 
-  for (const childEntry of params.children) {
-    const temporaryDob = new Date();
-    temporaryDob.setFullYear(temporaryDob.getFullYear() - 10);
+  try {
+    for (const childEntry of params.children) {
+      const { data: childData, error: childError } = await supabase
+        .from('children')
+        .insert({
+          parent_id: parentId,
+          first_name: childEntry.firstName.trim(),
+          last_name: childEntry.lastName.trim(),
+          date_of_birth: childEntry.dateOfBirth || null,
+        })
+        .select()
+        .single();
 
-    const { data: childData, error: childError } = await supabase
-      .from('children')
-      .insert({
+      if (childError) throw childError;
+      childIds.push(childData.id);
+
+      const booking: Booking = {
+        camp_id: params.campId,
+        child_id: childData.id,
         parent_id: parentId,
-        first_name: childEntry.firstName,
-        last_name: childEntry.lastName,
-        date_of_birth: temporaryDob.toISOString().split('T')[0],
-      })
-      .select()
-      .single();
+        status: 'pending',
+        payment_status: 'unpaid',
+        amount_paid: 0,
+        amount_due: perChildAmount,
+        discount_code: params.discountCode || null,
+        discount_amount: params.discountAmount ? params.discountAmount / params.children.length : 0,
+        forms_submitted: false,
+        photo_permission: false,
+        form_completed: false,
+      };
 
-    if (childError) throw childError;
-    childIds.push(childData.id);
+      const { data: bookingData, error: bookingError } = await supabase
+        .from('bookings')
+        .insert(booking)
+        .select()
+        .single();
 
-    const booking: Booking = {
-      camp_id: params.campId,
-      child_id: childData.id,
-      parent_id: parentId,
-      status: 'pending',
-      payment_status: 'unpaid',
-      amount_paid: 0,
-      amount_due: perChildAmount,
-      discount_code: params.discountCode || null,
-      discount_amount: params.discountAmount ? params.discountAmount / params.children.length : 0,
-      forms_submitted: false,
-      photo_permission: false,
-      form_completed: false,
-    };
-
-    const { data: bookingData, error: bookingError } = await supabase
-      .from('bookings')
-      .insert(booking)
-      .select()
-      .single();
-
-    if (bookingError) throw bookingError;
-    bookingIds.push(bookingData.id);
+      if (bookingError) throw bookingError;
+      bookingIds.push(bookingData.id);
+    }
+  } catch (err) {
+    if (childIds.length > 0) {
+      await supabase.from('children').delete().in('id', childIds);
+    }
+    if (bookingIds.length > 0) {
+      await supabase.from('bookings').delete().in('id', bookingIds);
+    }
+    if (createdGuestParentId) {
+      await supabase.from('parents').delete().eq('id', createdGuestParentId);
+    }
+    throw err;
   }
 
   return {

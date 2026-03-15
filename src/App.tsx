@@ -60,10 +60,7 @@ import OnboardingAnalytics from './pages/admin/OnboardingAnalytics';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
-  console.log('🛡️ ProtectedRoute check:', { loading, user: !!user });
-
   if (loading) {
-    console.log('⏳ Auth loading...');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -72,11 +69,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    console.log('❌ No user, redirecting to /auth');
     return <Navigate to="/auth" />;
   }
 
-  console.log('✅ User authenticated, rendering protected content');
   return <>{children}</>;
 }
 
