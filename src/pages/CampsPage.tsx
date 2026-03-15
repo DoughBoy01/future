@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Search, X, DollarSign } from 'lucide-react';
+import { Search, X, DollarSign, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { getConvertedPrice, detectUserCurrency, getPopularCurrencies, CURRENCY_SYMBOLS, CURRENCY_NAMES } from '../lib/currency';
 import { CampCard } from '../components/home/CampCard';
 import type { Database } from '../lib/database.types';
@@ -23,6 +23,7 @@ export function CampsPage() {
     return localStorage.getItem('preferredCurrency') || detectUserCurrency();
   });
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const categoryParam = searchParams.get('category');
@@ -159,20 +160,20 @@ export function CampsPage() {
     <div className="min-h-screen bg-airbnb-grey-50">
       {/* Filter Header */}
       <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
 
-          {/* Row 1: Title + Currency */}
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+          {/* Row 1: Title + Currency (compact on mobile) */}
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-base sm:text-xl font-bold text-white leading-snug">
               Find the perfect experience for your child
             </h1>
             <div className="relative flex-shrink-0">
               <button
                 onClick={() => setShowCurrencyMenu(!showCurrencyMenu)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white text-sm font-medium backdrop-blur-sm"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-all text-white text-xs font-medium"
                 title="Change currency"
               >
-                <DollarSign className="w-4 h-4" />
+                <DollarSign className="w-3.5 h-3.5" />
                 <span>{userCurrency}</span>
               </button>
               {showCurrencyMenu && (
@@ -208,113 +209,142 @@ export function CampsPage() {
             </div>
           </div>
 
-          {/* Row 2: Search bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search camps by name or description..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-white/20 hover:bg-white/25 focus:bg-white/30 text-white placeholder-white/60 rounded-xl text-sm outline-none transition-all border border-white/20 focus:border-white/50"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Row 3: Age filter */}
-          <div className="space-y-1.5">
-            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Child's age</p>
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
-              {[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((age) => {
-                const isSelected = ageFilter === age.toString();
-                return (
-                  <button
-                    key={age}
-                    onClick={() => setAgeFilter(isSelected ? '' : age.toString())}
-                    className={`w-9 h-9 rounded-full text-sm font-medium transition-all flex-shrink-0 flex items-center justify-center ${
-                      isSelected
-                        ? 'bg-white text-airbnb-pink-600 shadow-md scale-110'
-                        : 'bg-white/20 text-white hover:bg-white/35 hover:scale-105'
-                    }`}
-                  >
-                    {age}
-                  </button>
-                );
-              })}
+          {/* Row 2: Search + Filter toggle (mobile) */}
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search camps..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-8 py-2.5 bg-white/20 hover:bg-white/25 focus:bg-white/30 text-white placeholder-white/60 rounded-xl text-sm outline-none transition-all border border-white/20 focus:border-white/50"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
+            {/* Filter toggle button — visible on mobile, hidden on sm+ */}
+            <button
+              onClick={() => setShowFilters(v => !v)}
+              className={`sm:hidden flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border flex-shrink-0 ${
+                showFilters || activeFilterCount > 0
+                  ? 'bg-white text-airbnb-pink-600 border-white shadow-md'
+                  : 'bg-white/20 text-white border-white/20 hover:bg-white/30'
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {activeFilterCount > 0 && (
+                <span className={`text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center ${showFilters ? 'bg-airbnb-pink-600 text-white' : 'bg-airbnb-pink-500 text-white'}`}>
+                  {activeFilterCount}
+                </span>
+              )}
+              {showFilters ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
           </div>
 
-          {/* Row 4: Category filter */}
-          <div className="space-y-1.5">
-            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Category</p>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5">
-              {categories.map((category) => {
-                const isSelected = selectedCategories.includes(category.slug);
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => toggleCategory(category.slug)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                      isSelected
-                        ? 'bg-white text-airbnb-pink-600 shadow-md'
-                        : 'bg-white/20 text-white hover:bg-white/35'
-                    }`}
-                  >
-                    {isSelected && <span className="mr-1">✓</span>}{category.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {/* Filter panels — always visible on sm+, collapsible on mobile */}
+          <div className={`space-y-3 ${showFilters ? 'block' : 'hidden sm:block'}`}>
 
-          {/* Row 5: Location filter */}
-          {uniqueLocations.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Location</p>
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5">
-                {uniqueLocations.map((location) => {
-                  const isSelected = selectedLocations.includes(location);
+            {/* Age filter */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Child's age</p>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5 -mx-1 px-1">
+                {[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((age) => {
+                  const isSelected = ageFilter === age.toString();
                   return (
                     <button
-                      key={location}
-                      onClick={() => toggleLocation(location)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                      key={age}
+                      onClick={() => setAgeFilter(isSelected ? '' : age.toString())}
+                      className={`min-w-[2.5rem] h-10 rounded-full text-sm font-medium transition-all flex-shrink-0 flex items-center justify-center touch-manipulation ${
                         isSelected
-                          ? 'bg-white text-airbnb-pink-600 shadow-md'
-                          : 'bg-white/20 text-white hover:bg-white/35'
+                          ? 'bg-white text-airbnb-pink-600 shadow-md ring-2 ring-white/50'
+                          : 'bg-white/20 text-white hover:bg-white/35 active:bg-white/40'
                       }`}
                     >
-                      {isSelected && <span className="mr-1">✓</span>}{location}
+                      {age}
                     </button>
                   );
                 })}
               </div>
             </div>
-          )}
 
-          {/* Active filter summary + clear */}
+            {/* Category filter */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Category</p>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5 -mx-1 px-1">
+                {categories.map((category) => {
+                  const isSelected = selectedCategories.includes(category.slug);
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => toggleCategory(category.slug)}
+                      className={`flex items-center gap-1 px-3.5 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 touch-manipulation ${
+                        isSelected
+                          ? 'bg-white text-airbnb-pink-600 shadow-md ring-2 ring-white/50'
+                          : 'bg-white/20 text-white hover:bg-white/35 active:bg-white/40'
+                      }`}
+                    >
+                      {isSelected && <X className="w-3 h-3" />}
+                      {category.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Location filter */}
+            {uniqueLocations.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Location</p>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5 -mx-1 px-1">
+                  {uniqueLocations.map((location) => {
+                    const isSelected = selectedLocations.includes(location);
+                    return (
+                      <button
+                        key={location}
+                        onClick={() => toggleLocation(location)}
+                        className={`flex items-center gap-1 px-3.5 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap flex-shrink-0 touch-manipulation ${
+                          isSelected
+                            ? 'bg-white text-airbnb-pink-600 shadow-md ring-2 ring-white/50'
+                            : 'bg-white/20 text-white hover:bg-white/35 active:bg-white/40'
+                        }`}
+                      >
+                        {isSelected && <X className="w-3 h-3" />}
+                        {location}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Active filter summary — always visible when filters are set */}
           {activeFilterCount > 0 && (
-            <div className="flex items-center justify-between pt-1 border-t border-white/20">
-              <p className="text-xs text-white/80">
-                {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
-                {ageFilter && <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full">Age {ageFilter}</span>}
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/20">
+              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                <span className="text-xs text-white/70 flex-shrink-0">{activeFilterCount} active:</span>
+                {ageFilter && (
+                  <span className="bg-white/25 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0">Age {ageFilter}</span>
+                )}
                 {selectedCategories.map(s => (
-                  <span key={s} className="ml-1 bg-white/20 px-2 py-0.5 rounded-full">{categories.find(c => c.slug === s)?.name}</span>
+                  <span key={s} className="bg-white/25 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0 max-w-[100px] truncate">
+                    {categories.find(c => c.slug === s)?.name}
+                  </span>
                 ))}
                 {selectedLocations.map(l => (
-                  <span key={l} className="ml-1 bg-white/20 px-2 py-0.5 rounded-full">{l}</span>
+                  <span key={l} className="bg-white/25 text-white text-xs px-2 py-0.5 rounded-full flex-shrink-0 max-w-[100px] truncate">{l}</span>
                 ))}
-              </p>
+              </div>
               <button
                 onClick={clearAllFilters}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-white/20 hover:bg-white/30 rounded-lg font-medium transition-all whitespace-nowrap"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-white/20 hover:bg-white/30 active:bg-white/40 rounded-lg font-medium transition-all whitespace-nowrap flex-shrink-0 touch-manipulation"
               >
                 <X className="w-3 h-3" />
                 Clear all
