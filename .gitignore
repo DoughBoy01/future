@@ -21,3 +21,10 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# backend
+worker/seed/raw/
+.dev.vars
+.wrangler/
+worker/seed/media/
+worker/seed/seed.sql

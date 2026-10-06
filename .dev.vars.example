@@ -1,0 +1,7 @@
+# Copy to .dev.vars for local development (.dev.vars is git-ignored).
+BETTER_AUTH_SECRET=change-me-to-a-long-random-string
+TRUSTED_ORIGINS=http://localhost:5174
+
+# Optional: test-mode Stripe keys for local checkout
+# STRIPE_SECRET_KEY=sk_test_...
+# STRIPE_WEBHOOK_SECRET=whsec_...   (from `stripe listen --forward-to localhost:8787/api/stripe/webhook`)

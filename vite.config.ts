@@ -8,6 +8,13 @@ export default defineConfig({
     react(),
     devContentEditorPlugin(), // Dev-only file editing endpoint
   ],
+  server: {
+    // `npm run dev:api` serves the Worker (API + media) on 8787.
+    proxy: {
+      '/api': 'http://localhost:8787',
+      '/media': 'http://localhost:8787',
+    },
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
     include: ['framer-motion', 'canvas-confetti'],
