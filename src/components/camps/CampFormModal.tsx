@@ -176,8 +176,8 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
       });
     } else if (schoolId) {
       setFormData(prev => ({ ...prev, organisation_id: schoolId }));
-    } else if (profile?.organisation_id) {
-      setFormData(prev => ({ ...prev, organisation_id: profile.organisation_id! }));
+    } else if (profile?.organisationId) {
+      setFormData(prev => ({ ...prev, organisation_id: profile.organisationId! }));
     } else if (organisations.length === 1) {
       setFormData(prev => ({ ...prev, organisation_id: organisations[0].id }));
     }
@@ -526,7 +526,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
 
             {activeTab === 'basic' && (
               <div className="space-y-6">
-                {profile?.role === 'super_admin' && (
+                {profile?.role === 'admin' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Organisation (Camp Owner) *
@@ -1165,7 +1165,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               >
                 <option value="draft">Draft</option>
-                {profile?.role === 'super_admin' && (
+                {profile?.role === 'admin' && (
                   <>
                     <option value="pending_review">Pending Review</option>
                     <option value="requires_changes">Requires Changes</option>
@@ -1179,7 +1179,7 @@ export function CampFormModal({ isOpen, onClose, onSuccess, camp, schoolId }: Ca
                     <option value="completed">Completed</option>
                   </>
                 )}
-                {profile?.role === 'camp_organizer' && (
+                {profile?.role === 'organizer' && (
                   <>
                     <option value="pending_review">Request Approval</option>
                   </>

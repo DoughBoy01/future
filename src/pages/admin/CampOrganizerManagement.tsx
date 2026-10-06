@@ -112,7 +112,7 @@ export function CampOrganizerManagement() {
         last_seen_at,
         organisations:organisation_id (name)
       `)
-      .eq('role', 'camp_organizer')
+      .eq('role', 'organizer')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -165,7 +165,7 @@ export function CampOrganizerManagement() {
       const { data: existingUser } = await supabase
         .from('profiles')
         .select('id, role')
-        .eq('role', 'camp_organizer')
+        .eq('role', 'organizer')
         .limit(1)
         .single();
 
@@ -197,7 +197,7 @@ export function CampOrganizerManagement() {
 
       console.log('Attempting to send invitation email...', {
         email: inviteEmail,
-        inviterName: `${profile?.first_name} ${profile?.last_name}`,
+        inviterName: `${profile?.firstName} ${profile?.lastName}`,
         token: token.substring(0, 10) + '...'
       });
 
@@ -208,7 +208,7 @@ export function CampOrganizerManagement() {
             body: {
               email: inviteEmail,
               token,
-              inviterName: `${profile?.first_name} ${profile?.last_name}`,
+              inviterName: `${profile?.firstName} ${profile?.lastName}`,
               organisationName: null // No organisation for now
             }
           }

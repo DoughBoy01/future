@@ -28,14 +28,14 @@ export function StripeConnectOnboarding() {
   const [onboardingMode, setOnboardingMode] = useState<'full' | 'deferred'>('deferred');
 
   useEffect(() => {
-    if (profile?.organisation_id) {
+    if (profile?.organisationId) {
       fetchAccountStatus();
     } else if (profile !== undefined) {
       // Profile loaded but user has no organization ID
       setLoading(false);
       setAccountStatus(null);
     }
-  }, [profile?.organisation_id, profile]);
+  }, [profile?.organisationId, profile]);
 
   const fetchAccountStatus = async () => {
     try {
@@ -46,7 +46,7 @@ export function StripeConnectOnboarding() {
       const { data: org, error: orgError } = await supabase
         .from('organisations')
         .select('stripe_account_id, stripe_account_status, payout_enabled')
-        .eq('id', profile?.organisation_id)
+        .eq('id', profile?.organisationId)
         .single();
 
       if (orgError) throw orgError;
@@ -56,7 +56,7 @@ export function StripeConnectOnboarding() {
         const { data: statusData, error: statusError } = await supabase.functions.invoke(
           'stripe-connect-status',
           {
-            body: { organisationId: profile?.organisation_id },
+            body: { organisationId: profile?.organisationId },
           }
         );
 
@@ -95,7 +95,7 @@ export function StripeConnectOnboarding() {
 
       const { data, error } = await supabase.functions.invoke('create-connect-account', {
         body: {
-          organisationId: profile?.organisation_id,
+          organisationId: profile?.organisationId,
           refreshUrl: window.location.href,
           returnUrl: window.location.href,
           mode: onboardingMode,
@@ -152,7 +152,7 @@ export function StripeConnectOnboarding() {
 
       const { data, error } = await supabase.functions.invoke('create-connect-account-link', {
         body: {
-          organisationId: profile?.organisation_id,
+          organisationId: profile?.organisationId,
           refreshUrl: window.location.href,
           returnUrl: window.location.href,
         },
@@ -174,7 +174,7 @@ export function StripeConnectOnboarding() {
   const openStripeDashboard = async () => {
     try {
       const { data, error } = await supabase.functions.invoke('create-connect-login-link', {
-        body: { organisationId: profile?.organisation_id },
+        body: { organisationId: profile?.organisationId },
       });
 
       if (error) throw error;
@@ -189,7 +189,7 @@ export function StripeConnectOnboarding() {
   };
 
   // Check if user has no organization
-  if (!profile?.organisation_id && !loading) {
+  if (!profile?.organisationId && !loading) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">

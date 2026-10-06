@@ -40,10 +40,10 @@ export default function PersonalProfile() {
     }
 
     setFormData({
-      first_name: profile.first_name || '',
-      last_name: profile.last_name || '',
+      first_name: profile.firstName || '',
+      last_name: profile.lastName || '',
       phone: profile.phone || '',
-      avatar_url: profile.avatar_url || '',
+      avatar_url: profile.avatarUrl || '',
     });
     setLoading(false);
   }, [profile]);
@@ -98,10 +98,10 @@ export default function PersonalProfile() {
 
     try {
       const { error: updateError } = await updateProfile({
-        first_name: formData.first_name,
-        last_name: formData.last_name,
+        firstName: formData.first_name,
+        lastName: formData.last_name,
         phone: formData.phone || null,
-        avatar_url: formData.avatar_url || null,
+        avatarUrl: formData.avatar_url || null,
       });
 
       if (updateError) {
@@ -337,7 +337,7 @@ export default function PersonalProfile() {
                   <Calendar className="w-4 h-4" />
                   Account Created
                 </p>
-                <p className="font-medium text-gray-900">{formatDate(profile?.created_at)}</p>
+                <p className="font-medium text-gray-900">{formatDate(profile?.createdAt)}</p>
               </div>
 
               <div>

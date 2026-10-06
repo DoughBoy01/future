@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, Pause, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { api, fromCents, type PublicCamp } from '../lib/api';
+import { CAMP_CATEGORIES, categoryName } from '../data/categories';
 import { CampCard } from '../components/home/CampCard';
 import { CampCardSkeleton } from '../components/home/CampCardSkeleton';
 import { CategoryCard } from '../components/home/CategoryCard';
@@ -10,18 +11,14 @@ import { QuizHomeModule } from '../components/quiz/QuizHomeModule';
 import { PromotionalPopup } from '../components/marketing/PromotionalPopup';
 import { NewsletterSignup } from '../components/marketing/NewsletterSignup';
 import { trackFeaturedCarouselView, trackFeaturedCampClick } from '../utils/analytics';
-import type { Database } from '../lib/database.types';
-
-type Camp = Database['public']['Tables']['camps']['Row'];
-type Category = Database['public']['Tables']['camp_categories']['Row'];
 
 
 
 export function HomePage() {
   const [activeSlide, setActiveSlide] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [featuredCamps, setFeaturedCamps] = useState<Camp[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [featuredCamps, setFeaturedCamps] = useState<PublicCamp[]>([]);
+  const categories = CAMP_CATEGORIES;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [cardsPerView, setCardsPerView] = useState(1);
@@ -44,38 +41,11 @@ export function HomePage() {
 
     const loadData = async () => {
       try {
-        const [campsResponse, categoriesResponse] = await Promise.all([
-          supabase
-            .from('camps')
-            .select('*')
-            .eq('status', 'published')
-            .eq('featured', true)
-            .order('start_date', { ascending: true }),
-          supabase
-            .from('camp_categories')
-            .select('*')
-            .eq('active', true)
-            .order('display_order', { ascending: true })
-        ]);
-
-        if (campsResponse.error) throw campsResponse.error;
-        if (categoriesResponse.error) throw categoriesResponse.error;
+        const featured = await api.camps.list({ featured: 'true' });
 
         if (isMounted) {
-          if (campsResponse.data) {
-            setFeaturedCamps(campsResponse.data);
-
-            // Track featured carousel view with camp IDs
-            if (campsResponse.data.length > 0) {
-              const campIds = campsResponse.data.map(camp => camp.id);
-              trackFeaturedCarouselView(campIds);
-            }
-          }
-
-          if (categoriesResponse.data) {
-            setCategories(categoriesResponse.data);
-          }
-
+          setFeaturedCamps(featured);
+          if (featured.length > 0) trackFeaturedCarouselView(featured.map(camp => camp.id));
           setError(null);
         }
       } catch (err) {
@@ -103,36 +73,36 @@ export function HomePage() {
         // Filter out camps that have already started
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const campStartDate = camp.start_date ? new Date(camp.start_date) : null;
+        const campStartDate = camp.startDate ? new Date(camp.startDate) : null;
         return !campStartDate || campStartDate >= today;
       })
       .map(camp => {
-        const enrolledCount = (camp as any).enrolled_count || 0;
+        const enrolledCount = camp.enrolled;
         const spotsRemaining = camp.capacity - enrolledCount;
-        const earlyBirdActive = camp.early_bird_price &&
-          camp.early_bird_deadline &&
-          new Date(camp.early_bird_deadline) > new Date();
+        const earlyBirdActive = camp.earlyBirdCents &&
+          camp.earlyBirdDeadline &&
+          new Date(camp.earlyBirdDeadline) > new Date();
 
         return {
           id: camp.id,
           badge: spotsRemaining <= 5 ? ('Limited' as const) :
             camp.featured ? ('Popular' as const) :
               ('New' as const),
-          image: camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800',
+          image: camp.image || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800',
           location: camp.location,
           rating: 0,
           reviewCount: 0,
           title: camp.name,
-          category: camp.category || 'General',
-          ageRange: `Ages ${camp.age_min}-${camp.age_max}`,
-          ageMin: camp.age_min,
-          ageMax: camp.age_max,
-          price: earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price,
+          category: categoryName(camp.category),
+          ageRange: `Ages ${camp.ageMin}-${camp.ageMax}`,
+          ageMin: camp.ageMin,
+          ageMax: camp.ageMax,
+          price: fromCents(earlyBirdActive && camp.earlyBirdCents ? camp.earlyBirdCents : camp.priceCents),
           currency: camp.currency || undefined,
-          originalPrice: earlyBirdActive && camp.early_bird_price ? camp.price : undefined,
+          originalPrice: earlyBirdActive && camp.earlyBirdCents ? fromCents(camp.priceCents) : undefined,
           spotsRemaining,
-          startDate: camp.start_date,
-          endDate: camp.end_date,
+          startDate: camp.startDate,
+          endDate: camp.endDate,
           description: camp.description || undefined,
         };
       });
@@ -660,12 +630,12 @@ export function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {categories.map((category) => (
                 <CategoryCard
-                  key={category.id}
+                  key={category.slug}
                   name={category.name}
                   slug={category.slug}
                   description={category.description}
-                  iconName={category.icon_name}
-                  colorTheme={category.color_theme}
+                  iconName={category.iconName}
+                  colorTheme={category.colorTheme}
                 />
               ))}
             </div>

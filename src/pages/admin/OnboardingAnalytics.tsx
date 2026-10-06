@@ -55,7 +55,7 @@ export default function OnboardingAnalytics() {
       let profilesQuery = supabase
         .from('profiles')
         .select('*, organisation_member:organisation_members!inner(organisation_id, role)')
-        .eq('role', 'camp_organizer');
+        .eq('role', 'organizer');
 
       if (dateFilter) {
         profilesQuery = profilesQuery.gte('created_at', dateFilter);

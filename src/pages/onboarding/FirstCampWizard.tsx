@@ -34,7 +34,7 @@ export default function FirstCampWizard() {
   const [commissionRate, setCommissionRate] = useState<number>(0.15);
 
   const { offer, isActive: hasPromoOffer, bookingsRemaining } = usePromotionalOffer(
-    profile?.organisation_id
+    profile?.organisationId
   );
 
   // Step 1: Camp Basics
@@ -66,7 +66,7 @@ export default function FirstCampWizard() {
       return;
     }
 
-    if (profile.role !== 'camp_organizer') {
+    if (profile.role !== 'organizer') {
       navigate(getDashboardRoute(profile.role));
       return;
     }
@@ -76,9 +76,9 @@ export default function FirstCampWizard() {
 
     // Fetch commission rate
     async function fetchOrgRate() {
-      if (profile.organisation_id) {
+      if (profile.organisationId) {
         try {
-          const org = await getOrganizationWithRate(profile.organisation_id);
+          const org = await getOrganizationWithRate(profile.organisationId);
           setCommissionRate(org.default_commission_rate);
         } catch (err) {
           console.error('Error fetching org commission rate:', err);
@@ -173,7 +173,7 @@ export default function FirstCampWizard() {
   };
 
   const handleSaveDraft = async () => {
-    if (!profile?.organisation_id) {
+    if (!profile?.organisationId) {
       toast.error('Organization not found');
       return;
     }
@@ -182,7 +182,7 @@ export default function FirstCampWizard() {
 
     try {
       const campData: any = {
-        organisation_id: profile.organisation_id,
+        organisation_id: profile.organisationId,
         name: campName,
         category,
         start_date: startDate,
@@ -227,7 +227,7 @@ export default function FirstCampWizard() {
 
   const handleSubmitForReview = async () => {
     if (!validateStep(currentStep)) return;
-    if (!profile?.organisation_id) {
+    if (!profile?.organisationId) {
       toast.error('Organization not found');
       return;
     }
@@ -236,7 +236,7 @@ export default function FirstCampWizard() {
 
     try {
       const campData: any = {
-        organisation_id: profile.organisation_id,
+        organisation_id: profile.organisationId,
         name: campName,
         category,
         start_date: startDate,

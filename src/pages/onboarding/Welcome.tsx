@@ -24,7 +24,7 @@ export default function Welcome() {
       return;
     }
 
-    if (profile.role !== 'camp_organizer') {
+    if (profile.role !== 'organizer') {
       console.log('⚠️ Not a camp organizer, redirecting to appropriate dashboard');
       navigate(getDashboardRoute(profile.role));
       return;
@@ -39,7 +39,7 @@ export default function Welcome() {
     navigate('/onboarding/organization');
   };
 
-  const userName = profile?.first_name || 'there';
+  const userName = profile?.firstName || 'there';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-amber-50 flex items-center justify-center p-4">

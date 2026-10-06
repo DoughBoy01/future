@@ -484,7 +484,7 @@ class DataManagementService {
         columns: [
           { name: 'first_name', displayName: 'First Name', type: 'text', required: true, editable: true },
           { name: 'last_name', displayName: 'Last Name', type: 'text', required: true, editable: true },
-          { name: 'role', displayName: 'Role', type: 'enum', required: true, editable: true, enumValues: ['parent', 'school_admin', 'marketing', 'operations', 'risk', 'super_admin'] },
+          { name: 'role', displayName: 'Role', type: 'enum', required: true, editable: true, enumValues: ['parent', 'school_admin', 'marketing', 'operations', 'risk', 'admin'] },
           { name: 'phone', displayName: 'Phone', type: 'text', editable: true },
           { name: 'school_id', displayName: 'School', type: 'foreign_key', editable: true, foreignKey: { table: 'schools', column: 'id', display: 'name' } },
           { name: 'last_seen_at', displayName: 'Last Seen', type: 'datetime', editable: false },

@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { api, ApiError, fromCents, type PublicCamp } from '../lib/api';
+import { quote, type Discount } from '../../shared/pricing';
 import { Calendar, MapPin, AlertCircle, User, Tag, Zap, Shield, CheckCircle2, TrendingUp, Users } from 'lucide-react';
 import { AvailabilityAlert } from '../components/urgency/AvailabilityAlert';
 import { CountdownTimer } from '../components/urgency/CountdownTimer';
 import { formatCurrency } from '../utils/currency';
-import type { Database } from '../lib/database.types';
-import { createMultiChildRegistration, validateDiscountCode } from '../services/registrationService';
-import { createStripeCheckoutSession, redirectToStripeCheckout } from '../services/stripeService';
-
-type Camp = Database['public']['Tables']['camps']['Row'];
 
 interface ChildEntry {
   firstName: string;
@@ -27,25 +23,20 @@ interface GuestInfo {
 export function CampRegistrationPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [camp, setCamp] = useState<Camp | null>(null);
+  const { user, loading: authLoading } = useAuth();
+  const isGuest = !user;
+  const [camp, setCamp] = useState<PublicCamp | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [paymentsEnabled, setPaymentsEnabled] = useState<boolean | null>(null);
   const [numberOfPlaces, setNumberOfPlaces] = useState(1);
   const [childrenEntries, setChildrenEntries] = useState<ChildEntry[]>([{ firstName: '', lastName: '', age: '' }]);
   const [discountCode, setDiscountCode] = useState('');
-  const [discountApplied, setDiscountApplied] = useState<any>(null);
+  const [discountApplied, setDiscountApplied] = useState<(Discount & { code: string }) | null>(null);
   const [discountError, setDiscountError] = useState('');
   const [error, setError] = useState('');
-  const [parentId, setParentId] = useState<string | null>(null);
   const [showDiscountSection, setShowDiscountSection] = useState(false);
-  const [availablePlaces, setAvailablePlaces] = useState(0);
-  const [isGuest, setIsGuest] = useState(false);
-  const [guestInfo, setGuestInfo] = useState<GuestInfo>({
-    name: '',
-    email: '',
-    phone: '',
-  });
+  const [guestInfo, setGuestInfo] = useState<GuestInfo>({ name: '', email: '', phone: '' });
 
   useEffect(() => {
     if (!id) {
@@ -53,108 +44,36 @@ export function CampRegistrationPage() {
       setLoading(false);
       return;
     }
-
-    if (!user) {
-      setIsGuest(true);
-      setLoading(false);
-      loadCampData();
-    } else {
-      setIsGuest(false);
-      loadData();
-    }
-  }, [user, id]);
+    Promise.all([api.camps.get(id), api.config().catch(() => ({ paymentsEnabled: false }))])
+      .then(([campData, config]) => {
+        setCamp(campData);
+        setPaymentsEnabled(config.paymentsEnabled);
+      })
+      .catch((err) => {
+        console.error('Error loading camp:', err);
+        setError(err instanceof ApiError && err.status === 404 ? 'Camp not found or no longer available' : 'Failed to load camp information');
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
 
   useEffect(() => {
-    const newEntries = Array.from({ length: numberOfPlaces }, (_, i) =>
-      childrenEntries[i] || { firstName: '', lastName: '', age: '' }
+    setChildrenEntries((entries) =>
+      Array.from({ length: numberOfPlaces }, (_, i) => entries[i] || { firstName: '', lastName: '', age: '' }),
     );
-    setChildrenEntries(newEntries);
+    setDiscountApplied(null); // a discount is checked for a specific quantity
   }, [numberOfPlaces]);
 
-  async function loadCampData() {
-    if (!id) return;
-    try {
-      const { data: campData, error: campError } = await supabase
-        .from('camps')
-        .select('*')
-        .eq('id', id)
-        .eq('status', 'published')
-        .maybeSingle();
-
-      if (campError) throw campError;
-      if (!campData) {
-        setError('Camp not found or no longer available');
-        setLoading(false);
-        return;
-      }
-
-      setCamp(campData);
-      const enrolledCount = (campData as any).enrolled_count || 0;
-      setAvailablePlaces(campData.capacity - enrolledCount);
-    } catch (err) {
-      console.error('Error loading camp:', err);
-      setError('Failed to load camp information');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadData() {
-    if (!id) return;
-    try {
-      const [campResult, parentResult] = await Promise.all([
-        supabase
-          .from('camps')
-          .select('*')
-          .eq('id', id)
-          .eq('status', 'published')
-          .maybeSingle(),
-        supabase.functions.invoke('get-or-create-parent'),
-      ]);
-
-      if (campResult.error) throw campResult.error;
-      if (!campResult.data) {
-        setError('Camp not found or no longer available');
-        setLoading(false);
-        return;
-      }
-
-      setCamp(campResult.data);
-      const enrolledCount = (campResult.data as any).enrolled_count || 0;
-      setAvailablePlaces(campResult.data.capacity - enrolledCount);
-
-      if (parentResult.error) {
-        console.error('Error fetching/creating parent:', parentResult.error);
-        throw new Error('Failed to initialize registration profile');
-      }
-
-      if (parentResult.data) {
-        setParentId(parentResult.data.id);
-      }
-    } catch (err) {
-      console.error('Error loading data:', err);
-      setError('Failed to load registration information');
-    } finally {
-      setLoading(false);
-    }
-  }
+  const availablePlaces = camp ? camp.capacity - camp.enrolled : 0;
 
   async function handleApplyDiscount() {
     if (!discountCode.trim() || !camp) return;
-
     setDiscountError('');
     try {
-      const discount = await validateDiscountCode(discountCode.trim(), camp.id);
-
-      if (!discount) {
-        setDiscountError('Invalid or expired discount code');
-        setDiscountApplied(null);
-        return;
-      }
-
-      setDiscountApplied(discount);
+      const result = await api.bookings.quote({ campId: camp.id, quantity: numberOfPlaces, discountCode: discountCode.trim() });
+      setDiscountApplied(result.discount);
     } catch (err) {
-      setDiscountError('Failed to validate discount code');
+      setDiscountApplied(null);
+      setDiscountError(err instanceof ApiError && err.status === 422 ? 'Invalid or expired discount code' : 'Failed to validate discount code');
     }
   }
 
@@ -168,7 +87,7 @@ export function CampRegistrationPage() {
     if (!age || !camp) return null;
     const ageNum = parseInt(age);
     if (isNaN(ageNum)) return null;
-    return ageNum >= camp.age_min && ageNum <= camp.age_max;
+    return ageNum >= camp.ageMin && ageNum <= camp.ageMax;
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -180,21 +99,18 @@ export function CampRegistrationPage() {
       return;
     }
 
-    // Validate ages
     const invalidAges = childrenEntries.filter(entry => {
       const age = parseInt(entry.age);
-      return isNaN(age) || age < 1 || age > 100;
+      return isNaN(age) || age < 1 || age > 30;
     });
-
     if (invalidAges.length > 0) {
-      setError('Please enter valid ages for all children (1-100)');
+      setError('Please enter valid ages for all children');
       return;
     }
 
-    // Check for age appropriateness
     const inappropriateAges = childrenEntries.filter(entry => !isAgeAppropriate(entry.age));
     if (inappropriateAges.length > 0 && camp) {
-      setError(`This camp is designed for ages ${camp.age_min}-${camp.age_max}. Some children may not meet the age requirements.`);
+      setError(`This camp is designed for ages ${camp.ageMin}-${camp.ageMax}. Some children may not meet the age requirements.`);
       return;
     }
 
@@ -209,64 +125,26 @@ export function CampRegistrationPage() {
       }
     }
 
-    if (!camp || (!parentId && !isGuest)) return;
-
+    if (!camp) return;
     setProcessing(true);
     setError('');
 
     try {
-      const earlyBirdActive = camp.early_bird_price &&
-        camp.early_bird_deadline &&
-        new Date(camp.early_bird_deadline) > new Date();
-
-      let unitPrice = earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price;
-      let subtotal = unitPrice * numberOfPlaces;
-      let totalDiscountAmount = 0;
-
-      if (discountApplied) {
-        if (discountApplied.discount_type === 'percentage') {
-          totalDiscountAmount = (subtotal * discountApplied.discount_value) / 100;
-        } else {
-          totalDiscountAmount = discountApplied.discount_value;
-        }
-      }
-
-      const finalAmount = Math.max(0, subtotal - totalDiscountAmount);
-
-      const result = await createMultiChildRegistration({
+      const result = await api.bookings.create({
         campId: camp.id,
-        parentId: isGuest ? undefined : parentId!,
-        children: childrenEntries,
-        unitPrice: unitPrice,
-        totalAmount: finalAmount,
+        attendees: childrenEntries.map(c => ({ firstName: c.firstName.trim(), lastName: c.lastName.trim(), age: parseInt(c.age) })),
+        contact: isGuest ? { name: guestInfo.name.trim(), email: guestInfo.email.trim(), phone: guestInfo.phone.trim() || undefined } : undefined,
         discountCode: discountApplied?.code,
-        discountAmount: totalDiscountAmount,
-        guestInfo: isGuest ? guestInfo : undefined,
       });
 
-      const checkoutSession = await createStripeCheckoutSession({
-        campId: camp.id,
-        campName: camp.name,
-        childId: result.childIds[0],
-        amount: finalAmount,
-        currency: camp.currency,
-        registrationId: result.bookingIds[0],
-      });
-
-      await Promise.all(
-        result.bookingIds.map(bookingId =>
-          supabase
-            .from('bookings')
-            // @ts-ignore
-            .update({ stripe_checkout_session_id: checkoutSession.sessionId })
-            .eq('id', bookingId)
-        )
-      );
-
-      redirectToStripeCheckout(checkoutSession.url);
-    } catch (err: any) {
-      console.error('Error creating registration:', err);
-      setError(err.message || 'Failed to process registration. Please try again.');
+      if (result.url) {
+        window.location.href = result.url; // Stripe-hosted checkout
+      } else {
+        navigate(`/registration/${result.bookingId}/child-details`); // nothing to pay
+      }
+    } catch (err) {
+      console.error('Error creating booking:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process registration. Please try again.');
       setProcessing(false);
     }
   }
@@ -279,7 +157,7 @@ export function CampRegistrationPage() {
     });
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-airbnb-grey-50 flex items-center justify-center">
         <div className="text-center">
@@ -310,23 +188,13 @@ export function CampRegistrationPage() {
 
   if (!camp) return null;
 
-  const earlyBirdActive = camp.early_bird_price &&
-    camp.early_bird_deadline &&
-    new Date(camp.early_bird_deadline) > new Date();
-
-  let unitPrice = earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price;
-  let subtotal = unitPrice * numberOfPlaces;
-  let totalDiscountAmount = 0;
-
-  if (discountApplied) {
-    if (discountApplied.discount_type === 'percentage') {
-      totalDiscountAmount = (subtotal * discountApplied.discount_value) / 100;
-    } else {
-      totalDiscountAmount = discountApplied.discount_value;
-    }
-  }
-
-  const finalPrice = Math.max(0, subtotal - totalDiscountAmount);
+  const earlyBirdActive = camp.earlyBirdCents != null && camp.earlyBirdDeadline != null && new Date(camp.earlyBirdDeadline) > new Date();
+  const priced = quote(camp, numberOfPlaces, discountApplied);
+  const basePrice = fromCents(camp.priceCents);
+  const unitPrice = fromCents(priced.unitCents);
+  const subtotal = fromCents(priced.subtotalCents);
+  const totalDiscountAmount = fromCents(priced.discountCents);
+  const finalPrice = fromCents(priced.totalCents);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-airbnb-grey-50 via-white to-airbnb-pink-50 py-8 sm:py-12">
@@ -371,7 +239,14 @@ export function CampRegistrationPage() {
               </div>
             )}
 
-            {earlyBirdActive && camp.early_bird_deadline && (
+            {paymentsEnabled === false && (
+              <div role="status" className="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                <p className="text-sm">Online booking is not open yet. You can look around, but payment is not available right now.</p>
+              </div>
+            )}
+
+            {earlyBirdActive && camp.earlyBirdDeadline && (
               <div className="bg-gradient-to-r from-airbnb-pink-500 to-airbnb-pink-600 text-white p-5 sm:p-6 rounded-xl shadow-lg mb-6">
                 <div className="flex items-start gap-3 sm:gap-4">
                   <div className="p-3 bg-white/20 rounded-lg">
@@ -379,8 +254,8 @@ export function CampRegistrationPage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold mb-2">Early Bird Special Active!</h3>
-                    <p className="text-white/90 mb-3">Save ${(camp.price - (camp.early_bird_price || camp.price)).toFixed(0)} per child when you book now</p>
-                    <CountdownTimer targetDate={camp.early_bird_deadline} label="Offer expires in" size="md" />
+                    <p className="text-white/90 mb-3">Save {formatCurrency(basePrice - unitPrice, camp.currency)} per child when you book now</p>
+                    <CountdownTimer targetDate={camp.earlyBirdDeadline} label="Offer expires in" size="md" />
                   </div>
                 </div>
               </div>
@@ -391,7 +266,7 @@ export function CampRegistrationPage() {
               <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
                 <div className="flex items-center gap-2 text-airbnb-grey-700">
                   <Calendar className="w-5 h-5 text-airbnb-pink-500" />
-                  <span>{formatDate(camp.start_date)} - {formatDate(camp.end_date)}</span>
+                  <span>{formatDate(camp.startDate)} - {formatDate(camp.endDate)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-airbnb-grey-700">
                   <MapPin className="w-5 h-5 text-airbnb-pink-500" />
@@ -399,7 +274,7 @@ export function CampRegistrationPage() {
                 </div>
                 <div className="flex items-center gap-2 text-airbnb-grey-700">
                   <Tag className="w-5 h-5 text-airbnb-pink-500" />
-                  <span className="font-semibold">${unitPrice} per child</span>
+                  <span className="font-semibold">{formatCurrency(unitPrice, camp.currency)} per child</span>
                 </div>
               </div>
             </div>
@@ -560,7 +435,7 @@ export function CampRegistrationPage() {
                               {entry.age && isAgeAppropriate(entry.age) === false && camp && (
                                 <div className="mt-1 flex items-start gap-1 text-xs text-orange-700">
                                   <AlertCircle className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                                  <span>This camp is for ages {camp.age_min}-{camp.age_max}</span>
+                                  <span>This camp is for ages {camp.ageMin}-{camp.ageMax}</span>
                                 </div>
                               )}
                               {entry.age && isAgeAppropriate(entry.age) === true && (
@@ -650,14 +525,14 @@ export function CampRegistrationPage() {
                   {earlyBirdActive && (
                     <div className="flex justify-between text-sm">
                       <span className="text-airbnb-grey-600">Original Price:</span>
-                      <span className="text-airbnb-grey-400 line-through">${camp.price} × {numberOfPlaces}</span>
+                      <span className="text-airbnb-grey-400 line-through">{formatCurrency(basePrice, camp.currency)} × {numberOfPlaces}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
                     <span className="text-airbnb-grey-600">
                       {earlyBirdActive ? 'Early Bird Price:' : 'Price per child:'}
                     </span>
-                    <span className="text-airbnb-grey-900 font-medium">${unitPrice}</span>
+                    <span className="text-airbnb-grey-900 font-medium">{formatCurrency(unitPrice, camp.currency)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-airbnb-grey-600">Number of children:</span>
@@ -665,16 +540,16 @@ export function CampRegistrationPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-airbnb-grey-600">Subtotal:</span>
-                    <span className="text-airbnb-grey-900 font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="text-airbnb-grey-900 font-medium">{formatCurrency(subtotal, camp.currency)}</span>
                   </div>
                   {discountApplied && (
                     <div className="flex justify-between text-sm">
                       <span className="text-green-600">
-                        Discount ({discountApplied.discount_type === 'percentage'
-                          ? `${discountApplied.discount_value}%`
-                          : `$${discountApplied.discount_value}`}):
+                        Discount ({discountApplied.kind === 'percent'
+                          ? `${discountApplied.value}%`
+                          : formatCurrency(fromCents(discountApplied.value), camp.currency)}):
                       </span>
-                      <span className="text-green-600 font-medium">-${totalDiscountAmount.toFixed(2)}</span>
+                      <span className="text-green-600 font-medium">-{formatCurrency(totalDiscountAmount, camp.currency)}</span>
                     </div>
                   )}
                   <div className="border-t border-airbnb-grey-300 pt-2 mt-2">
@@ -718,7 +593,7 @@ export function CampRegistrationPage() {
 
               <button
                 type="submit"
-                disabled={processing}
+                disabled={processing || paymentsEnabled === false}
                 className="w-full flex items-center justify-center gap-3 px-8 py-5 bg-gradient-to-r from-airbnb-pink-500 via-airbnb-pink-600 to-airbnb-pink-500 text-white rounded-xl hover:from-airbnb-pink-600 hover:via-airbnb-pink-700 hover:to-airbnb-pink-600 transition-all font-bold text-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-xl hover:shadow-2xl hover:scale-105 transform"
               >
                 <Zap className="w-7 h-7" />

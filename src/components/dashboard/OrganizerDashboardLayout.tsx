@@ -115,7 +115,7 @@ export function OrganizerDashboardLayout({ children }: { children: React.ReactNo
   };
 
   // Get organisation name from profile (assuming it's loaded via organisation_id)
-  const organisationName = profile?.organisation_id ? 'My Organisation' : 'Camp Organiser';
+  const organisationName = profile?.organisationId ? 'My Organisation' : 'Camp Organiser';
 
   const handleSignOut = async () => {
     await signOut();
@@ -216,7 +216,7 @@ export function OrganizerDashboardLayout({ children }: { children: React.ReactNo
                   Signed in as
                 </p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {profile?.first_name} {profile?.last_name}
+                  {profile?.firstName} {profile?.lastName}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {profile?.email}
@@ -281,7 +281,7 @@ export function OrganizerDashboardLayout({ children }: { children: React.ReactNo
                 <div className="flex items-center gap-3 lg:hidden">
                   <div className="text-right">
                     <p className="text-sm font-medium text-gray-900">
-                      {profile?.first_name}
+                      {profile?.firstName}
                     </p>
                     <p className="text-xs text-gray-500">
                       Camp Organiser

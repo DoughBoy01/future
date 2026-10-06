@@ -64,13 +64,13 @@ const navGroups: NavGroup[] = [
         name: 'Organisations',
         path: '/admin/dashboard/organisations',
         icon: <Building2 className="w-5 h-5" />,
-        roles: ['super_admin', 'school_admin'],
+        roles: ['admin', 'school_admin'],
       },
       {
         name: 'Camp Organizers',
         path: '/admin/camp-organizers',
         icon: <UserCog className="w-5 h-5" />,
-        roles: ['super_admin'],
+        roles: ['admin'],
       },
     ],
   },
@@ -106,31 +106,31 @@ const navGroups: NavGroup[] = [
         name: 'Payment Analytics',
         path: '/admin/dashboard/payment-analytics',
         icon: <TrendingUp className="w-5 h-5" />,
-        roles: ['super_admin', 'school_admin', 'operations'],
+        roles: ['admin', 'school_admin', 'operations'],
       },
       {
         name: 'Commissions',
         path: '/admin/dashboard/commissions',
         icon: <DollarSign className="w-5 h-5" />,
-        roles: ['super_admin', 'school_admin', 'operations'],
+        roles: ['admin', 'school_admin', 'operations'],
       },
       {
         name: 'Commission Rates',
         path: '/admin/dashboard/commission-rates',
         icon: <Percent className="w-5 h-5" />,
-        roles: ['super_admin'],
+        roles: ['admin'],
       },
       {
         name: 'Promotional Offers',
         path: '/admin/promotional-offers',
         icon: <Store className="w-5 h-5" />,
-        roles: ['super_admin'],
+        roles: ['admin'],
       },
       {
         name: 'Payouts',
         path: '/admin/dashboard/payouts',
         icon: <Wallet className="w-5 h-5" />,
-        roles: ['super_admin', 'school_admin', 'operations'],
+        roles: ['admin', 'school_admin', 'operations'],
       },
     ],
   },
@@ -141,13 +141,13 @@ const navGroups: NavGroup[] = [
         name: 'User Roles',
         path: '/admin/user-roles',
         icon: <Shield className="w-5 h-5" />,
-        roles: ['super_admin'],
+        roles: ['admin'],
       },
       {
         name: 'System Settings',
         path: '/admin/settings',
         icon: <Settings className="w-5 h-5" />,
-        roles: ['super_admin'],
+        roles: ['admin'],
       },
     ],
   },
@@ -299,7 +299,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
             {/* Sidebar Footer - Settings */}
             <div className="px-3 py-4 border-t border-gray-200 space-y-1">
-              {profile?.role === 'super_admin' && (
+              {profile?.role === 'admin' && (
                 <>
                   <Link
                     to="/admin/roles"
@@ -333,7 +333,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     Signed in as
                   </p>
                   <p className="text-sm font-semibold text-gray-900">
-                    {profile?.first_name} {profile?.last_name}
+                    {profile?.firstName} {profile?.lastName}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5 capitalize">
                     {profile?.role?.replace('_', ' ')}

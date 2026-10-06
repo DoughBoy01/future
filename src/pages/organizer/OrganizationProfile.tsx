@@ -459,7 +459,7 @@ export default function OrganizationProfile() {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Stripe Status</p>
                 <p className="font-medium text-gray-900">
-                  {organization?.stripe_account_id ? 'Connected' : 'Not Connected'}
+                  {organization?.stripeAccountId ? 'Connected' : 'Not Connected'}
                 </p>
               </div>
             </div>

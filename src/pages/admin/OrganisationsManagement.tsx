@@ -219,7 +219,7 @@ export function OrganisationsManagement() {
               Manage partner schools and organisations
             </p>
           </div>
-          {profile?.role === 'super_admin' && (
+          {profile?.role === 'admin' && (
             <button
               onClick={handleCreate}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -530,7 +530,7 @@ export function OrganisationsManagement() {
                     >
                       <Eye className="w-5 h-5" />
                     </button>
-                    {profile?.role === 'super_admin' && (
+                    {profile?.role === 'admin' && (
                       <button
                         onClick={() => handleEdit(org)}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"

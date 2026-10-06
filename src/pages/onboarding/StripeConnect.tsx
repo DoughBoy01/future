@@ -74,7 +74,7 @@ export default function StripeConnect() {
     async function checkStripeConnection() {
       console.log('[StripeConnect] Checking connection status', {
         profileLoaded: profile !== undefined,
-        hasOrgId: !!profile?.organisation_id,
+        hasOrgId: !!profile?.organisationId,
         userId: user?.id
       });
 
@@ -85,7 +85,7 @@ export default function StripeConnect() {
         return;
       }
 
-      if (!profile?.organisation_id) {
+      if (!profile?.organisationId) {
         // Profile loaded but no org_id - redirect to organization setup
         console.error('[StripeConnect] No organization ID found for user');
         setIsCheckingStatus(false);
@@ -101,7 +101,7 @@ export default function StripeConnect() {
         const { data: org, error } = await supabase
           .from('organisations')
           .select('stripe_account_id')
-          .eq('id', profile.organisation_id)
+          .eq('id', profile.organisationId)
           .single();
 
         if (error) {

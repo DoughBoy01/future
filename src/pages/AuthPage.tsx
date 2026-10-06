@@ -24,7 +24,7 @@ export function AuthPage() {
   useEffect(() => {
     if (user && profile) {
       // Check if camp organizer needs to complete onboarding
-      if (profile.role === 'camp_organizer' && !profile.onboarding_completed && profile.onboarding_step) {
+      if (profile.role === 'organizer' && !profile.onboardingCompleted && profile.onboardingStep) {
         // Redirect to appropriate onboarding step
         const stepRoutes = {
           'welcome': '/onboarding/welcome',
@@ -32,7 +32,7 @@ export function AuthPage() {
           'first_camp': '/onboarding/first-camp',
           'completed': '/organizer-dashboard'
         };
-        const route = stepRoutes[profile.onboarding_step as keyof typeof stepRoutes] || '/organizer-dashboard';
+        const route = stepRoutes[profile.onboardingStep as keyof typeof stepRoutes] || '/organizer-dashboard';
         navigate(route);
       }
       // Redirect based on user role using utility function

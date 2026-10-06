@@ -16,7 +16,7 @@ export function RoleManagement() {
   const [loading, setLoading] = useState(true);
 
   const roles = [
-    { value: 'super_admin', label: 'Super Admin', color: 'red' },
+    { value: 'admin', label: 'Super Admin', color: 'red' },
     { value: 'school_admin', label: 'School Admin', color: 'purple' },
     { value: 'marketing', label: 'Marketing Manager', color: 'blue' },
     { value: 'operations', label: 'Operations Manager', color: 'orange' },

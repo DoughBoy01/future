@@ -63,8 +63,8 @@ export function OnboardingChecklist() {
         break;
       case 'stripe_connection':
         // Navigate to Stripe Connect page or show instructions
-        if (organization?.stripe_account_id) {
-          window.open(`https://dashboard.stripe.com/connect/accounts/${organization.stripe_account_id}`, '_blank');
+        if (organization?.stripeAccountId) {
+          window.open(`https://dashboard.stripe.com/connect/accounts/${organization.stripeAccountId}`, '_blank');
         } else {
           navigate('/organizer/settings/payments');
         }
@@ -148,7 +148,7 @@ export function OnboardingChecklist() {
             )}
 
             {/* External Link for Stripe */}
-            {!item.completed && item.id === 'stripe_connection' && organization?.stripe_account_id && (
+            {!item.completed && item.id === 'stripe_connection' && organization?.stripeAccountId && (
               <div className="flex-shrink-0">
                 <ExternalLink className="w-4 h-4 text-pink-600" />
               </div>

@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { Search, Filter, X, DollarSign, MapPin } from 'lucide-react';
-import { getConvertedPrice, detectUserCurrency, getPopularCurrencies, CURRENCY_SYMBOLS, CURRENCY_NAMES } from '../lib/currency';
+import { api, fromCents, type PublicCamp } from '../lib/api';
+import { CAMP_CATEGORIES, categoryName } from '../data/categories';
+import { Filter, DollarSign, MapPin } from 'lucide-react';
+import { detectUserCurrency, getPopularCurrencies, CURRENCY_SYMBOLS, CURRENCY_NAMES } from '../lib/currency';
 import { CampCard } from '../components/home/CampCard';
-import type { Database } from '../lib/database.types';
-
-type Camp = Database['public']['Tables']['camps']['Row'];
-type Category = Database['public']['Tables']['camp_categories']['Row'];
 
 export function CampsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [camps, setCamps] = useState<Camp[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [camps, setCamps] = useState<PublicCamp[]>([]);
+    const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
@@ -37,42 +33,15 @@ export function CampsPage() {
 
   async function loadData() {
     try {
-      const [campsResponse, categoriesResponse, assignmentsResponse] = await Promise.all([
-        supabase
-          .from('camps')
-          .select('*')
-          .eq('status', 'published')
-          .order('start_date', { ascending: true }),
-        supabase
-          .from('camp_categories')
-          .select('*')
-          .eq('active', true)
-          .order('display_order', { ascending: true }),
-        supabase
-          .from('camp_category_assignments')
-          .select('camp_id, category_id, camp_categories(slug)')
-      ]);
-
-      if (campsResponse.error) throw campsResponse.error;
-      if (categoriesResponse.error) throw categoriesResponse.error;
-      if (assignmentsResponse.error) throw assignmentsResponse.error;
-
-      const campsWithCategories = (campsResponse.data || []).map(camp => ({
-        ...camp,
-        category_slugs: (assignmentsResponse.data || [])
-          .filter(a => a.camp_id === camp.id)
-          .map(a => (a.camp_categories as any)?.slug)
-          .filter(Boolean)
-      }));
-
-      setCamps(campsWithCategories as any);
-      setCategories(categoriesResponse.data || []);
+      setCamps(await api.camps.list());
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Error loading camps:', error);
     } finally {
       setLoading(false);
     }
   }
+
+  const categories = CAMP_CATEGORIES.map(c => ({ ...c, id: c.slug }));
 
   const toggleCategory = (slug: string) => {
     setSelectedCategories(prev =>
@@ -109,18 +78,18 @@ export function CampsPage() {
   // Extract unique locations from camps
   const uniqueLocations = Array.from(new Set(camps.map(camp => camp.location))).sort();
 
-  const filteredCamps = camps.filter((camp: any) => {
+  const filteredCamps = camps.filter((camp) => {
     const matchesSearch =
       camp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       camp.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesAge = !ageFilter || (
-      parseInt(ageFilter) >= camp.age_min &&
-      parseInt(ageFilter) <= camp.age_max
+      parseInt(ageFilter) >= camp.ageMin &&
+      parseInt(ageFilter) <= camp.ageMax
     );
 
     const matchesCategory = selectedCategories.length === 0 ||
-      (camp.category_slugs && selectedCategories.some((slug: string) => camp.category_slugs.includes(slug)));
+      selectedCategories.includes(camp.category);
 
     const matchesLocation = selectedLocations.length === 0 ||
       selectedLocations.includes(camp.location);
@@ -128,7 +97,7 @@ export function CampsPage() {
     // Filter out camps that have already started
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
-    const campStartDate = camp.start_date ? new Date(camp.start_date) : null;
+    const campStartDate = camp.startDate ? new Date(camp.startDate) : null;
     const isNotStarted = !campStartDate || campStartDate >= today;
 
     return matchesSearch && matchesAge && matchesCategory && matchesLocation && isNotStarted;
@@ -315,11 +284,11 @@ export function CampsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
             {filteredCamps.map((camp) => {
-              const enrolledCount = (camp as any).enrolled_count || 0;
+              const enrolledCount = camp.enrolled;
               const spotsRemaining = camp.capacity - enrolledCount;
-              const earlyBirdActive = camp.early_bird_price &&
-                camp.early_bird_deadline &&
-                new Date(camp.early_bird_deadline) > new Date();
+              const earlyBirdActive = camp.earlyBirdCents &&
+                camp.earlyBirdDeadline &&
+                new Date(camp.earlyBirdDeadline) > new Date();
 
               return (
                 <CampCard
@@ -328,21 +297,21 @@ export function CampsPage() {
                   badge={spotsRemaining <= 5 ? ('Limited' as const) :
                          camp.featured ? ('Popular' as const) :
                          ('New' as const)}
-                  image={camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800'}
+                  image={camp.image || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=800'}
                   location={camp.location}
                   rating={0}
                   reviewCount={0}
                   title={camp.name}
-                  category={camp.category}
-                  ageRange={`Ages ${camp.age_min}-${camp.age_max}`}
-                  ageMin={camp.age_min}
-                  ageMax={camp.age_max}
-                  price={earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price}
+                  category={categoryName(camp.category)}
+                  ageRange={`Ages ${camp.ageMin}-${camp.ageMax}`}
+                  ageMin={camp.ageMin}
+                  ageMax={camp.ageMax}
+                  price={fromCents(earlyBirdActive && camp.earlyBirdCents ? camp.earlyBirdCents : camp.priceCents)}
                   currency={camp.currency}
-                  originalPrice={earlyBirdActive && camp.early_bird_price ? camp.price : undefined}
+                  originalPrice={earlyBirdActive && camp.earlyBirdCents ? fromCents(camp.priceCents) : undefined}
                   spotsRemaining={spotsRemaining}
-                  startDate={camp.start_date}
-                  endDate={camp.end_date}
+                  startDate={camp.startDate}
+                  endDate={camp.endDate}
                   description={camp.description || undefined}
                 />
               );

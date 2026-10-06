@@ -20,7 +20,7 @@ export function Navbar() {
 
   // Determine which navigation to show based on current view
   const showParentNav = !user || (user && (currentView === 'parent' || profile?.role === 'parent'));
-  const showAdminNav = user && currentView === 'camp_organiser' && ['school_admin', 'marketing', 'operations', 'risk', 'super_admin'].includes(profile?.role || '');
+  const showAdminNav = user && currentView === 'camp_organiser' && ['school_admin', 'marketing', 'operations', 'risk', 'admin'].includes(profile?.role || '');
 
   useEffect(() => {
     loadSiteLogo();
@@ -151,7 +151,7 @@ export function Navbar() {
                     <CheckCircle className="w-4 h-4 mr-1" aria-hidden="true" />
                     Approvals
                   </Link>
-                  {['school_admin', 'super_admin'].includes(profile?.role || '') && (
+                  {['school_admin', 'admin'].includes(profile?.role || '') && (
                     <Link
                       to="/admin/roles"
                       className={`inline-flex items-center px-1 pt-1 text-sm font-medium transition-standard ${
@@ -201,7 +201,7 @@ export function Navbar() {
                     <User className="w-4 lg:w-5 h-4 lg:h-5 text-white" aria-hidden="true" />
                   </div>
                   <span className="text-sm font-medium hidden md:block">
-                    {profile?.first_name || 'User'}
+                    {profile?.firstName || 'User'}
                   </span>
                 </button>
 
@@ -214,7 +214,7 @@ export function Navbar() {
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20 border border-airbnb-grey-300">
                       <div className="px-4 py-2 border-b border-airbnb-grey-300">
                         <p className="text-sm font-medium text-airbnb-grey-900">
-                          {profile?.first_name} {profile?.last_name}
+                          {profile?.firstName} {profile?.lastName}
                         </p>
                         <p className="text-xs text-airbnb-grey-500">{user.email}</p>
                       </div>
@@ -334,7 +334,7 @@ export function Navbar() {
                   <CheckCircle className="w-5 h-5 mr-2" />
                   Approvals
                 </Link>
-                {['school_admin', 'super_admin'].includes(profile?.role || '') && (
+                {['school_admin', 'admin'].includes(profile?.role || '') && (
                   <Link
                     to="/admin/roles"
                     onClick={closeMobileMenu}

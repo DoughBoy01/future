@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
-import { AlertCircle, CheckCircle, User, Heart, Apple, AlertTriangle, Phone, Camera, Save } from 'lucide-react';
-import { getRegistration, createOrUpdateRegistrationForm, updateRegistrationFormStatus, getRegistrationForm } from '../services/registrationService';
+import { useParams, Link } from 'react-router-dom';
+import { AlertCircle, CheckCircle, Heart, Apple, AlertTriangle, Phone, Camera, Save } from 'lucide-react';
+import { api, type Attendee, type BookingSummary } from '../lib/api';
 
 interface FormData {
   dateOfBirth: string;
@@ -19,97 +17,87 @@ interface FormData {
   additionalNotes: string;
 }
 
+const emptyForm: FormData = {
+  dateOfBirth: '',
+  medicalConditions: '',
+  allergies: '',
+  medications: '',
+  dietaryRestrictions: '',
+  specialNeeds: '',
+  emergencyContactName: '',
+  emergencyContactPhone: '',
+  emergencyContactRelationship: '',
+  photoPermission: false,
+  additionalNotes: '',
+};
+
+const text = (v: unknown) => (typeof v === 'string' ? v : '');
+
+const toForm = (a: Attendee): FormData => ({
+  dateOfBirth: text(a.dateOfBirth),
+  medicalConditions: text(a.medicalConditions),
+  allergies: text(a.allergies),
+  medications: text(a.medications),
+  dietaryRestrictions: text(a.dietaryRequirements),
+  specialNeeds: text(a.specialNeeds),
+  emergencyContactName: text(a.emergencyName),
+  emergencyContactPhone: text(a.emergencyPhone),
+  emergencyContactRelationship: text(a.emergencyRelationship),
+  photoPermission: a.photoPermission === true,
+  additionalNotes: text(a.notes),
+});
+
+const toPayload = (id: string, f: FormData) => ({
+  id,
+  dateOfBirth: f.dateOfBirth || null,
+  medicalConditions: f.medicalConditions || null,
+  allergies: f.allergies || null,
+  medications: f.medications || null,
+  dietaryRequirements: f.dietaryRestrictions || null,
+  specialNeeds: f.specialNeeds || null,
+  emergencyName: f.emergencyContactName || null,
+  emergencyPhone: f.emergencyContactPhone || null,
+  emergencyRelationship: f.emergencyContactRelationship || null,
+  photoPermission: f.photoPermission,
+  notes: f.additionalNotes || null,
+});
+
 export function RegistrationChildDetailsPage() {
-  const { registrationId } = useParams<{ registrationId: string }>();
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  // The route param holds the booking id; a booking can cover several children.
+  const { registrationId: bookingId } = useParams<{ registrationId: string }>();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [registration, setRegistration] = useState<any>(null);
+  const [booking, setBooking] = useState<BookingSummary | null>(null);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [childIndex, setChildIndex] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<FormData>(emptyForm);
 
-  const [formData, setFormData] = useState<FormData>({
-    dateOfBirth: '',
-    medicalConditions: '',
-    allergies: '',
-    medications: '',
-    dietaryRestrictions: '',
-    specialNeeds: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    emergencyContactRelationship: '',
-    photoPermission: false,
-    additionalNotes: '',
-  });
+  const attendee = attendees[childIndex];
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
+    if (!bookingId) {
+      setError('Invalid registration ID');
+      setLoading(false);
       return;
     }
-    loadRegistration();
-  }, [user, registrationId]);
-
-  async function loadRegistration() {
-    try {
-      if (!registrationId) {
-        setError('Invalid registration ID');
-        setLoading(false);
-        return;
-      }
-
-      const reg = await getRegistration(registrationId);
-
-      if (!reg) {
-        setError('Registration not found');
-        setLoading(false);
-        return;
-      }
-
-      setRegistration(reg);
-
-      const existingForm = await getRegistrationForm(registrationId);
-      if (existingForm && existingForm.form_data) {
-        const savedData = existingForm.form_data as Record<string, any>;
-        setFormData({
-          dateOfBirth: savedData.dateOfBirth || reg.children.date_of_birth || '',
-          medicalConditions: savedData.medicalConditions || '',
-          allergies: savedData.allergies || '',
-          medications: savedData.medications || '',
-          dietaryRestrictions: savedData.dietaryRestrictions || '',
-          specialNeeds: savedData.specialNeeds || '',
-          emergencyContactName: savedData.emergencyContactName || '',
-          emergencyContactPhone: savedData.emergencyContactPhone || '',
-          emergencyContactRelationship: savedData.emergencyContactRelationship || '',
-          photoPermission: savedData.photoPermission || false,
-          additionalNotes: savedData.additionalNotes || '',
-        });
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          dateOfBirth: reg.children.date_of_birth || '',
-        }));
-      }
-    } catch (err) {
-      console.error('Error loading registration:', err);
-      setError('Failed to load registration details');
-    } finally {
-      setLoading(false);
-    }
-  }
+    api.bookings
+      .get(bookingId)
+      .then(({ booking: b, attendees: list }) => {
+        setBooking(b);
+        setAttendees(list);
+        if (list[0]) setFormData(toForm(list[0]));
+      })
+      .catch(() => setError('Registration not found'))
+      .finally(() => setLoading(false));
+  }, [bookingId]);
 
   async function handleSaveDraft() {
-    if (!registration || !registrationId) return;
-
+    if (!bookingId || !attendee) return;
     try {
-      await createOrUpdateRegistrationForm({
-        registrationId: registrationId,
-        childId: registration.child_id,
-        formData: formData,
-        completed: false,
-      });
+      await api.bookings.saveDetails(bookingId, [toPayload(attendee.id, formData)]);
     } catch (err) {
       console.error('Error saving draft:', err);
     }
@@ -117,69 +105,33 @@ export function RegistrationChildDetailsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    if (!registration || !registrationId) return;
+    if (!bookingId || !attendee) return;
 
     if (!formData.dateOfBirth) {
       setError('Date of birth is required');
       return;
     }
-
     if (!formData.emergencyContactName || !formData.emergencyContactPhone) {
-      setError('Emergency contact information is required');
+      setError('Emergency contact name and phone are required');
       return;
     }
 
     setSubmitting(true);
     setError('');
-
     try {
-      await supabase
-        .from('children')
-        .update({
-          date_of_birth: formData.dateOfBirth,
-          medical_conditions: formData.medicalConditions || null,
-          allergies: formData.allergies || null,
-          medications: formData.medications || null,
-          dietary_restrictions: formData.dietaryRestrictions || null,
-          special_needs: formData.specialNeeds || null,
-          notes: formData.additionalNotes || null,
-        })
-        .eq('id', registration.child_id);
-
-      await supabase
-        .from('parents')
-        .update({
-          emergency_contact_name: formData.emergencyContactName,
-          emergency_contact_phone: formData.emergencyContactPhone,
-          emergency_contact_relationship: formData.emergencyContactRelationship || null,
-        })
-        .eq('id', registration.parent_id);
-
-      await createOrUpdateRegistrationForm({
-        registrationId: registrationId,
-        childId: registration.child_id,
-        formData: formData,
-        completed: true,
-      });
-
-      await updateRegistrationFormStatus(registrationId, true);
-
-      await supabase
-        .from('registrations')
-        .update({
-          photo_permission: formData.photoPermission,
-        })
-        .eq('id', registrationId);
-
-      setSuccess(true);
-
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 3000);
+      await api.bookings.saveDetails(bookingId, [toPayload(attendee.id, formData)]);
+      const next = childIndex + 1;
+      if (next < attendees.length) {
+        setChildIndex(next);
+        setFormData(toForm(attendees[next]));
+        setCurrentStep(1);
+        window.scrollTo({ top: 0 });
+      } else {
+        setSuccess(true);
+      }
     } catch (err) {
       console.error('Error submitting form:', err);
-      setError('Failed to submit form. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to submit form. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -192,10 +144,6 @@ export function RegistrationChildDetailsPage() {
   const totalSteps = 4;
   const progressPercentage = (currentStep / totalSteps) * 100;
 
-  if (!user) {
-    return null;
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -207,7 +155,7 @@ export function RegistrationChildDetailsPage() {
     );
   }
 
-  if (error && !registration) {
+  if (error && !booking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md">
@@ -232,7 +180,7 @@ export function RegistrationChildDetailsPage() {
           <CheckCircle className="w-20 h-20 text-green-600 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Registration Complete!</h2>
           <p className="text-gray-600 mb-6">
-            Thank you for completing the child information form. You'll receive a confirmation email shortly.
+            Thank you for completing the information. The camp team now has what they need to look after your child.
           </p>
           <Link
             to="/dashboard"
@@ -245,10 +193,10 @@ export function RegistrationChildDetailsPage() {
     );
   }
 
-  if (!registration) return null;
+  if (!booking || !attendee) return null;
 
-  const child = registration.children;
-  const camp = registration.camps;
+  const child = { first_name: attendee.firstName };
+  const camp = booking.camp;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -538,7 +486,7 @@ export function RegistrationChildDetailsPage() {
               </div>
 
               <p className="text-center text-sm text-gray-500">
-                Step {currentStep} of {totalSteps} • All information is encrypted and secure
+                {attendees.length > 1 ? `Child ${childIndex + 1} of ${attendees.length} • ` : ''}Step {currentStep} of {totalSteps} • All information is encrypted and secure
               </p>
             </form>
           </div>

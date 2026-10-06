@@ -18,7 +18,7 @@ export function UserViewProvider({ children }: { children: ReactNode }) {
   // Determine if user can switch between views
   // Users with admin roles (school_admin, super_admin) can also act as parents
   const canSwitchView = !!user && !!profile &&
-    ['school_admin', 'super_admin'].includes(profile.role || '');
+    profile.role === 'admin';
 
   // Load saved view preference from localStorage
   useEffect(() => {
@@ -26,7 +26,7 @@ export function UserViewProvider({ children }: { children: ReactNode }) {
       const savedView = localStorage.getItem(`userView_${user.id}`) as UserView;
       if (savedView && (savedView === 'parent' || savedView === 'camp_organiser')) {
         setCurrentView(savedView);
-      } else if (profile?.role === 'school_admin' || profile?.role === 'super_admin') {
+      } else if (profile?.role === 'admin') {
         // Default to camp_organiser for admin users
         setCurrentView('camp_organiser');
       }

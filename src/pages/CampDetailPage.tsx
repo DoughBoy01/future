@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { supabase } from '../lib/supabase';
+import { api, ApiError, fromCents, type PublicCamp } from '../lib/api';
 import { formatCurrency } from '../utils/currency';
 import { formatPrice, getConvertedPrice, detectUserCurrency } from '../lib/currency';
 import {
   MapPin,
   Calendar,
   Users,
-  Clock,
   CheckCircle,
   Info,
   Shield,
   AlertCircle,
   Share2,
   Heart,
-  ChevronLeft,
   X,
   Home,
   ChevronRight
@@ -27,12 +25,9 @@ import { HostInformation } from '../components/camps/HostInformation';
 import { AmenitiesSection } from '../components/camps/AmenitiesSection';
 import { ReviewsSection } from '../components/camps/ReviewsSection';
 import { FAQSection } from '../components/camps/FAQSection';
-import { SocialProof } from '../components/urgency/SocialProof';
 import { CountdownTimer } from '../components/urgency/CountdownTimer';
 import { SocialMeta } from '../components/seo/SocialMeta';
-import type { Database } from '../lib/database.types';
-
-type Camp = Database['public']['Tables']['camps']['Row'];
+type Camp = PublicCamp;
 
 interface Organisation {
   id: string;
@@ -196,12 +191,11 @@ export function CampDetailPage() {
   const [organisation, setOrganisation] = useState<Organisation | null>(null);
   const [loading, setLoading] = useState(true);
   const [availablePlaces, setAvailablePlaces] = useState(0);
-  const [bookingsLast24h, setBookingsLast24h] = useState(0);
-  const [bookingsLastWeek, setBookingsLastWeek] = useState(0);
   const [showEnquiryModal, setShowEnquiryModal] = useState(false);
   const [stickyBar, setStickyBar] = useState(false);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [ratingsSummary, setRatingsSummary] = useState<any>(null);
+  // Reviews return with the reviews feature; until then there is nothing to show.
+  const reviews: any[] = [];
+  const ratingsSummary: any = null;
   const [selectedVideoIndex, setSelectedVideoIndex] = useState<number | null>(null);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [showCopyToast, setShowCopyToast] = useState(false);
@@ -269,91 +263,20 @@ export function CampDetailPage() {
 
   async function loadCampData() {
     try {
-      const { data: campData, error: campError } = await supabase
-        .from('camps')
-        .select('*')
-        .eq('id', id)
-        .eq('status', 'published')
-        .maybeSingle();
-
-      if (campError) throw campError;
-      if (!campData) {
-        setLoading(false);
-        return;
-      }
-
+      const campData = await api.camps.get(id!);
       setCamp(campData);
-
-      const enrolledCount = (campData as unknown as { enrolled_count?: number }).enrolled_count || 0;
-      setAvailablePlaces(campData.capacity - enrolledCount);
-
-      const { data: orgData } = await supabase
-        .from('organisations')
-        .select('*')
-        .eq('id', (campData as any).organisation_id)
-        .maybeSingle();
-
-      if (orgData) {
-        setOrganisation(orgData as any);
-      }
-
-      const { data: analyticsData } = await supabase
-        .from('camp_analytics')
-        .select('bookings_last_24h, bookings_last_week')
-        .eq('camp_id', id)
-        .maybeSingle();
-
-      if (analyticsData) {
-        setBookingsLast24h(analyticsData.bookings_last_24h || 0);
-        setBookingsLastWeek(analyticsData.bookings_last_week || 0);
-      }
-
-      const { data: feedbackData } = await supabase
-        .from('feedback')
-        .select('*')
-        .eq('camp_id', id)
-        .order('submitted_at', { ascending: false });
-
-      if (feedbackData && feedbackData.length > 0) {
-        setReviews(feedbackData.map(f => ({
-          ...f,
-          helpful_count: (f as any).helpful_count || 0,
-          verified_booking: (f as any).verified_booking ?? true,
-        })));
-
-        const avgOverall = feedbackData.reduce((sum, f) => sum + f.overall_rating, 0) / feedbackData.length;
-        const avgStaff = feedbackData.reduce((sum, f) => sum + (f.staff_rating || 0), 0) / feedbackData.length;
-        const avgActivities = feedbackData.reduce((sum, f) => sum + (f.activities_rating || 0), 0) / feedbackData.length;
-        const avgFacilities = feedbackData.reduce((sum, f) => sum + (f.facilities_rating || 0), 0) / feedbackData.length;
-        const avgValue = feedbackData.reduce((sum, f) => sum + (f.value_rating || 0), 0) / feedbackData.length;
-
-        const starDist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-        feedbackData.forEach(f => {
-          const rating = f.overall_rating as keyof typeof starDist;
-          if (rating >= 1 && rating <= 5) {
-            starDist[rating]++;
-          }
-        });
-
-        const recommendCount = feedbackData.filter(f => f.would_recommend).length;
-        const recommendPct = (recommendCount / feedbackData.length) * 100;
-
-        setRatingsSummary({
-          average: avgOverall,
-          total: feedbackData.length,
-          breakdown: {
-            overall: avgOverall,
-            staff: avgStaff,
-            activities: avgActivities,
-            facilities: avgFacilities,
-            value: avgValue,
-          },
-          distribution: starDist,
-          recommendPercentage: Math.round(recommendPct),
-        });
-      }
+      setAvailablePlaces(campData.capacity - campData.enrolled);
+      setOrganisation({
+        id: campData.organisation.id,
+        name: campData.organisation.name,
+        logo_url: campData.organisation.logoUrl ?? undefined,
+        verified: campData.organisation.verified,
+        response_rate: 0,
+        response_time_hours: 0,
+        total_camps_hosted: 0,
+      });
     } catch (error) {
-      console.error('Error loading camp data:', error);
+      if (!(error instanceof ApiError && error.status === 404)) console.error('Error loading camp data:', error);
     } finally {
       setLoading(false);
     }
@@ -362,11 +285,11 @@ export function CampDetailPage() {
   const handleEnquirySubmit = async (data: any) => {
     if (!camp) return;
 
-    await supabase.from('enquiries').insert({
-      camp_id: camp.id,
-      parent_name: data.parent_name,
-      parent_email: data.parent_email,
-      parent_phone: data.parent_phone || null,
+    await api.enquiries.create({
+      campId: camp.id,
+      name: data.parent_name,
+      email: data.parent_email,
+      phone: data.parent_phone || undefined,
       subject: data.subject,
       message: data.message,
     });
@@ -413,7 +336,7 @@ export function CampDetailPage() {
 
     const shareData = {
       title: camp.name,
-      text: `Check out this amazing camp: ${camp.name}! ${camp.category} camp in ${camp.location} for ages ${camp.age_min}-${camp.age_max}. Starting at ${formatCurrency(camp.price, camp.currency)}.`,
+      text: `Check out this amazing camp: ${camp.name}! ${camp.category} camp in ${camp.location} for ages ${camp.ageMin}-${camp.ageMax}. Starting at ${formatCurrency(fromCents(camp.priceCents), camp.currency)}.`,
       url: window.location.href,
     };
 
@@ -472,11 +395,13 @@ export function CampDetailPage() {
   }
 
   const availabilityStatus = availablePlaces <= 0 ? 'full' : availablePlaces <= 5 ? 'limited' : 'available';
-  const earlyBirdActive = camp.early_bird_price && camp.early_bird_deadline && new Date(camp.early_bird_deadline) > new Date();
+  const price = fromCents(camp.priceCents);
+  const earlyBirdActive = camp.earlyBirdCents && camp.earlyBirdDeadline && new Date(camp.earlyBirdDeadline) > new Date();
+  const currentPrice = earlyBirdActive && camp.earlyBirdCents ? fromCents(camp.earlyBirdCents) : price;
 
   const images = [
-    camp.featured_image_url || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg',
-    ...(Array.isArray((camp as any).gallery_urls) ? (camp as any).gallery_urls : [])
+    camp.image || 'https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg',
+    ...camp.gallery
   ].filter(Boolean).slice(0, 10);
 
   const extractYouTubeThumbnail = (url: string): string | undefined => {
@@ -494,43 +419,25 @@ export function CampDetailPage() {
     return undefined;
   };
 
-  const videoData = [];
-  if ((camp as any).video_url) {
-    const url = (camp as any).video_url;
-    videoData.push({
+  const videoData = camp.videos.map((url, idx) => {
+    const isYouTube = /youtu\.?be/.test(url);
+    return {
       url,
-      title: 'Camp Introduction',
-      thumbnail: extractYouTubeThumbnail(url),
-      type: 'youtube' as const
-    });
-  }
-  if (Array.isArray((camp as any).video_urls)) {
-    videoData.push(...(camp as any).video_urls.map((url: string, idx: number) => ({
-      url,
-      title: `Camp Video ${idx + 2}`,
-      thumbnail: extractYouTubeThumbnail(url),
-      type: 'youtube' as const
-    })));
-  }
-  if (Array.isArray((camp as any).video_metadata)) {
-    const metadataVideos = (camp as any).video_metadata.map((meta: any) => ({
-      url: meta.url,
-      title: meta.title,
-      description: meta.description,
-      thumbnail: meta.thumbnail_url || extractYouTubeThumbnail(meta.url),
-      type: meta.video_type || 'youtube'
-    }));
-    videoData.push(...metadataVideos);
-  }
+      title: idx === 0 ? 'Camp Introduction' : `Camp Video ${idx + 1}`,
+      thumbnail: isYouTube ? extractYouTubeThumbnail(url) : undefined,
+      description: undefined as string | undefined,
+      type: (isYouTube ? 'youtube' : 'direct') as 'youtube' | 'direct',
+    };
+  });
 
-  const highlights = Array.isArray((camp as any).highlights) ? (camp as any).highlights : [];
-  const amenities = Array.isArray((camp as any).amenities) ? (camp as any).amenities : [];
-  const faqs = Array.isArray((camp as any).faqs) ? (camp as any).faqs : [];
+  const highlights = camp.highlights;
+  const amenities = camp.amenities;
+  const faqs = camp.faqs;
 
   // Create meta description
   const metaDescription = camp.description
     ? camp.description.substring(0, 155) + (camp.description.length > 155 ? '...' : '')
-    : `${camp.category} camp in ${camp.location} for ages ${camp.age_min}-${camp.age_max}. Starting at ${formatCurrency(camp.price, camp.currency)}.`;
+    : `${camp.category} camp in ${camp.location} for ages ${camp.ageMin}-${camp.ageMax}. Starting at ${formatCurrency(fromCents(camp.priceCents), camp.currency)}.`;
 
   const formatDateShort = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -551,8 +458,8 @@ export function CampDetailPage() {
       name: camp.name,
       description: camp.description || metaDescription,
       image: images,
-      startDate: camp.start_date,
-      endDate: camp.end_date,
+      startDate: camp.startDate,
+      endDate: camp.endDate,
       eventStatus: 'https://schema.org/EventScheduled',
       eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
       location: {
@@ -566,7 +473,7 @@ export function CampDetailPage() {
       offers: {
         '@type': 'Offer',
         url: currentUrl,
-        price: camp.price,
+        price: fromCents(camp.priceCents),
         priceCurrency: camp.currency,
         availability: availablePlaces > 0 ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut',
         validFrom: new Date().toISOString(),
@@ -650,7 +557,7 @@ export function CampDetailPage() {
         <link rel="canonical" href={window.location.href} />
 
         {/* Additional SEO Meta Tags */}
-        <meta name="keywords" content={`${camp.category} camp, ${camp.location}, ages ${camp.age_min}-${camp.age_max}, summer camp, kids activities`} />
+        <meta name="keywords" content={`${camp.category} camp, ${camp.location}, ages ${camp.ageMin}-${camp.ageMax}, summer camp, kids activities`} />
         <meta name="author" content={organisation?.name || 'FutureEdge Camps'} />
         <meta name="robots" content="index, follow" />
 
@@ -661,11 +568,11 @@ export function CampDetailPage() {
       <SocialMeta
         title={camp.name}
         description={metaDescription}
-        image={camp.featured_image_url || undefined}
+        image={camp.image || undefined}
         type="website"
-        price={formatCurrency(camp.price, camp.currency)}
+        price={formatCurrency(fromCents(camp.priceCents), camp.currency)}
         location={camp.location}
-        dates={`${formatDateShort(camp.start_date)} - ${formatDateShort(camp.end_date)}`}
+        dates={`${formatDateShort(camp.startDate)} - ${formatDateShort(camp.endDate)}`}
       />
       {/* Sticky CTA Bar - Improved Mobile UX */}
       {stickyBar && availabilityStatus !== 'full' && (
@@ -681,11 +588,11 @@ export function CampDetailPage() {
                 )}
                 <div className="flex flex-col">
                   <span className="text-airbnb-pink-600 font-semibold">
-                    {formatPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
+                    {formatPrice(currentPrice, camp.currency)}
                   </span>
                   {userCurrency !== camp.currency && (
                     <span className="text-xs text-gray-500">
-                      ≈ {formatPrice(getConvertedPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency, userCurrency).amount, userCurrency)}
+                      ≈ {formatPrice(getConvertedPrice(currentPrice, camp.currency, userCurrency).amount, userCurrency)}
                     </span>
                   )}
                 </div>
@@ -708,17 +615,17 @@ export function CampDetailPage() {
             <div className="flex flex-col">
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-gray-900">
-                  {formatPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency)}
+                  {formatPrice(currentPrice, camp.currency)}
                 </span>
-                {earlyBirdActive && camp.early_bird_price && (
+                {earlyBirdActive && camp.earlyBirdCents && (
                   <span className="text-sm text-gray-500 line-through">
-                    {formatPrice(camp.price, camp.currency)}
+                    {formatPrice(price, camp.currency)}
                   </span>
                 )}
               </div>
               {userCurrency !== camp.currency && (
                 <span className="text-xs text-gray-500">
-                  ≈ {formatPrice(getConvertedPrice(earlyBirdActive && camp.early_bird_price ? camp.early_bird_price : camp.price, camp.currency, userCurrency).amount, userCurrency)}
+                  ≈ {formatPrice(getConvertedPrice(currentPrice, camp.currency, userCurrency).amount, userCurrency)}
                 </span>
               )}
               {availablePlaces <= 5 && availablePlaces > 0 && (
@@ -765,9 +672,9 @@ export function CampDetailPage() {
                   <MapPin className="w-4 h-4" />
                   <span>{camp.location}</span>
                 </div>
-                {(camp as any).camp_address && (
+                {camp.address && (
                   <div className="text-sm text-gray-500 ml-5">
-                    {(camp as any).camp_address}
+                    {camp.address}
                   </div>
                 )}
               </div>
@@ -822,7 +729,7 @@ export function CampDetailPage() {
                 <p className="text-xs text-gray-500 font-medium">Duration</p>
                 <p className="text-sm font-bold text-gray-900">
                   {Math.ceil(
-                    (new Date(camp.end_date).getTime() - new Date(camp.start_date).getTime()) /
+                    (new Date(camp.endDate).getTime() - new Date(camp.startDate).getTime()) /
                       (1000 * 60 * 60 * 24)
                   )} days
                 </p>
@@ -836,7 +743,7 @@ export function CampDetailPage() {
               <div>
                 <p className="text-xs text-gray-500 font-medium">Age Range</p>
                 <p className="text-sm font-bold text-gray-900">
-                  {camp.age_min}-{camp.age_max} yrs
+                  {camp.ageMin}-{camp.ageMax} yrs
                 </p>
               </div>
             </div>
@@ -888,20 +795,13 @@ export function CampDetailPage() {
               </div>
             )}
 
-            {earlyBirdActive && camp.early_bird_deadline && (
+            {earlyBirdActive && camp.earlyBirdDeadline && (
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-2xl shadow-xl">
                 <h3 className="text-2xl font-bold mb-3">Early Bird Special!</h3>
-                <CountdownTimer targetDate={camp.early_bird_deadline} label="Offer expires in" size="lg" />
+                <CountdownTimer targetDate={camp.earlyBirdDeadline} label="Offer expires in" size="lg" />
               </div>
             )}
 
-            {(bookingsLast24h > 0 || bookingsLastWeek > 0) && (
-              <SocialProof
-                bookingsLast24h={bookingsLast24h}
-                bookingsLastWeek={bookingsLastWeek}
-                showViewers={false}
-              />
-            )}
 
             {ratingsSummary && reviews.length > 0 && (
               <ReviewsSection
@@ -917,10 +817,10 @@ export function CampDetailPage() {
 
             {amenities.length > 0 && <AmenitiesSection amenities={amenities} />}
 
-            {camp.what_to_bring && (
+            {camp.whatToBring && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">What to Bring</h2>
-                <p className="text-gray-700 whitespace-pre-line leading-relaxed">{camp.what_to_bring}</p>
+                <p className="text-gray-700 whitespace-pre-line leading-relaxed">{camp.whatToBring}</p>
               </div>
             )}
 
@@ -931,43 +831,31 @@ export function CampDetailPage() {
               </div>
             )}
 
-            {((camp as any).safety_protocols || (camp as any).insurance_info) && (
+            {camp.safety && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Shield className="w-7 h-7 text-airbnb-pink-500" aria-hidden="true" />
                   <h2 className="text-2xl font-bold text-gray-900">Safety & Insurance</h2>
                 </div>
-                {(camp as any).safety_protocols && (
+                {camp.safety && (
                   <div className="mb-4">
                     <h3 className="font-semibold text-gray-900 mb-2">Safety Protocols</h3>
-                    <p className="text-gray-700 leading-relaxed">{(camp as any).safety_protocols}</p>
-                  </div>
-                )}
-                {(camp as any).insurance_info && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Insurance Information</h3>
-                    <p className="text-gray-700 leading-relaxed">{(camp as any).insurance_info}</p>
+                    <p className="text-gray-700 leading-relaxed">{camp.safety}</p>
                   </div>
                 )}
               </div>
             )}
 
-            {((camp as any).cancellation_policy || (camp as any).refund_policy) && (
+            {camp.cancellationPolicy && (
               <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <Info className="w-7 h-7 text-airbnb-grey-700" aria-hidden="true" />
                   <h2 className="text-2xl font-bold text-gray-900">Cancellation & Refund Policy</h2>
                 </div>
-                {(camp as any).cancellation_policy && (
+                {camp.cancellationPolicy && (
                   <div className="mb-4">
                     <h3 className="font-semibold text-gray-900 mb-2">Cancellation Policy</h3>
-                    <p className="text-gray-700 leading-relaxed">{(camp as any).cancellation_policy}</p>
-                  </div>
-                )}
-                {(camp as any).refund_policy && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Refund Policy</h3>
-                    <p className="text-gray-700 leading-relaxed">{(camp as any).refund_policy}</p>
+                    <p className="text-gray-700 leading-relaxed">{camp.cancellationPolicy}</p>
                   </div>
                 )}
               </div>
@@ -987,17 +875,17 @@ export function CampDetailPage() {
             <div className="lg:sticky lg:top-24">
               <EnhancedBookingWidget
                 campId={camp.id}
-                price={camp.price}
+                price={fromCents(camp.priceCents)}
                 currency={camp.currency}
-                earlyBirdPrice={camp.early_bird_price || undefined}
-                earlyBirdDeadline={camp.early_bird_deadline || undefined}
+                earlyBirdPrice={camp.earlyBirdCents ? fromCents(camp.earlyBirdCents) : undefined}
+                earlyBirdDeadline={camp.earlyBirdDeadline || undefined}
                 availablePlaces={availablePlaces}
                 capacity={camp.capacity}
-                startDate={camp.start_date}
-                endDate={camp.end_date}
+                startDate={camp.startDate}
+                endDate={camp.endDate}
                 averageRating={ratingsSummary?.average}
                 totalReviews={ratingsSummary?.total}
-                cancellationPolicy={(camp as any).cancellation_policy}
+                cancellationPolicy={camp.cancellationPolicy ?? undefined}
                 onEnquiryClick={() => setShowEnquiryModal(true)}
               />
             </div>

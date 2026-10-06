@@ -28,7 +28,7 @@ export default function OrganizationSetup() {
       return;
     }
 
-    if (profile.role !== 'camp_organizer') {
+    if (profile.role !== 'organizer') {
       navigate(getDashboardRoute(profile.role));
       return;
     }
@@ -37,7 +37,7 @@ export default function OrganizationSetup() {
   }, [user, profile, navigate]);
 
   async function loadOrganization() {
-    if (!profile?.organisation_id) {
+    if (!profile?.organisationId) {
       setLoadingOrg(false);
       return;
     }
@@ -46,7 +46,7 @@ export default function OrganizationSetup() {
       const { data, error } = await supabase
         .from('organisations')
         .select('*')
-        .eq('id', profile.organisation_id)
+        .eq('id', profile.organisationId)
         .single();
 
       if (error) throw error;
@@ -90,7 +90,7 @@ export default function OrganizationSetup() {
     setLoading(true);
 
     try {
-      if (!profile?.organisation_id) {
+      if (!profile?.organisationId) {
         throw new Error('No organization found');
       }
 
@@ -104,7 +104,7 @@ export default function OrganizationSetup() {
           website: website.trim() || null,
           onboarding_status: 'active', // Ensure it's active
         })
-        .eq('id', profile.organisation_id);
+        .eq('id', profile.organisationId);
 
       if (updateError) throw updateError;
 

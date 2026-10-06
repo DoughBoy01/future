@@ -12,7 +12,7 @@ export function WelcomeBanner() {
         </div>
         <div className="flex-1">
           <h1 className="text-lg md:text-xl font-bold mb-0.5">
-            Welcome back, {profile?.first_name}
+            Welcome back, {profile?.firstName}
           </h1>
           <p className="text-pink-100 text-sm">
             {organization?.name || 'Your organization'}

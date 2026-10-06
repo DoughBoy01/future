@@ -45,7 +45,7 @@ export function OrganizerCampsView() {
 
   useEffect(() => {
     loadCamps();
-  }, [profile?.organisation_id]);
+  }, [profile?.organisationId]);
 
   async function loadCamps() {
     try {
@@ -532,7 +532,7 @@ export function OrganizerCampsView() {
         )}
 
         {/* Stripe Connection Warning Banner */}
-        {camps.length > 0 && !organization?.stripe_account_id && (
+        {camps.length > 0 && !organization?.stripeAccountId && (
           <div className="bg-gradient-to-r from-pink-50 to-amber-50 border-2 border-pink-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 mt-1">
@@ -595,7 +595,7 @@ export function OrganizerCampsView() {
           onClose={handleModalClose}
           onSuccess={handleSuccess}
           camp={selectedCamp}
-          schoolId={profile?.organisation_id || ''}
+          schoolId={profile?.organisationId || ''}
         />
       )}
 

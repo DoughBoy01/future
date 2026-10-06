@@ -4,6 +4,7 @@ import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
 import { AuthPage } from './pages/AuthPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { CampsPage } from './pages/CampsPage';
 import { CampDetailPage } from './pages/CampDetailPage';
 import { CampRegistrationPage } from './pages/CampRegistrationPage';
@@ -88,6 +89,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/camps" element={<CampsPage />} />
           <Route path="/camps/:id" element={<CampDetailPage />} />
           <Route path="/partners" element={<PartnersPage />} />
@@ -101,19 +103,11 @@ function App() {
           <Route path="/camps/:id/register" element={<CampRegistrationPage />} />
           <Route
             path="/payment-success"
-            element={
-              <ProtectedRoute>
-                <PaymentSuccessPage />
-              </ProtectedRoute>
-            }
+            element={<PaymentSuccessPage />}
           />
           <Route
             path="/registration/:registrationId/child-details"
-            element={
-              <ProtectedRoute>
-                <RegistrationChildDetailsPage />
-              </ProtectedRoute>
-            }
+            element={<RegistrationChildDetailsPage />}
           />
           <Route
             path="/dashboard"
@@ -131,7 +125,7 @@ function App() {
             path="/onboarding/welcome"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <Welcome />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -141,7 +135,7 @@ function App() {
             path="/onboarding/organization"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <OrganizationSetup />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -151,7 +145,7 @@ function App() {
             path="/onboarding/first-camp"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <FirstCampWizard />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -161,7 +155,7 @@ function App() {
             path="/onboarding/stripe-connect"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <StripeConnect />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -176,7 +170,7 @@ function App() {
             path="/organizer-dashboard"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <OrganizerDashboardOverview />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -186,7 +180,7 @@ function App() {
             path="/organizer/profile"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <PersonalProfile />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -196,7 +190,7 @@ function App() {
             path="/organizer/organization/profile"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <OrganizationProfile />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -206,7 +200,7 @@ function App() {
             path="/organizer/settings/payments"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['camp_organizer']}>
+                <RoleBasedRoute allowedRoles={['organizer']}>
                   <StripePaymentSettings />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -227,7 +221,7 @@ function App() {
             path="/admin/roles"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin']}>
                   <RoleManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -237,7 +231,7 @@ function App() {
             path="/admin/approvals"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations', 'risk']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'marketing', 'operations', 'risk']}>
                   <ApprovalDashboard />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -247,7 +241,7 @@ function App() {
             path="/admin/camp-organizers"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
+                <RoleBasedRoute allowedRoles={['admin']}>
                   <CampOrganizerManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -257,7 +251,7 @@ function App() {
             path="/admin/user-roles"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
+                <RoleBasedRoute allowedRoles={['admin']}>
                   <UserRoleManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -267,7 +261,7 @@ function App() {
             path="/admin/dashboard"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations', 'risk']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'marketing', 'operations', 'risk']}>
                   <DashboardOverview />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -277,7 +271,7 @@ function App() {
             path="/admin/dashboard/camps"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'marketing', 'operations']}>
                   <CampsManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -287,7 +281,7 @@ function App() {
             path="/admin/dashboard/enquiries"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'marketing', 'operations']}>
                   <EnquiriesManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -297,7 +291,7 @@ function App() {
             path="/admin/dashboard/customers"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'operations']}>
                   <CustomersManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -307,7 +301,7 @@ function App() {
             path="/admin/dashboard/registrations"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'operations']}>
                   <RegistrationsManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -317,7 +311,7 @@ function App() {
             path="/admin/dashboard/bookings"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'operations']}>
                   <BookingsManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -327,7 +321,7 @@ function App() {
             path="/admin/dashboard/communications"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'marketing']}>
                   <CommunicationsCenter />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -337,7 +331,7 @@ function App() {
             path="/admin/dashboard/analytics"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'marketing', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'marketing', 'operations']}>
                   <AnalyticsDashboard />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -347,7 +341,7 @@ function App() {
             path="/admin/data-management"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'operations']}>
                   <DataManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -357,7 +351,7 @@ function App() {
             path="/admin/dashboard/organisations"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
+                <RoleBasedRoute allowedRoles={['admin']}>
                   <OrganisationsManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -367,7 +361,7 @@ function App() {
             path="/admin/dashboard/commissions"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'operations']}>
                   <CommissionsManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -377,7 +371,7 @@ function App() {
             path="/admin/dashboard/commission-rates"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
+                <RoleBasedRoute allowedRoles={['admin']}>
                   <CommissionRatesManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -387,7 +381,7 @@ function App() {
             path="/admin/settings"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
+                <RoleBasedRoute allowedRoles={['admin']}>
                   <SystemSettings />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -397,7 +391,7 @@ function App() {
             path="/admin/dashboard/payouts"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'operations']}>
                   <PayoutsManagement />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -407,7 +401,7 @@ function App() {
             path="/admin/dashboard/payment-analytics"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin', 'school_admin', 'operations']}>
+                <RoleBasedRoute allowedRoles={['admin', 'school_admin', 'operations']}>
                   <PaymentAnalytics />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -417,7 +411,7 @@ function App() {
             path="/admin/settings"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
+                <RoleBasedRoute allowedRoles={['admin']}>
                   <SiteSettings />
                 </RoleBasedRoute>
               </ProtectedRoute>
@@ -427,7 +421,7 @@ function App() {
             path="/admin/diagnostics"
             element={
               <ProtectedRoute>
-                <RoleBasedRoute allowedRoles={['super_admin']}>
+                <RoleBasedRoute allowedRoles={['admin']}>
                   <SystemDiagnostics />
                 </RoleBasedRoute>
               </ProtectedRoute>

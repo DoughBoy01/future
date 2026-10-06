@@ -135,8 +135,8 @@ export function CampsManagementContent() {
           .order('created_at', { ascending: false });
 
         // Filter camps for camp organizers (only their organization's camps)
-        if (profile?.role === 'camp_organizer' && profile?.organisation_id) {
-          query = query.eq('organisation_id', profile.organisation_id);
+        if (profile?.role === 'organizer' && profile?.organisationId) {
+          query = query.eq('organisation_id', profile.organisationId);
         }
 
         const { data, error } = await query;
@@ -187,9 +187,9 @@ export function CampsManagementContent() {
       console.log('[CampsManagement] ===== DEBUGGING =====');
       console.log('[CampsManagement] Profile:', profile);
       console.log('[CampsManagement] Role:', profile?.role);
-      console.log('[CampsManagement] Organisation ID:', profile?.organisation_id);
-      console.log('[CampsManagement] Is camp_organizer?', profile?.role === 'camp_organizer');
-      console.log('[CampsManagement] Has org ID?', !!profile?.organisation_id);
+      console.log('[CampsManagement] Organisation ID:', profile?.organisationId);
+      console.log('[CampsManagement] Is camp_organizer?', profile?.role === 'organizer');
+      console.log('[CampsManagement] Has org ID?', !!profile?.organisationId);
 
       // Build query based on user role
       let query = supabase
@@ -198,12 +198,12 @@ export function CampsManagementContent() {
         .order('created_at', { ascending: false });
 
       // Filter camps for camp organizers (only their organization's camps)
-      if (profile?.role === 'camp_organizer' && profile?.organisation_id) {
-        console.log('[CampsManagement] ✅ FILTERING camps by organisation_id:', profile.organisation_id);
-        query = query.eq('organisation_id', profile.organisation_id);
+      if (profile?.role === 'organizer' && profile?.organisationId) {
+        console.log('[CampsManagement] ✅ FILTERING camps by organisation_id:', profile.organisationId);
+        query = query.eq('organisation_id', profile.organisationId);
       } else {
         console.log('[CampsManagement] ⚠️ NOT FILTERING - showing all camps');
-        console.log('[CampsManagement] Reason: role is', profile?.role, 'org_id is', profile?.organisation_id);
+        console.log('[CampsManagement] Reason: role is', profile?.role, 'org_id is', profile?.organisationId);
       }
 
       const { data, error: queryError } = await query;
@@ -621,10 +621,10 @@ export function CampsManagementContent() {
         {/* DEBUG INFO - Remove this after testing */}
         <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
           <p className="text-sm font-mono">
-            <strong>DEBUG:</strong> Role: {profile?.role || 'none'} | Org ID: {profile?.organisation_id || 'none'}
+            <strong>DEBUG:</strong> Role: {profile?.role || 'none'} | Org ID: {profile?.organisationId || 'none'}
           </p>
           <p className="text-xs text-yellow-700 mt-1">
-            {profile?.role === 'camp_organizer' && profile?.organisation_id
+            {profile?.role === 'organizer' && profile?.organisationId
               ? '✅ Filtering camps by your organization'
               : '⚠️ Showing ALL camps (you are not a camp_organizer or missing org_id)'}
           </p>
@@ -848,7 +848,7 @@ export function CampsManagementContent() {
           onClose={handleModalClose}
           onSuccess={handleSuccess}
           camp={selectedCamp}
-          schoolId={profile?.organisation_id || ''}
+          schoolId={profile?.organisationId || ''}
         />
       )}
 
